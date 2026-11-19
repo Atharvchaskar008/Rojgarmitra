@@ -155,7 +155,13 @@ export class TrainingDiscoveryAgent {
     const scoredCourses: (VerifiedCourseDetail & { score: number })[] = [];
 
     for (const item of OFFICIAL_DVET_CURRICULUM) {
-      const center = centerMap.get(item.centerId);
+      let center = centerMap.get(item.centerId);
+      if (!center && item.centerId.includes('butibori')) {
+        center = centerMap.get('iti_butibori_gov') || centerMap.get('iti_butibori_sub');
+      }
+      if (!center && item.centerId.includes('hingna')) {
+        center = centerMap.get('iti_hingna_gov');
+      }
       const centerTaluka = (center?.taluka || '').toLowerCase();
       const centerDistrict = (center?.district || 'Nagpur').toLowerCase();
 

@@ -222,6 +222,26 @@ export class RegionalRagService {
   }
 
   /**
+   * Convenience alias for answerWithRag
+   */
+  async answerQuestion(params: {
+    question: string;
+    candidate: { trade?: string; skillIds?: string[]; skills?: string[]; taluka?: string; district?: string };
+    locale?: SupportedLocale;
+  }): Promise<RagResponse> {
+    return this.answerWithRag(
+      params.question,
+      {
+        trade: params.candidate.trade,
+        skills: params.candidate.skillIds || params.candidate.skills,
+        taluka: params.candidate.taluka,
+        district: params.candidate.district,
+      },
+      params.locale || 'mr'
+    );
+  }
+
+  /**
    * Executes Grounded RAG reasoning using retrieved evidence and Gemini.
    */
   async answerWithRag(

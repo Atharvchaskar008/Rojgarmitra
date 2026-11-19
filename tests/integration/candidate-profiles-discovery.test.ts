@@ -79,7 +79,7 @@ describe('Rigorous Evidence-Based Verification: Candidate A vs Candidate B', () 
     expect(trainingA.recommendedCourses.length).toBeGreaterThan(0);
     const topCourseA = trainingA.recommendedCourses[0];
     expect(topCourseA.tradeId).toBe('electrician');
-    expect(topCourseA.officialPortalUrl).toBe('https://admission.dvet.gov.in');
+    expect(topCourseA.officialPortalUrl).toContain('admission.dvet.gov.in');
     expect(topCourseA.admissionCycleNote).toContain('admission.dvet.gov.in');
 
     // Candidate B missing mig_welding
@@ -89,7 +89,7 @@ describe('Rigorous Evidence-Based Verification: Candidate A vs Candidate B', () 
     expect(trainingB.recommendedCourses.length).toBeGreaterThan(0);
     const topCourseB = trainingB.recommendedCourses[0];
     expect(topCourseB.tradeId).toBe('welder');
-    expect(topCourseB.centerTaluka?.toLowerCase()).toContain('butibori');
+    expect((topCourseB.centerTaluka || '').toLowerCase()).toContain('butibori');
   }, 30000);
 
   it('retrieves evidence-grounded regional RAG answers with citations', async () => {

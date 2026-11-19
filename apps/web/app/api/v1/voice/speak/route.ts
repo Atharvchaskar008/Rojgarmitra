@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, handleApiError } from '@/lib/auth/server-auth';
+import { serverConfig } from '@/lib/config/server-config';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,12 +18,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
-    const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'; // default multilingual voice
+    const config = serverConfig.get();
+    const elevenLabsKey = config.ELEVENLABS_API_KEY || process.env.ELEVENLABS_API_KEY;
+    let voiceId = config.ELEVENLABS_VOICE_ID || process.env.ELEVENLABS_VOICE_ID;
 
     if (elevenLabsKey) {
       try {
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        // If Voice ID is not provided, dynamically discover available voice from ElevenLabs API
+        if (!voiceId) {
+          const voicesRes = await fetch('https://api.elevenlabs.io/v1/voices', {
+            headers: { 'xi-api-key': elevenLabsKey },
+          });
+          if (voicesRes.ok) {
+            const voicesData = (await voicesRes.json()) as { voices?: Array<{ voice_id: string }> };
+            if (voicesData.voices && voicesData.voices.length > 0) {
+              voiceId = voicesData.voices[0].voice_id;
+            }
+          }
+        }
+
+        // Fallback default voice if still not found
+        const finalVoiceId = voiceId || 'CwhRBWXzGAHq8TQ4Fs17';
+
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${finalVoiceId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -45,15 +63,18 @@ export async function POST(req: NextRequest) {
             headers: {
               'Content-Type': 'audio/mpeg',
               'Content-Length': buffer.length.toString(),
+              'X-Voice-Id': finalVoiceId,
             },
           });
+        } else {
+          console.warn('[ElevenLabs TTS] API returned HTTP', response.status);
         }
       } catch (voiceErr) {
-        console.warn('[ElevenLabs TTS] API call failed, falling back to text response:', voiceErr);
+        console.warn('[ElevenLabs TTS] API call failed, falling back to text response:', (voiceErr as Error).message);
       }
     }
 
-    // Graceful fallback when ElevenLabs key is not yet set
+    // Graceful fallback when ElevenLabs key is not set or network fails
     return NextResponse.json({
       data: {
         text,

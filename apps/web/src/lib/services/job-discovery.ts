@@ -2,23 +2,24 @@ import {
   CandidateProfile,
   JobPosting,
   JobMatchResult,
-  calculateJobMatch,
   rankJobsForCandidate,
   SupportedLocale,
 } from '@rojgarmitra/shared';
-import { geminiClient, GroundedSearchResult } from '../ai/gemini-client';
+import { geminiClient } from '../ai/gemini-client';
 import { adminDb } from '../firebase/admin';
+import {
+  SearchProvider,
+  NormalizedSourceRecord,
+  OrchestratedSearchProvider,
+  searchProviderService,
+} from './search-providers';
+import {
+  VacancyVerificationStatus,
+  VerifiedSourceEvidence,
+  vacancyVerifier,
+} from './vacancy-verifier';
 
-export type VacancyVerificationStatus = 'verified_vacancy' | 'unverified_lead' | 'expired' | 'unavailable';
-
-export interface VerifiedSourceEvidence {
-  evidenceType: 'internal_employer_posting' | 'authoritative_job_portal' | 'grounded_search_result' | 'unverified_citation';
-  confidence: 'high' | 'medium' | 'low';
-  sourcePortalName: string;
-  sourceUrl?: string;
-  observedAt: string;
-  notes: string;
-}
+export type { VacancyVerificationStatus, VerifiedSourceEvidence };
 
 export interface DiscoveredJobOpportunity {
   job: JobPosting;
@@ -43,29 +44,13 @@ export interface JobDiscoveryResponse {
   };
 }
 
-export interface SearchProvider {
-  name: string;
-  search(query: string, location: string): Promise<GroundedSearchResult>;
-}
-
-export class GeminiSearchGroundingProvider implements SearchProvider {
-  name = 'gemini_google_search';
-
-  async search(query: string, location: string): Promise<GroundedSearchResult> {
-    const prompt = `Search for current, verified job vacancies for "${query}" in or near "${location}", Maharashtra.
-Focus on industrial areas like Butibori MIDC, Hingna MIDC, Umred, Katol, Saoner, or Nagpur.
-Only return information supported by live public vacancy notices, employment portals (MahaJobs, NCS), or direct employer recruitment announcements.
-State the exact employer name, job title, and location if mentioned in the source.`;
-
-    return geminiClient.generateWithSearchGrounding(prompt, { timeoutMs: 9000 });
-  }
-}
+export type { SearchProvider };
 
 export class JobDiscoveryAgent {
   private provider: SearchProvider;
 
   constructor(provider?: SearchProvider) {
-    this.provider = provider || new GeminiSearchGroundingProvider();
+    this.provider = provider || searchProviderService;
   }
 
   /**
@@ -75,6 +60,7 @@ export class JobDiscoveryAgent {
    * 2. Never converts a generic web citation directly into a verified vacancy.
    * 3. Labels generic citations as 'unverified_lead'.
    * 4. Returns 0 verified jobs when no authentic vacancies are confirmed.
+   * 5. Uses live Tavily / Gemini search with safe page verification.
    */
   async discoverJobs(
     candidate: Partial<CandidateProfile>,
@@ -87,6 +73,7 @@ export class JobDiscoveryAgent {
       : candidate.district || 'Nagpur';
 
     const opportunities: DiscoveredJobOpportunity[] = [];
+    const seenJobIds = new Set<string>();
 
     // Step 1: Query authentic internal employer vacancies from Firestore
     try {
@@ -97,23 +84,28 @@ export class JobDiscoveryAgent {
           const isTradeMatch =
             !candidate.trade ||
             data.title.toLowerCase().includes(trade.toLowerCase()) ||
-            data.requiredSkillIds.some((s) => skills.includes(s));
+            (data.requiredSkillIds && data.requiredSkillIds.some((s) => skills.includes(s)));
+
           const isLocMatch =
             !candidate.district ||
             data.district.toLowerCase() === (candidate.district || '').toLowerCase();
 
           if (isTradeMatch || isLocMatch) {
-            opportunities.push({
-              job: { ...data, id: doc.id },
-              verificationStatus: 'verified_vacancy',
-              evidence: {
-                evidenceType: 'internal_employer_posting',
-                confidence: 'high',
-                sourcePortalName: 'RojgarMitra Employer Portal',
-                observedAt: data.createdAt || new Date().toISOString(),
-                notes: 'Posted directly by registered employer with verified contact.',
-              },
-            });
+            const jobId = doc.id;
+            if (!seenJobIds.has(jobId)) {
+              seenJobIds.add(jobId);
+              opportunities.push({
+                job: { ...data, id: jobId },
+                verificationStatus: 'verified_vacancy',
+                evidence: {
+                  evidenceType: 'internal_employer_posting',
+                  confidence: 'high',
+                  sourcePortalName: 'RojgarMitra Employer Portal',
+                  observedAt: data.createdAt || new Date().toISOString(),
+                  notes: 'Posted directly by registered employer with verified contact.',
+                },
+              });
+            }
           }
         });
       }
@@ -121,7 +113,7 @@ export class JobDiscoveryAgent {
       console.warn('[JobDiscoveryAgent] Firestore employer query skipped:', (err as Error).message);
     }
 
-    // Step 2: Generate localized search queries via Gemini query planner
+    // Step 2: Generate localized search queries
     let plannedQueries: string[] = [];
     try {
       plannedQueries = await geminiClient.planJobSearchQueries({
@@ -132,90 +124,103 @@ export class JobDiscoveryAgent {
         locale,
       });
     } catch {
+      // Robust domain fallback
+      const talukaName = candidate.taluka || 'Hingna';
+      plannedQueries = [
+        `${trade} vacancy ${talukaName} Nagpur MIDC`,
+        `ITI ${trade} job ${location}`,
+        `Industrial ${trade} opening Nagpur`,
+      ];
+    }
+
+    if (!plannedQueries || plannedQueries.length === 0) {
       plannedQueries = [`${trade} vacancies ${location} MIDC`];
     }
 
-    // Step 3: Execute grounded web search
+    // Step 3: Execute web search (Tavily / Gemini Grounding)
     const primaryQuery = plannedQueries[0] || `${trade} jobs ${location}`;
-    let groundedResult: GroundedSearchResult = { text: '', sources: [] };
+    let searchRecords: NormalizedSourceRecord[] = [];
     let hasGrounding = false;
 
-    if (geminiClient.isConfigured()) {
+    if (this.provider.isAvailable()) {
       try {
-        groundedResult = await this.provider.search(primaryQuery, location);
-        hasGrounding = groundedResult.sources.length > 0;
+        searchRecords = await this.provider.search(primaryQuery, { location, maxResults: 5 });
+        hasGrounding = searchRecords.length > 0;
       } catch (searchErr) {
-        console.warn('[JobDiscoveryAgent] Live search grounding unavailable:', (searchErr as Error).message);
+        console.warn('[JobDiscoveryAgent] Search provider error:', (searchErr as Error).message);
       }
     }
 
     // Step 4: Extract and verify external job evidence
-    if (groundedResult.sources.length > 0) {
-      for (const source of groundedResult.sources) {
-        if (!source.url || !source.url.startsWith('http')) continue;
+    for (const record of searchRecords) {
+      if (!record.url || !record.url.startsWith('http')) continue;
 
-        let domain = '';
+      let domain = '';
+      try {
+        domain = new URL(record.url).hostname.replace('www.', '');
+      } catch {
+        continue;
+      }
+
+      // Verify the record using VacancyVerifier
+      const verification = await vacancyVerifier.verifySourceRecord(record, trade);
+
+      // Skip expired or permanently unavailable
+      if (verification.status === 'expired' || verification.status === 'unavailable') {
+        continue;
+      }
+
+      const jobId = `ext_${Buffer.from(record.url).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`;
+      if (seenJobIds.has(jobId)) continue;
+      seenJobIds.add(jobId);
+
+      let extractedDistrict = '';
+      const titleLower = record.title.toLowerCase();
+      if (titleLower.includes('nagpur')) extractedDistrict = 'Nagpur';
+      else if (titleLower.includes('wardha')) extractedDistrict = 'Wardha';
+      else if (titleLower.includes('amravati')) extractedDistrict = 'Amravati';
+
+      const externalJob: JobPosting = {
+        id: jobId,
+        title: verification.extractedJob?.title || (record.title.length > 5 ? record.title.slice(0, 100) : `${trade} Lead (${domain})`),
+        description: verification.status === 'verified_vacancy'
+          ? `Verified external vacancy on ${domain}. Direct application available at ${record.url}.`
+          : `Discovered from public source on ${domain}. This citation is an unverified search lead and does not confirm an active individual vacancy. Details must be confirmed directly at ${record.url}.`,
+        employerName: verification.extractedJob?.employerName || `Employer (${domain})`,
+        district: verification.extractedJob?.district || extractedDistrict,
+        taluka: verification.extractedJob?.taluka,
+        areaOrMidc: verification.extractedJob?.areaOrMidc,
+        requiredSkillIds: verification.extractedJob?.requiredSkillIds || [],
+        mandatoryCertificationIds: verification.extractedJob?.mandatoryCertificationIds || [],
+        salaryMin: verification.extractedJob?.salaryMin,
+        salaryMax: verification.extractedJob?.salaryMax,
+        vacancies: verification.extractedJob?.vacancies || 0,
+        status: verification.status === 'verified_vacancy' ? 'open' : 'unverified',
+        sourceType: 'external_public',
+        sourceUrl: record.url,
+        sourceDomain: domain,
+        observedAt: new Date().toISOString(),
+        lastCheckedAt: new Date().toISOString(),
+        freshnessStatus: verification.status === 'verified_vacancy' ? 'fresh' : 'unverified',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      opportunities.push({
+        job: externalJob,
+        verificationStatus: verification.status,
+        evidence: verification.evidence,
+      });
+
+      // If independently verified, cache into Firestore externalJobs collection for regional RAG
+      if (verification.status === 'verified_vacancy') {
         try {
-          domain = new URL(source.url).hostname.replace('www.', '');
+          if (adminDb && typeof adminDb.collection === 'function') {
+            await adminDb.collection('externalJobs').doc(jobId).set(externalJob, { merge: true });
+          }
         } catch {
-          continue;
+          // ignore cache errors
         }
-
-        // Verification policy:
-        // A search citation or portal domain alone is strictly an 'unverified_lead'.
-        // It NEVER qualifies as a 'verified_vacancy' without confirmed evidence of an actual, individual vacancy.
-        const verificationStatus: VacancyVerificationStatus = 'unverified_lead';
-        const confidence = 'low';
-
-        // Extract district only if explicitly mentioned in title, never copy from candidate profile
-        let extractedDistrict = '';
-        const titleLower = source.title.toLowerCase();
-        if (titleLower.includes('nagpur')) {
-          extractedDistrict = 'Nagpur';
-        } else if (titleLower.includes('wardha')) {
-          extractedDistrict = 'Wardha';
-        } else if (titleLower.includes('amravati')) {
-          extractedDistrict = 'Amravati';
-        }
-
-        // Never assign vacancies=1, status=open, freshness=fresh, employer, location, or required skills
-        // based only on search citation or candidate profile
-        const externalJob: JobPosting = {
-          id: `ext_${Buffer.from(source.url).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`,
-          title: source.title.length > 5 ? source.title.slice(0, 100) : `${trade} Lead (${domain})`,
-          description: `Discovered from public source on ${domain}. This citation is an unverified search lead and does not confirm an active individual vacancy. Requirements, employer identity, and vacancy status must be verified directly at ${source.url}.`,
-          employerName: `Unspecified Employer (${domain})`,
-          district: extractedDistrict,
-          taluka: undefined,
-          areaOrMidc: undefined,
-          requiredSkillIds: [], // NEVER populate from candidate skills
-          mandatoryCertificationIds: [],
-          salaryMin: undefined,
-          salaryMax: undefined,
-          vacancies: 0, // Never assign 1 vacancy without explicit proof
-          status: 'unverified', // Never assign 'open'
-          sourceType: 'external_public',
-          sourceUrl: source.url,
-          sourceDomain: domain,
-          observedAt: new Date().toISOString(),
-          lastCheckedAt: new Date().toISOString(),
-          freshnessStatus: 'unverified', // Never assign 'fresh'
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        opportunities.push({
-          job: externalJob,
-          verificationStatus,
-          evidence: {
-            evidenceType: 'grounded_search_result',
-            confidence,
-            sourcePortalName: domain,
-            sourceUrl: source.url,
-            observedAt: new Date().toISOString(),
-            notes: 'External search citation. Individual vacancy page, active status, and employer terms require independent confirmation before application.',
-          },
-        });
       }
     }
 
