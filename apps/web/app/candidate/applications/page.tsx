@@ -7,7 +7,7 @@ import { getDictionary } from '@rojgarmitra/i18n';
 import { JobApplication } from '@rojgarmitra/shared';
 
 export default function CandidateApplicationsPage() {
-  const { preferredLocale, getIdToken } = useAuth();
+  const { preferredLocale, user, getIdToken } = useAuth();
   const dict = getDictionary(preferredLocale);
 
   const [applications, setApplications] = useState<(JobApplication & { jobTitle?: string; employerName?: string })[]>([]);
@@ -15,6 +15,10 @@ export default function CandidateApplicationsPage() {
 
   useEffect(() => {
     async function loadApplications() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const token = await getIdToken();
@@ -36,37 +40,37 @@ export default function CandidateApplicationsPage() {
       }
     }
     loadApplications();
-  }, []);
+  }, [user]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'shortlisted':
         return (
-          <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold text-xs">
+          <span className="px-3.5 py-1 bg-verified-bg text-verified rounded-full font-bold text-xs border border-verified">
             ✓ {dict.employer.action_shortlist} (Shortlisted)
           </span>
         );
       case 'interview_requested':
         return (
-          <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full font-bold text-xs">
+          <span className="px-3.5 py-1 bg-steel-soft text-primary rounded-full font-bold text-xs border border-steel">
             📞 {dict.employer.action_interview} (Interview Requested)
           </span>
         );
       case 'accepted':
         return (
-          <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full font-bold text-xs">
+          <span className="px-3.5 py-1 bg-verified-bg text-verified rounded-full font-bold text-xs border border-verified">
             🎉 {dict.employer.action_accept} (Selected)
           </span>
         );
       case 'rejected':
         return (
-          <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full font-bold text-xs">
+          <span className="px-3.5 py-1 bg-alert-bg text-alert rounded-full font-bold text-xs border border-alert">
             ✕ {dict.employer.action_reject}
           </span>
         );
       default:
         return (
-          <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full font-bold text-xs">
+          <span className="px-3.5 py-1 bg-steel-soft text-ink rounded-full font-bold text-xs border border-steel/60">
             🕒 {dict.job.applied} (Under Review)
           </span>
         );
@@ -74,42 +78,61 @@ export default function CandidateApplicationsPage() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <main className="max-w-4xl mx-auto py-4">
+      {/* Header Banner - SETTLE Hero Card */}
+      <div className="settle-card-hero p-6 sm:p-8 mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-3xl font-black text-ink">
             {dict.nav.applications}
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-ink-secondary mt-1 font-medium">
             आपण पाठवलेल्या नोकरी अर्जांची सद्यस्थिती (Application Status Tracker)
           </p>
         </div>
         <Link
           href="/candidate"
-          className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200"
+          className="settle-pill-chip text-xs px-3.5 py-1.5 font-bold"
         >
           ← {dict.nav.jobs}
         </Link>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-slate-500 font-medium">
-          {dict.common.loading}
+        <div className="text-center py-16 text-ink-secondary font-bold text-base">
+          ⌛ {dict.common.loading}
+        </div>
+      ) : !user ? (
+        <div className="text-center py-12 settle-card p-8">
+          <span className="text-4xl mb-3 inline-block">🔑</span>
+          <h3 className="text-base font-black text-ink mb-1">
+            {preferredLocale === 'mr' ? 'लॉगिन आवश्यक आहे' : 'Login Required'}
+          </h3>
+          <p className="text-sm text-ink-secondary mb-4 font-medium">
+            {preferredLocale === 'mr'
+              ? 'आपले पाठवलेले अर्ज व मुलाखतीची स्थिती पाहण्यासाठी कृपया लॉगिन करा.'
+              : 'Please sign in to view your applications and interview statuses.'}
+          </p>
+          <Link
+            href="/login"
+            className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
+          >
+            {dict.nav.login} ➔
+          </Link>
         </div>
       ) : applications.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+        <div className="text-center py-12 settle-card p-8">
           <span className="text-4xl mb-3 inline-block">📄</span>
-          <h3 className="text-base font-bold text-slate-800 mb-1">
+          <h3 className="text-base font-black text-ink mb-1">
             अद्याप कोणताही अर्ज केलेला नाही
           </h3>
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="text-sm text-ink-secondary mb-4 font-medium">
             आपल्या कौशल्यानुसार नोकऱ्या शोधा आणि थेट एका क्लिकवर अर्ज करा.
           </p>
           <Link
             href="/candidate"
-            className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition"
+            className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
           >
-            नोकऱ्या शोधा →
+            नोकऱ्या शोधा ➔
           </Link>
         </div>
       ) : (
@@ -117,14 +140,14 @@ export default function CandidateApplicationsPage() {
           {applications.map(app => (
             <div
               key={app.id}
-              className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition"
+              className="settle-card-interactive p-6"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <h3 className="text-lg font-black text-ink">
                     {app.jobTitle || 'Industrial Vacancy'}
                   </h3>
-                  <p className="text-sm text-slate-600 font-medium">
+                  <p className="text-xs text-ink-secondary font-bold uppercase tracking-wider mt-0.5">
                     🏢 {app.employerName || 'Employer'}
                   </p>
                 </div>
@@ -132,14 +155,14 @@ export default function CandidateApplicationsPage() {
               </div>
 
               {app.notes && (
-                <div className="mt-3 p-3 bg-slate-50 rounded-xl text-xs text-slate-700 border border-slate-100">
-                  <span className="font-bold text-slate-900">नियोक्त्यांची टीप:</span> {app.notes}
+                <div className="mt-3 p-3.5 bg-canvas rounded-xl text-xs text-ink border border-steel/50">
+                  <span className="font-black text-ink">नियोक्त्यांची टीप:</span> {app.notes}
                 </div>
               )}
 
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+              <div className="mt-4 pt-3 border-t border-steel/40 flex items-center justify-between text-xs text-ink-secondary font-medium">
                 <span>अर्ज दिनांक: {new Date(app.createdAt).toLocaleDateString()}</span>
-                <span className="font-mono">ID: {app.id.slice(0, 8)}...</span>
+                <span className="font-mono text-steel-deep">ID: {app.id.slice(0, 8)}...</span>
               </div>
             </div>
           ))}

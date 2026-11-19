@@ -37,59 +37,59 @@ export default function CandidateUpskillingPage() {
   }, []);
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-teal-700 to-emerald-800 rounded-2xl p-6 sm:p-8 text-white mb-8 shadow-sm">
-        <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-semibold mb-3">
-          🏛️ व्यवसाय शिक्षण व प्रशिक्षण संचालनालय (DVET) महाराष्ट्र
-        </span>
-        <h1 className="text-2xl sm:text-3xl font-black mb-2">
+    <main className="max-w-6xl mx-auto py-4">
+      {/* Header Banner - SETTLE Hero Card */}
+      <div className="settle-card-hero p-6 sm:p-8 mb-8">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
+          <span>🏛️ व्यवसाय शिक्षण व प्रशिक्षण संचालनालय (DVET) महाराष्ट्र</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-ink tracking-tight mb-2">
           {dict.upskilling.title}
         </h1>
-        <p className="text-teal-100 text-sm max-w-2xl mb-4">
+        <p className="text-ink-secondary text-sm max-w-2xl mb-6 font-medium">
           {dict.upskilling.subtitle}
         </p>
         <a
           href="https://admission.dvet.gov.in"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block px-4 py-2 bg-white text-teal-900 rounded-xl font-bold text-xs shadow hover:bg-teal-50 transition"
+          className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
         >
-          🌐 {dict.upskilling.official_portal} →
+          🌐 {dict.upskilling.official_portal} ➔
         </a>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-slate-500 font-medium">
-          {dict.common.loading}
+        <div className="text-center py-16 text-ink-secondary font-bold text-base">
+          ⌛ {dict.common.loading}
         </div>
       ) : (
         <div className="space-y-8">
           {/* Section: Accredited ITI Institutes */}
           <div>
-            <h2 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-black text-ink mb-4 flex items-center gap-2">
               <span>🏫</span> मान्यताप्राप्त शासकीय ITI संस्था (Nagpur Region)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {centers.map(center => (
                 <div
                   key={center.id}
-                  className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                  className="settle-card-interactive p-6 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified">
                         ✓ {center.verifiedStatus === 'official_gov' ? 'शासकीय मान्यताप्राप्त' : 'Verified'}
                       </span>
-                      <span className="text-xs font-semibold text-slate-500">
+                      <span className="text-xs font-bold text-ink-secondary">
                         📍 {center.taluka || center.district}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">
+                    <h3 className="text-lg font-black text-ink mb-2">
                       {preferredLocale === 'mr' && center.nameMr ? center.nameMr : center.name}
                     </h3>
-                    <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+                    <p className="text-xs text-ink-secondary mb-4 leading-relaxed font-medium">
                       {center.address}
                     </p>
 
@@ -97,7 +97,7 @@ export default function CandidateUpskillingPage() {
                       {center.supportedTradeIds.map(t => (
                         <span
                           key={t}
-                          className="text-xs px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg font-medium"
+                          className="text-xs px-2.5 py-1 bg-steel-soft text-steel-deep rounded-full font-semibold"
                         >
                           {t}
                         </span>
@@ -105,14 +105,14 @@ export default function CandidateUpskillingPage() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-4 border-t border-steel/40 flex items-center justify-between">
                     <a
                       href={center.officialUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
+                      className="settle-pill-btn px-4 py-1.5 text-xs inline-block bg-ink hover:bg-ink/90"
                     >
-                      अधिकृत माहिती पहा →
+                      अधिकृत माहिती पहा ➔
                     </a>
                   </div>
                 </div>
@@ -122,24 +122,24 @@ export default function CandidateUpskillingPage() {
 
           {/* Section: Courses Mapped to Skills */}
           <div>
-            <h2 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-black text-ink mb-4 flex items-center gap-2">
               <span>📚</span> उपलब्ध व्यावसायिक अभ्यासक्रम (Courses)
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map(course => (
                 <div
                   key={course.id}
-                  className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                  className="settle-card-interactive p-5 flex flex-col justify-between"
                 >
                   <div>
-                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 mb-2 inline-block">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-steel-soft text-steel-deep border border-steel mb-3 inline-block">
                       {course.fees === 0 ? dict.upskilling.free_subsidized : `₹${course.fees}`}
                     </span>
-                    <h4 className="text-base font-bold text-slate-900 mb-2 leading-snug">
+                    <h4 className="text-base font-black text-ink mb-2 leading-snug">
                       {preferredLocale === 'mr' && course.titleMr ? course.titleMr : course.title}
                     </h4>
-                    <p className="text-xs text-slate-500 mb-3">
-                      कालावधी: <strong>{course.durationMonths} महिने</strong>
+                    <p className="text-xs text-ink-secondary mb-4 font-medium">
+                      कालावधी: <strong className="text-ink">{course.durationMonths} महिने</strong>
                     </p>
                   </div>
 
@@ -147,9 +147,9 @@ export default function CandidateUpskillingPage() {
                     href={course.officialEnrollUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-center py-2 bg-slate-100 hover:bg-emerald-600 hover:text-white rounded-xl text-xs font-bold text-slate-700 transition"
+                    className="settle-pill-btn block text-center py-2 px-4 text-xs"
                   >
-                    प्रवेश प्रक्रिया पहा →
+                    प्रवेश प्रक्रिया पहा ➔
                   </a>
                 </div>
               ))}

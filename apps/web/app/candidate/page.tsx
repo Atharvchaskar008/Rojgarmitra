@@ -109,35 +109,35 @@ export default function CandidateJobsFeedPage() {
   });
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 sm:p-8 text-white mb-8 shadow-sm">
+    <main className="max-w-7xl mx-auto py-4">
+      {/* Header Banner - SETTLE Hero Card */}
+      <div className="settle-card-hero p-6 sm:p-8 mb-8">
         <div className="max-w-3xl">
-          <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-semibold mb-3">
-            📍 {dict.app.pilot_region}
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black mb-2">
-            {dict.nav.jobs} (Job Opportunities)
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
+            <span>📍 {dict.app.pilot_region}</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-ink tracking-tight mb-2">
+            {dict.nav.jobs} <span className="text-ink-secondary text-xl font-bold font-sans">(Opportunities)</span>
           </h1>
-          <p className="text-emerald-100 text-sm sm:text-base mb-4">
+          <p className="text-ink-secondary text-sm sm:text-base mb-6 font-medium">
             {dict.app.tagline}
           </p>
           <div className="flex flex-wrap gap-2 text-xs">
             <Link
               href="/candidate/onboarding"
-              className="bg-white text-emerald-800 font-bold px-4 py-2 rounded-xl shadow-sm hover:bg-emerald-50 transition"
+              className="settle-pill-btn px-4 py-2 text-xs"
             >
-              ✏️ {dict.candidate.preferred_name ? 'माझे प्रोफाईल भरा / अपडेट करा' : 'Update Profile'}
+              🎙️ आवाज प्रोफाईल अपडेट करा ➔
             </Link>
             <Link
               href="/candidate/upskilling"
-              className="bg-emerald-800/60 text-white font-medium px-4 py-2 rounded-xl hover:bg-emerald-800 transition"
+              className="settle-pill-chip px-4 py-2 text-xs font-bold"
             >
               🎓 {dict.nav.upskilling}
             </Link>
             <Link
               href="/candidate/career"
-              className="bg-emerald-800/60 text-white font-medium px-4 py-2 rounded-xl hover:bg-emerald-800 transition"
+              className="settle-pill-chip px-4 py-2 text-xs font-bold"
             >
               🚀 {dict.nav.career}
             </Link>
@@ -148,29 +148,37 @@ export default function CandidateJobsFeedPage() {
       {/* Message Banner */}
       {message && (
         <div
-          className={`p-4 rounded-xl mb-6 text-sm font-medium ${
+          className={`p-4 rounded-xl mb-6 text-sm font-bold border-2 flex items-center justify-between gap-3 ${
             message.type === 'success'
-              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
+              ? 'bg-verified-bg text-verified border-verified'
+              : 'bg-alert-bg text-alert border-alert'
           }`}
         >
-          {message.text}
+          <span>{message.text}</span>
+          {!user && (
+            <Link
+              href="/login"
+              className="settle-pill-btn text-xs px-4 py-1.5 whitespace-nowrap"
+            >
+              {dict.nav.login} ➔
+            </Link>
+          )}
         </div>
       )}
 
-      {/* Filter Tabs */}
+      {/* Filter Tabs - SETTLE Pill Group */}
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 text-xs sm:text-sm">
-        <span className="font-bold text-slate-700 whitespace-nowrap mr-2">
+        <span className="font-bold text-ink whitespace-nowrap mr-2 uppercase tracking-wider text-xs">
           परिसर / Area:
         </span>
         {['all', 'Butibori', 'Hingna', 'Umred'].map(taluka => (
           <button
             key={taluka}
             onClick={() => setSelectedTaluka(taluka)}
-            className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+            className={`px-4 py-1.5 rounded-full font-bold whitespace-nowrap transition ${
               selectedTaluka === taluka
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                ? 'settle-pill-chip-active text-xs'
+                : 'settle-pill-chip text-xs'
             }`}
           >
             {taluka === 'all' ? 'सर्व परिसर (All Areas)' : taluka}
@@ -180,13 +188,14 @@ export default function CandidateJobsFeedPage() {
 
       {/* Job Cards Grid */}
       {loading ? (
-        <div className="text-center py-12 text-slate-500 font-medium">
-          {dict.common.loading}
+        <div className="text-center py-16 text-ink-secondary font-bold text-base">
+          ⌛ {dict.common.loading}
         </div>
       ) : filteredJobs.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8">
+        <div className="text-center py-12 settle-card p-8">
           <span className="text-4xl mb-2 inline-block">🔍</span>
-          <p className="text-slate-600 font-medium">{dict.common.not_found}</p>
+          <p className="text-ink font-bold">{dict.common.not_found}</p>
+          <p className="text-xs text-ink-secondary mt-1">निवडलेल्या परिसरात सध्या कोणतीही रिक्त जागा उपलब्ध नाही.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -198,54 +207,54 @@ export default function CandidateJobsFeedPage() {
             return (
               <div
                 key={job.id}
-                className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition"
+                className={isExternal ? 'settle-card p-6 flex flex-col justify-between' : 'settle-card-interactive p-6 flex flex-col justify-between'}
               >
                 <div>
                   {/* Top Badges */}
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-steel-soft text-steel-deep border border-steel/60">
                       📍 {job.taluka || job.district}
                     </span>
 
                     {/* Source Attribution Badge */}
                     {job.sourceType === 'internal_employer' ? (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified">
                         ✓ {dict.job.source_verified}
                       </span>
                     ) : job.sourceType === 'external_public' ? (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                        🌐 {job.sourceDomain || 'Public Portal'}
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-steel-soft text-primary border border-steel">
+                        🌐 {job.sourceDomain || 'Public Lead'}
                       </span>
                     ) : (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-alert-bg text-alert border border-alert">
                         ℹ️ {dict.common.demo_badge}
                       </span>
                     )}
                   </div>
 
                   {/* Job Title & Employer */}
-                  <h3 className="text-lg font-bold text-slate-900 leading-snug mb-1">
+                  <h3 className="text-lg font-black text-ink leading-snug mb-1">
                     {job.title}
                   </h3>
-                  <p className="text-sm text-slate-600 font-medium mb-3">
+                  <p className="text-xs text-ink-secondary font-bold mb-4 uppercase tracking-wider">
                     🏢 {job.employerName}
                   </p>
 
                   {/* Compatibility Match Score Badge (if computed) */}
                   {match && (
-                    <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl">
-                      <div className="flex items-center justify-between text-xs font-bold text-emerald-800 mb-1">
+                    <div className="mb-4 p-3 bg-surface-subtle border border-steel/80 rounded-xl">
+                      <div className="flex items-center justify-between text-xs font-black text-primary mb-1.5">
                         <span>{dict.match.match_score}</span>
                         <span>{match.matchScore}%</span>
                       </div>
-                      <div className="w-full bg-emerald-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-steel/40 h-2 rounded-full overflow-hidden">
                         <div
-                          className="bg-emerald-600 h-1.5 rounded-full"
+                          className="bg-primary h-2 rounded-full"
                           style={{ width: `${match.matchScore}%` }}
                         />
                       </div>
                       {match.missingSkills.length > 0 && (
-                        <p className="text-xs text-slate-500 mt-1.5">
+                        <p className="text-xs text-ink-secondary font-medium mt-2">
                           {dict.match.missing_skills}:{' '}
                           {match.missingSkills.map(s => getSkillName(s, preferredLocale)).join(', ')}
                         </p>
@@ -253,28 +262,30 @@ export default function CandidateJobsFeedPage() {
                     </div>
                   )}
 
-                  {/* Salary & Openings */}
-                  <div className="flex items-center gap-4 text-xs text-slate-600 mb-4 bg-slate-50 p-3 rounded-xl">
+                  {/* Salary & Openings - WorkIndia Pattern */}
+                  <div className="flex items-center gap-4 text-xs text-ink mb-4 bg-canvas p-3 rounded-xl border border-steel/50">
                     <div>
-                      <span className="text-slate-400 block">{dict.job.salary}:</span>
-                      <span className="font-bold text-slate-800">
+                      <span className="text-ink-secondary text-[11px] font-bold block uppercase">{dict.job.salary}:</span>
+                      <span className="font-black text-ink text-sm">
                         {job.salaryMin && job.salaryMax
                           ? `₹${job.salaryMin.toLocaleString()} - ₹${job.salaryMax.toLocaleString()}`
                           : dict.job.salary_not_disclosed}
                       </span>
                     </div>
-                    <div className="border-l border-slate-200 pl-4">
-                      <span className="text-slate-400 block">{dict.job.vacancies}:</span>
-                      <span className="font-bold text-slate-800">{job.vacancies} जागा</span>
+                    <div className="border-l border-steel/60 pl-4">
+                      <span className="text-ink-secondary text-[11px] font-bold block uppercase">{dict.job.vacancies}:</span>
+                      <span className="font-black text-ink text-sm">
+                        {(job.vacancies && job.vacancies > 0) ? `${job.vacancies} जागा` : 'उपलब्ध (नक्की करा)'}
+                      </span>
                     </div>
                   </div>
 
                   {/* Required Skills Chips */}
-                  <div className="flex flex-wrap gap-1.5 mb-4">
+                  <div className="flex flex-wrap gap-1.5 mb-5">
                     {job.requiredSkillIds.map(skillId => (
                       <span
                         key={skillId}
-                        className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-700"
+                        className="text-xs px-2.5 py-1 rounded-full bg-steel-soft text-steel-deep font-semibold"
                       >
                         {getSkillName(skillId, preferredLocale)}
                       </span>
@@ -283,20 +294,20 @@ export default function CandidateJobsFeedPage() {
                 </div>
 
                 {/* Bottom Action */}
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-steel/40">
                   {isExternal ? (
                     <a
                       href={job.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full block text-center py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition"
+                      className="w-full block text-center py-2.5 px-4 settle-pill-btn text-xs bg-ink hover:bg-ink/90"
                     >
-                      🔗 {dict.job.view_original} →
+                      🔗 {dict.job.view_original} ➔
                     </a>
                   ) : isApplied ? (
                     <button
                       disabled
-                      className="w-full py-2.5 px-4 bg-slate-100 text-slate-400 font-bold rounded-xl text-sm cursor-not-allowed"
+                      className="w-full py-2.5 px-4 bg-steel-soft text-ink-muted font-bold rounded-full text-xs cursor-not-allowed border border-steel"
                     >
                       ✓ {dict.job.applied}
                     </button>
@@ -304,7 +315,7 @@ export default function CandidateJobsFeedPage() {
                     <button
                       onClick={() => handleApply(job.id)}
                       disabled={applyingId === job.id}
-                      className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition shadow-sm"
+                      className="w-full py-2.5 px-4 settle-pill-btn text-xs"
                     >
                       {applyingId === job.id ? dict.common.loading : dict.job.apply_now}
                     </button>

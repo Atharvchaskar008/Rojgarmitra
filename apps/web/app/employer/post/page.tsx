@@ -56,7 +56,11 @@ export default function EmployerPostJobPage() {
     try {
       const token = await getIdToken();
       if (!token) {
-        setErrorMsg('Please sign in as a verified employer to post vacancies.');
+        setErrorMsg(
+          preferredLocale === 'mr'
+            ? 'जाहिरात देण्यासाठी कृपया प्रथम नियोक्ता म्हणून लॉगिन करा.'
+            : 'Please sign in as a verified employer to post vacancies.'
+        );
         setSubmitting(false);
         return;
       }
@@ -83,34 +87,34 @@ export default function EmployerPostJobPage() {
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+    <main className="max-w-3xl mx-auto py-6">
+      <div className="settle-card-hero p-6 sm:p-10">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <span className="text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full">
-              नियोक्ता • Post Vacancy
+            <span className="text-xs font-bold px-3 py-1 bg-steel-soft text-steel-deep rounded-full border border-steel">
+              नियोक्ता • Post Real Vacancy
             </span>
-            <h1 className="text-2xl font-black text-slate-900 mt-2">
+            <h1 className="text-3xl font-black text-ink mt-2">
               {dict.employer.post_new_job}
             </h1>
           </div>
           <Link
             href="/employer"
-            className="text-xs font-bold text-slate-500 hover:text-slate-800"
+            className="settle-pill-chip text-xs px-3.5 py-1.5 font-bold"
           >
             ← {dict.common.back}
           </Link>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-50 text-red-800 border border-red-200 rounded-xl text-xs font-semibold mb-6">
+          <div className="p-3 bg-alert-bg text-alert border-2 border-alert rounded-xl text-xs font-bold mb-6">
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5 text-sm">
+        <form onSubmit={handleSubmit} className="space-y-6 text-sm">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
+            <label className="block font-bold text-ink mb-1.5">
               {dict.job.title} *
             </label>
             <input
@@ -119,12 +123,12 @@ export default function EmployerPostJobPage() {
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="उदा. औद्योगिक इलेक्ट्रिशियन (Industrial Electrician)"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
+            <label className="block font-bold text-ink mb-1.5">
               {dict.job.description} *
             </label>
             <textarea
@@ -133,19 +137,19 @@ export default function EmployerPostJobPage() {
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="कामाचे स्वरूप, वेळ आणि आवश्यक अनुभव..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
+              <label className="block font-bold text-ink mb-1.5">
                 जिल्हा (District) *
               </label>
               <select
                 value={district}
                 onChange={e => setDistrict(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
               >
                 <option value="Nagpur">नागपूर (Nagpur)</option>
                 <option value="Wardha">वर्धा (Wardha)</option>
@@ -153,13 +157,13 @@ export default function EmployerPostJobPage() {
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
+              <label className="block font-bold text-ink mb-1.5">
                 तालुका (Taluka) *
               </label>
               <select
                 value={taluka}
                 onChange={e => setTaluka(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
               >
                 <option value="Butibori">बुटीबोरी (Butibori)</option>
                 <option value="Hingna">हिंगणा (Hingna)</option>
@@ -168,7 +172,7 @@ export default function EmployerPostJobPage() {
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
+              <label className="block font-bold text-ink mb-1.5">
                 परिसर / MIDC
               </label>
               <input
@@ -176,13 +180,13 @@ export default function EmployerPostJobPage() {
                 value={areaOrMidc}
                 onChange={e => setAreaOrMidc(e.target.value)}
                 placeholder="उदा. Butibori MIDC"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
+            <label className="block font-bold text-ink mb-1.5">
               ट्रेड / व्यवसाय प्रकार *
             </label>
             <select
@@ -194,7 +198,7 @@ export default function EmployerPostJobPage() {
                   setRequiredSkills([nextT.skills[0].id]);
                 }
               }}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none bg-white font-medium"
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-bold"
             >
               {REGIONAL_TRADES.map(t => (
                 <option key={t.id} value={t.id}>
@@ -205,7 +209,7 @@ export default function EmployerPostJobPage() {
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-2">
+            <label className="block font-bold text-ink mb-2">
               आवश्यक कौशल्ये (Required Skills) *
             </label>
             <div className="flex flex-wrap gap-2">
@@ -216,10 +220,10 @@ export default function EmployerPostJobPage() {
                     key={s.id}
                     type="button"
                     onClick={() => handleSkillToggle(s.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
                       isSelected
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'settle-pill-chip-active'
+                        : 'settle-pill-chip'
                     }`}
                   >
                     {isSelected ? '✓ ' : '+ '}
@@ -232,7 +236,7 @@ export default function EmployerPostJobPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
+              <label className="block font-bold text-ink mb-1.5">
                 जागा (Vacancies) *
               </label>
               <input
@@ -242,33 +246,33 @@ export default function EmployerPostJobPage() {
                 required
                 value={vacancies}
                 onChange={e => setVacancies(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
-                किमान वेतन (₹)
+              <label className="block font-bold text-ink mb-1.5">
+                किमान मासिक वेतन (₹)
               </label>
               <input
                 type="number"
                 min="0"
                 value={salaryMin}
                 onChange={e => setSalaryMin(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
-                कमाल वेतन (₹)
+              <label className="block font-bold text-ink mb-1.5">
+                कमाल मासिक वेतन (₹)
               </label>
               <input
                 type="number"
                 min="0"
                 value={salaryMax}
                 onChange={e => setSalaryMax(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
               />
             </div>
           </div>
@@ -276,9 +280,9 @@ export default function EmployerPostJobPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition"
+            className="w-full py-3.5 settle-pill-btn text-sm"
           >
-            {submitting ? dict.common.loading : 'जाहिरात प्रकाशित करा (Publish Job Opening)'}
+            {submitting ? dict.common.loading : 'जाहिरात प्रकाशित करा (Publish Job Opening) ➔'}
           </button>
         </form>
       </div>

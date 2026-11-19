@@ -9,23 +9,50 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          500: '#16a34a',
-          600: '#15803d',
-          700: '#166534',
-          800: '#14532d',
-          900: '#052e16'
+        canvas: '#F1F5FC',
+        surface: {
+          DEFAULT: '#FFFFFF',
+          subtle: '#E8F0FA',
         },
-        accent: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309'
-        }
-      }
+        ink: {
+          DEFAULT: '#101638',
+          secondary: '#526F9D',
+          muted: '#7E96BA',
+        },
+        primary: {
+          DEFAULT: '#214783',
+          hover: '#173463',
+          active: '#0F2344',
+        },
+        steel: {
+          DEFAULT: '#B8C9E1',
+          soft: '#DCE7F6',
+          deep: '#1A3660',
+        },
+        verified: {
+          DEFAULT: '#15803D',
+          bg: '#DCFCE7',
+          border: '#86EFAC',
+        },
+        alert: {
+          DEFAULT: '#C2410C',
+          bg: '#FFEDD5',
+          border: '#FDBA74',
+        },
+      },
+      boxShadow: {
+        'solid-sm': '2px 2px 0px #101638',
+        'solid': '4px 4px 0px #101638',
+        'solid-lg': '6px 6px 0px #101638',
+        'solid-primary': '4px 4px 0px #214783',
+      },
+      borderRadius: {
+        'card': '18px',
+      },
+      fontFamily: {
+        sans: ['var(--font-inter)', 'var(--font-noto-sans-devanagari)', 'system-ui', 'sans-serif'],
+        devanagari: ['var(--font-noto-sans-devanagari)', 'sans-serif'],
+      },
     }
   },
   plugins: []

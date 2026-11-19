@@ -7,7 +7,7 @@ import { getDictionary } from '@rojgarmitra/i18n';
 import { JobPosting } from '@rojgarmitra/shared';
 
 export default function EmployerDashboardPage() {
-  const { preferredLocale, getIdToken } = useAuth();
+  const { preferredLocale, user, getIdToken } = useAuth();
   const dict = getDictionary(preferredLocale);
 
   const [jobs, setJobs] = useState<JobPosting[]>([]);
@@ -15,6 +15,10 @@ export default function EmployerDashboardPage() {
 
   useEffect(() => {
     async function loadEmployerJobs() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const token = await getIdToken();
@@ -36,27 +40,27 @@ export default function EmployerDashboardPage() {
       }
     }
     loadEmployerJobs();
-  }, []);
+  }, [user]);
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+    <main className="max-w-6xl mx-auto py-4">
+      {/* Top Banner - SETTLE Hero Card */}
+      <div className="settle-card-hero p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-full">
+          <span className="text-xs font-bold px-3 py-1 bg-steel-soft text-steel-deep rounded-full border border-steel">
             🏭 {dict.employer.dashboard_title}
           </span>
-          <h1 className="text-2xl font-black text-slate-900 mt-2">
+          <h1 className="text-3xl font-black text-ink mt-2">
             {dict.employer.my_jobs}
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-ink-secondary text-sm mt-1 font-medium">
             {dict.employer.dashboard_sub}
           </p>
         </div>
 
         <Link
           href="/employer/post"
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition text-sm whitespace-nowrap"
+          className="settle-pill-btn px-6 py-3 text-sm whitespace-nowrap inline-flex items-center gap-2"
         >
           <span>➕</span>
           <span>{dict.employer.post_new_job}</span>
@@ -65,45 +69,71 @@ export default function EmployerDashboardPage() {
 
       {/* Stats Counter */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-          <span className="text-xs font-bold text-slate-400 block mb-1">सक्रिय जाहिराती (Active Vacancies)</span>
-          <span className="text-3xl font-black text-slate-900">{jobs.length}</span>
+        <div className="settle-card p-5">
+          <span className="text-xs font-bold text-ink-secondary uppercase tracking-wider block mb-1">सक्रिय जाहिराती (Active Vacancies)</span>
+          <span className="text-3xl font-black text-ink">{jobs.length}</span>
         </div>
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-          <span className="text-xs font-bold text-slate-400 block mb-1">एकूण रिक्त जागा (Total Openings)</span>
-          <span className="text-3xl font-black text-emerald-600">
+        <div className="settle-card p-5">
+          <span className="text-xs font-bold text-ink-secondary uppercase tracking-wider block mb-1">एकूण रिक्त जागा (Total Openings)</span>
+          <span className="text-3xl font-black text-primary">
             {jobs.reduce((sum, j) => sum + (j.vacancies || 0), 0)}
           </span>
         </div>
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-          <span className="text-xs font-bold text-slate-400 block mb-1">परिसर (Coverage)</span>
-          <span className="text-sm font-bold text-slate-700">नागपूर, बुटीबोरी व हिंगणा एमआयडीसी</span>
+        <div className="settle-card p-5">
+          <span className="text-xs font-bold text-ink-secondary uppercase tracking-wider block mb-1">परिसर (Industrial Region)</span>
+          <span className="text-sm font-black text-ink">नागपूर, बुटीबोरी व हिंगणा एमआयडीसी</span>
         </div>
       </div>
 
       {/* Job Openings List */}
-      <h2 className="text-lg font-bold text-slate-900 mb-4">
+      <h2 className="text-xl font-black text-ink mb-4">
         माझ्या भरती जाहिराती (Open Vacancies)
       </h2>
 
       {loading ? (
-        <div className="text-center py-12 text-slate-500 font-medium">
-          {dict.common.loading}
+        <div className="text-center py-16 text-ink-secondary font-bold text-base">
+          ⌛ {dict.common.loading}
+        </div>
+      ) : !user ? (
+        <div className="text-center py-12 settle-card p-8">
+          <span className="text-4xl mb-3 inline-block">🏭</span>
+          <h3 className="text-base font-black text-ink mb-1">
+            {preferredLocale === 'mr' ? 'नियोक्ता लॉगिन आवश्यक आहे' : 'Employer Login Required'}
+          </h3>
+          <p className="text-sm text-ink-secondary mb-4 font-medium">
+            {preferredLocale === 'mr'
+              ? 'आपल्या कारखान्यातील जागा व्यवस्थापित करण्यासाठी व अर्जदार पाहण्यासाठी लॉगिन करा.'
+              : 'Please sign in to manage your factory job postings and review candidate applicants.'}
+          </p>
+          <div className="flex justify-center gap-3">
+            <Link
+              href="/login"
+              className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
+            >
+              {dict.nav.login} ➔
+            </Link>
+            <Link
+              href="/signup"
+              className="settle-pill-btn bg-white text-ink border-ink hover:bg-steel-soft px-6 py-2.5 text-xs inline-block"
+            >
+              {dict.nav.register}
+            </Link>
+          </div>
         </div>
       ) : jobs.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+        <div className="text-center py-12 settle-card p-8">
           <span className="text-4xl mb-3 inline-block">📋</span>
-          <h3 className="text-base font-bold text-slate-800 mb-1">
+          <h3 className="text-base font-black text-ink mb-1">
             अद्याप कोणतीही जाहिरात दिलेली नाही
           </h3>
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="text-sm text-ink-secondary mb-4 font-medium">
             आपल्या कारखान्यासाठी किंवा व्यवसायासाठी त्वरित नवीन भरती जाहिरात तयार करा.
           </p>
           <Link
             href="/employer/post"
-            className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition"
+            className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
           >
-            जाहिरात तयार करा →
+            जाहिरात तयार करा ➔
           </Link>
         </div>
       ) : (
@@ -111,22 +141,22 @@ export default function EmployerDashboardPage() {
           {jobs.map(job => (
             <div
               key={job.id}
-              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className="settle-card-interactive p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
             >
               <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified">
                     {job.status === 'open' ? 'चालू (Open)' : 'बंद (Closed)'}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs font-bold text-ink-secondary">
                     📍 {job.areaOrMidc || job.taluka || job.district}
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900 mb-1">{job.title}</h3>
-                <p className="text-xs text-slate-500">
-                  जागा: <strong>{job.vacancies}</strong> • वेतन:{' '}
-                  <strong>
+                <h3 className="text-lg font-black text-ink mb-1">{job.title}</h3>
+                <p className="text-xs text-ink-secondary font-medium">
+                  जागा: <strong className="text-ink">{job.vacancies}</strong> • वेतन:{' '}
+                  <strong className="text-ink">
                     {job.salaryMin ? `₹${job.salaryMin.toLocaleString()} - ₹${job.salaryMax?.toLocaleString()}` : 'चर्चेनुसार'}
                   </strong>
                 </p>
@@ -135,9 +165,9 @@ export default function EmployerDashboardPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href={`/employer/jobs/${job.id}/applicants`}
-                  className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition shadow-sm whitespace-nowrap"
+                  className="settle-pill-btn text-xs px-5 py-2.5 whitespace-nowrap inline-flex items-center gap-1.5"
                 >
-                  👥 {dict.employer.manage_applicants} →
+                  👥 {dict.employer.manage_applicants} ➔
                 </Link>
               </div>
             </div>

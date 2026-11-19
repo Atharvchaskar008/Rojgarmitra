@@ -6,7 +6,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  sendPasswordResetEmail 
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
@@ -20,6 +21,7 @@ interface AuthContextValue {
   signIn: (email: string, pass: string) => Promise<void>;
   signUp: (email: string, pass: string, role: UserRole, locale?: SupportedLocale) => Promise<void>;
   logOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   setLocale: (locale: SupportedLocale) => void;
   getIdToken: () => Promise<string | null>;
 }
@@ -105,6 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserRole(null);
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   const getIdToken = async (): Promise<string | null> => {
     if (!user) return null;
     return await user.getIdToken();
@@ -120,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signUp,
         logOut,
+        resetPassword,
         setLocale,
         getIdToken,
       }}
