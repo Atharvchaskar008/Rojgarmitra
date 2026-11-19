@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
-import { JobPosting } from '@rojgarmitra/shared';
-import demoJobsData from '../../../../../../firebase/seed/demo-jobs.json';
+import { JobPosting, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     // In demo mode or if no jobs in database yet, include verified demo seed jobs
     if (jobs.length === 0) {
-      jobs = (demoJobsData as any[]).map(j => ({ ...j })) as JobPosting[];
+      jobs = DEMO_SEED_JOBS.map(j => ({ ...j }));
     }
 
     // Apply in-memory filters for flexibility

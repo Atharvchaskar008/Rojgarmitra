@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, requireRole, handleApiError } from '@/lib/auth/server-auth';
 import { adminDb } from '@/lib/firebase/admin';
-import { CandidateProfile, JobPosting, getSkillName } from '@rojgarmitra/shared';
-import demoJobsData from '../../../../../../firebase/seed/demo-jobs.json';
+import { CandidateProfile, JobPosting, getSkillName, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +31,8 @@ export async function POST(req: NextRequest) {
       if (jobDoc.exists) {
         job = { id: jobDoc.id, ...jobDoc.data() } as JobPosting;
       } else {
-        const seed = (demoJobsData as any[]).find(j => j.id === jobId);
-        if (seed) job = seed as JobPosting;
+        const seed = DEMO_SEED_JOBS.find(j => j.id === jobId);
+        if (seed) job = seed;
       }
 
       if (job) {

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, requireRole, handleApiError } from '@/lib/auth/server-auth';
 import { adminDb } from '@/lib/firebase/admin';
-import { JobApplication, JobPosting } from '@rojgarmitra/shared';
-import demoJobsData from '../../../../../../firebase/seed/demo-jobs.json';
+import { JobApplication, JobPosting, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +31,7 @@ export async function GET(req: NextRequest) {
           jobTitle = j.title;
           employerName = j.employerName;
         } else {
-          const seed = (demoJobsData as any[]).find(j => j.id === app.jobId);
+          const seed = DEMO_SEED_JOBS.find(j => j.id === app.jobId);
           if (seed) {
             jobTitle = seed.title;
             employerName = seed.employerName;

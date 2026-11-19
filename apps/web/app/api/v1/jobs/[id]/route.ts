@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
-import { JobPosting } from '@rojgarmitra/shared';
-import demoJobsData from '../../../../../../firebase/seed/demo-jobs.json';
+import { JobPosting, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +25,7 @@ export async function GET(
     }
 
     // Check demo seed jobs
-    const seedJob = (demoJobsData as any[]).find(j => j.id === jobId);
+    const seedJob = DEMO_SEED_JOBS.find(j => j.id === jobId);
     if (seedJob) {
       return NextResponse.json({
         data: seedJob as JobPosting,

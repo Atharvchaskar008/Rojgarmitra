@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+declare const process: any;
 import {
   StyleSheet,
   Text,

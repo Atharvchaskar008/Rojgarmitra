@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, requireRole, handleApiError } from '@/lib/auth/server-auth';
 import { adminDb } from '@/lib/firebase/admin';
-import { JobPosting, CandidateProfile, rankJobsForCandidate } from '@rojgarmitra/shared';
-import demoJobsData from '../../../../../../firebase/seed/demo-jobs.json';
+import { JobPosting, CandidateProfile, rankJobsForCandidate, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +61,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (jobs.length === 0) {
-      jobs = (demoJobsData as any[]).map(j => ({ ...j })) as JobPosting[];
+      jobs = DEMO_SEED_JOBS.map(j => ({ ...j }));
     }
 
     // 3. Rank jobs using explainable deterministic matching engine

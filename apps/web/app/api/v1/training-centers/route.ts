@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
-import { TrainingCenter } from '@rojgarmitra/shared';
-import seedCenters from '../../../../../../firebase/seed/training-centers.json';
+import { TrainingCenter, DEMO_SEED_CENTERS } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (centers.length === 0) {
-      centers = (seedCenters as any[]).map(c => ({ ...c })) as TrainingCenter[];
+      centers = DEMO_SEED_CENTERS.map(c => ({ ...c }));
     }
 
     if (district) {
