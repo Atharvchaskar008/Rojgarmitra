@@ -1,0 +1,59 @@
+[
+  {
+    "id": "iti_nagpur_gov",
+    "name": "Government Industrial Training Institute (ITI) Nagpur",
+    "nameMr": "शासकीय औद्योगिक प्रशिक्षण संस्था (ITI), नागपूर",
+    "nameHi": "शासकीय औद्योगिक प्रशिक्षण संस्थान (ITI), नागपुर",
+    "district": "Nagpur",
+    "taluka": "Nagpur Urban",
+    "address": "Shraddhanand Peth, South Ambazari Road, Nagpur, Maharashtra 440022",
+    "supportedTradeIds": ["electrician", "fitter_turner", "welder", "mechanic"],
+    "officialUrl": "https://admission.dvet.gov.in",
+    "mapPlaceId": "ChIJb_f1Hn_E1DsR41Z8vOqR4gU",
+    "sourceUrl": "https://admission.dvet.gov.in/institutes/nagpur",
+    "verifiedStatus": "official_gov",
+    "lastCheckedAt": "2026-11-19T06:00:00.000Z"
+  },
+  {
+    "id": "iti_hingna_gov",
+    "name": "Government ITI Hingna",
+    "nameMr": "शासकीय औद्योगिक प्रशिक्षण संस्था (ITI), हिंगणा",
+    "nameHi": "शासकीय औद्योगिक प्रशिक्षण संस्थान (ITI), हिंगना",
+    "district": "Nagpur",
+    "taluka": "Hingna",
+    "address": "Near MIDC Police Station, Hingna Road, Nagpur, Maharashtra 440016",
+    "supportedTradeIds": ["electrician", "welder", "fitter_turner"],
+    "officialUrl": "https://admission.dvet.gov.in",
+    "sourceUrl": "https://admission.dvet.gov.in/institutes/hingna",
+    "verifiedStatus": "official_gov",
+    "lastCheckedAt": "2026-11-19T06:00:00.000Z"
+  },
+  {
+    "id": "iti_butibori_sub",
+    "name": "Butibori Vocational Training Center & ITI",
+    "nameMr": "बुटीबोरी व्यावसायिक प्रशिक्षण केंद्र व ITI",
+    "nameHi": "बुटीबोरी व्यावसायिक प्रशिक्षण केंद्र व ITI",
+    "district": "Nagpur",
+    "taluka": "Butibori",
+    "address": "Butibori MIDC Industrial Area, Nagpur District, Maharashtra 441108",
+    "supportedTradeIds": ["fitter_turner", "welder", "logistics_warehouse"],
+    "officialUrl": "https://dvet.gov.in",
+    "sourceUrl": "https://dvet.gov.in/en/institutes",
+    "verifiedStatus": "official_gov",
+    "lastCheckedAt": "2026-11-19T06:00:00.000Z"
+  },
+  {
+    "id": "iti_umred_gov",
+    "name": "Government ITI Umred",
+    "nameMr": "शासकीय औद्योगिक प्रशिक्षण संस्था (ITI), उमरेड",
+    "nameHi": "शासकीय औद्योगिक प्रशिक्षण संस्थान (ITI), उमरेड",
+    "district": "Nagpur",
+    "taluka": "Umred",
+    "address": "Bhiwapur Road, Umred, Nagpur District, Maharashtra 441203",
+    "supportedTradeIds": ["electrician", "mechanic", "plumber"],
+    "officialUrl": "https://admission.dvet.gov.in",
+    "sourceUrl": "https://admission.dvet.gov.in/institutes/umred",
+    "verifiedStatus": "official_gov",
+    "lastCheckedAt": "2026-11-19T06:00:00.000Z"
+  }
+]

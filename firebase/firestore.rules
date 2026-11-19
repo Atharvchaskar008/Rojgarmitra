@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // User documents: authenticated users can read/write their own document
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      // Deny client setting privileged 'admin' role directly
+      allow create, update: if isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) || request.resource.data.role in ['candidate', 'employer']);
+      allow delete: if false;
+    }
+    
+    // Candidate profiles
+    match /candidates/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+    
+    // Employer profiles
+    match /employers/{userId} {
+      allow read: if true; // Publicly readable for business details
+      allow write: if isOwner(userId);
+    }
+    
+    // Jobs (internal and external cache)
+    match /jobs/{jobId} {
+      allow read: if true; // Public job feed
+      allow create: if isAuthenticated() && request.resource.data.employerUid == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.employerUid == request.auth.uid;
+    }
+    
+    match /externalJobs/{jobId} {
+      allow read: if true;
+      allow write: if false; // Only server-side admin writes external jobs
+    }
+    
+    // Job applications
+    match /applications/{applicationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.candidateUid == request.auth.uid ||
+        resource.data.employerUid == request.auth.uid
+      );
+      // Candidate can create their own application
+      allow create: if isAuthenticated() && request.resource.data.candidateUid == request.auth.uid;
+      // Employer can update status (shortlist, interview, accept, reject)
+      allow update: if isAuthenticated() && resource.data.employerUid == request.auth.uid;
+      allow delete: if false;
+    }
+    
+    // Regional vocational training centers and courses: public read
+    match /trainingCenters/{centerId} {
+      allow read: if true;
+      allow write: if false; // server/admin only
+    }
+    
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if false; // server/admin only
+    }
+    
+    // Notifications / audit: user reads own
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && resource.data.candidateUid == request.auth.uid;
+      allow write: if false;
+    }
+  }
+}
