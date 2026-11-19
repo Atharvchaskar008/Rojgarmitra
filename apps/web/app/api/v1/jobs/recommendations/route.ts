@@ -60,7 +60,9 @@ export async function GET(req: NextRequest) {
       // Fallback
     }
 
-    if (jobs.length === 0) {
+    // Strictly do not fall back to demo seed jobs in production: return honest empty recommendations
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    if (jobs.length === 0 && !isProduction && process.env.APP_MODE === 'demo') {
       jobs = DEMO_SEED_JOBS.map(j => ({ ...j }));
     }
 

@@ -161,40 +161,45 @@ export class JobDiscoveryAgent {
           continue;
         }
 
-        // Authoritative verification check:
-        // Only classify as 'verified_vacancy' if from an official government employment portal
-        // or dedicated career page with explicit job title evidence.
-        const isOfficialGovPortal = domain.includes('gov.in') || domain.includes('nic.in');
-        const isJobBoard = domain.includes('ncs.gov.in') || domain.includes('mahajobs');
+        // Verification policy:
+        // A search citation or portal domain alone is strictly an 'unverified_lead'.
+        // It NEVER qualifies as a 'verified_vacancy' without confirmed evidence of an actual, individual vacancy.
+        const verificationStatus: VacancyVerificationStatus = 'unverified_lead';
+        const confidence = 'low';
 
-        const verificationStatus: VacancyVerificationStatus = (isOfficialGovPortal || isJobBoard)
-          ? 'verified_vacancy'
-          : 'unverified_lead';
+        // Extract district only if explicitly mentioned in title, never copy from candidate profile
+        let extractedDistrict = '';
+        const titleLower = source.title.toLowerCase();
+        if (titleLower.includes('nagpur')) {
+          extractedDistrict = 'Nagpur';
+        } else if (titleLower.includes('wardha')) {
+          extractedDistrict = 'Wardha';
+        } else if (titleLower.includes('amravati')) {
+          extractedDistrict = 'Amravati';
+        }
 
-        const confidence = isJobBoard ? 'high' : isOfficialGovPortal ? 'medium' : 'low';
-
-        // DO NOT fabricate salary or vacancies if not verified in source
+        // Never assign vacancies=1, status=open, freshness=fresh, employer, location, or required skills
+        // based only on search citation or candidate profile
         const externalJob: JobPosting = {
           id: `ext_${Buffer.from(source.url).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`,
-          title: source.title.length > 5 ? source.title.slice(0, 100) : `${trade} Vacancy Announcement`,
-          description: `Discovered from public source on ${domain}. Individual vacancy details and application requirements are subject to the original listing at ${source.url}.`,
-          employerName: isJobBoard ? 'MahaJobs / NCS Verified Listing' : domain,
-          district: candidate.district || 'Nagpur',
-          taluka: candidate.taluka,
-          areaOrMidc: location.toLowerCase().includes('butibori') ? 'Butibori MIDC' : location.toLowerCase().includes('hingna') ? 'Hingna MIDC' : undefined,
-          requiredSkillIds: skills.slice(0, 2), // Note: only relevant candidate skills matched for preliminary evaluation
+          title: source.title.length > 5 ? source.title.slice(0, 100) : `${trade} Lead (${domain})`,
+          description: `Discovered from public source on ${domain}. This citation is an unverified search lead and does not confirm an active individual vacancy. Requirements, employer identity, and vacancy status must be verified directly at ${source.url}.`,
+          employerName: `Unspecified Employer (${domain})`,
+          district: extractedDistrict,
+          taluka: undefined,
+          areaOrMidc: undefined,
+          requiredSkillIds: [], // NEVER populate from candidate skills
           mandatoryCertificationIds: [],
-          // Salary is strictly undefined when not stated by employer: NEVER fabricate candidate's expected wage
           salaryMin: undefined,
           salaryMax: undefined,
-          vacancies: 1,
-          status: 'open',
+          vacancies: 0, // Never assign 1 vacancy without explicit proof
+          status: 'unverified', // Never assign 'open'
           sourceType: 'external_public',
           sourceUrl: source.url,
           sourceDomain: domain,
           observedAt: new Date().toISOString(),
           lastCheckedAt: new Date().toISOString(),
-          freshnessStatus: 'fresh',
+          freshnessStatus: 'unverified', // Never assign 'fresh'
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -203,14 +208,12 @@ export class JobDiscoveryAgent {
           job: externalJob,
           verificationStatus,
           evidence: {
-            evidenceType: isJobBoard ? 'authoritative_job_portal' : 'grounded_search_result',
+            evidenceType: 'grounded_search_result',
             confidence,
             sourcePortalName: domain,
             sourceUrl: source.url,
             observedAt: new Date().toISOString(),
-            notes: verificationStatus === 'verified_vacancy'
-              ? 'Authoritative state or career portal source.'
-              : 'Generic search lead. Individual vacancy page and employer terms require candidate verification before applying.',
+            notes: 'External search citation. Individual vacancy page, active status, and employer terms require independent confirmation before application.',
           },
         });
       }

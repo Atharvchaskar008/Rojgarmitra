@@ -9,9 +9,11 @@
     "build": "pnpm --filter @rojgarmitra/web build",
     "typecheck": "pnpm -r --parallel run typecheck",
     "test": "vitest run",
+    "test:emulator": "firebase emulators:exec --only firestore --non-interactive \"vitest run tests/integration/firestore-rules-emulator.test.ts\"",
     "emulators": "firebase emulators:start --only firestore,auth"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8",
     "zod": "3.24.1"

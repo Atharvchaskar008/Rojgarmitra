@@ -55,7 +55,7 @@ export interface EmployerProfile {
 }
 
 export type JobSourceType = 'internal_employer' | 'external_public' | 'demo_seed';
-export type JobStatus = 'open' | 'closed' | 'filled';
+export type JobStatus = 'open' | 'closed' | 'filled' | 'unverified';
 
 export interface JobPosting {
   id: string;
@@ -71,7 +71,7 @@ export interface JobPosting {
   salaryMin?: number;
   salaryMax?: number;
   salaryPeriod?: 'monthly' | 'daily' | 'hourly';
-  vacancies: number;
+  vacancies?: number;
   status: JobStatus;
   sourceType: JobSourceType;
   sourceUrl?: string; // mandatory if external_public

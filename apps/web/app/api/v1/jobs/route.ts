@@ -25,8 +25,9 @@ export async function GET(req: NextRequest) {
       console.warn('[Jobs Feed] Firestore query warning, falling back to demo seed:', dbErr);
     }
 
-    // In demo mode or if no jobs in database yet, include verified demo seed jobs
-    if (jobs.length === 0) {
+    // Strictly do not fall back to demo seed jobs in production: return honest empty results
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    if (jobs.length === 0 && !isProduction && process.env.APP_MODE === 'demo') {
       jobs = DEMO_SEED_JOBS.map(j => ({ ...j }));
     }
 

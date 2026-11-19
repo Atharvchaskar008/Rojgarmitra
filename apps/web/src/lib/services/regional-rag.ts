@@ -170,8 +170,7 @@ export class RegionalRagService {
     const targetDistrict = (params.district || 'Nagpur').toLowerCase();
     const targetSkills = new Set((params.skills || []).map((s) => s.toLowerCase()));
 
-    // Try fetching latest evidence from Firestore
-    const allDocs: EvidenceDocument[] = Array.from(this.inMemoryCorpus.values());
+    // Try fetching latest evidence from Firestore first so allDocs includes external additions
     try {
       if (adminDb && typeof adminDb.collection === 'function') {
         const snap = await adminDb.collection('regionalEvidence').get();
@@ -185,6 +184,8 @@ export class RegionalRagService {
     } catch {
       // Memory fallback
     }
+
+    const allDocs: EvidenceDocument[] = Array.from(this.inMemoryCorpus.values());
 
     const scored = allDocs.map((doc) => {
       let score = 0;
