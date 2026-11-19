@@ -65,8 +65,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!spokenText) {
-      spokenText = 'मी रमेश पाटील, नागपूर हिंगणा येथे राहतो. माझे ITI वायरमन झाले आहे आणि घरगुती वायरिंग व मोटर रिवायंडिंगचा २ वर्षे अनुभव आहे.';
+    if (!spokenText || !spokenText.trim()) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'NO_SPEECH_DETECTED',
+            message: 'No audio or transcript was detected. Please provide a clear audio recording or text input.',
+          },
+        },
+        { status: 400 }
+      );
     }
 
     // Dynamic entity extraction from spoken text
@@ -131,7 +139,7 @@ export async function POST(req: NextRequest) {
       extractedQualifications: ['10th', `ITI_${extractedTrade}`],
       extractedSkills,
       extractedExperienceMonths: experienceMonths,
-      confidenceScore: 0.94,
+      requiresUserConfirmation: true,
       disclaimer: 'कृपया माहिती तपासून घ्या. आपल्या संमतीशिवाय प्रोफाईलमध्ये कोणतीही माहिती जतन होणार नाही. (Please review information. No changes are saved to your profile without your explicit confirmation.)',
     };
 

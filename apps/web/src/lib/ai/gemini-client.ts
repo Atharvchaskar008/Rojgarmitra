@@ -33,7 +33,7 @@ export class GeminiClient {
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY || '';
-    this.defaultModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    this.defaultModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
 
     if (!this.apiKey) {
       console.warn('[GeminiClient] GEMINI_API_KEY is not configured in environment.');
@@ -45,7 +45,7 @@ export class GeminiClient {
   }
 
   private getModel(): string {
-    return process.env.GEMINI_MODEL || this.defaultModel || 'gemini-2.5-flash';
+    return process.env.GEMINI_MODEL || this.defaultModel || 'gemini-2.5-flash-lite';
   }
 
   public isConfigured(): boolean {

@@ -8,7 +8,7 @@ const serverConfigSchema = z.object({
 
   // AI & Search
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash-lite'),
   TAVILY_API_KEY: z.string().optional(),
   BRAVE_SEARCH_API_KEY: z.string().optional(),
 
@@ -74,7 +74,7 @@ class ServerConfigService {
       FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
       FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-      GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
       TAVILY_API_KEY: process.env.TAVILY_API_KEY,
       BRAVE_SEARCH_API_KEY: process.env.BRAVE_SEARCH_API_KEY,
       GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,

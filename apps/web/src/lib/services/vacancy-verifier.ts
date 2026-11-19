@@ -21,6 +21,7 @@ export interface VerificationResult {
 
 /**
  * SSRF Protection Validator
+ * Strictly blocks private, loopback, link-local, and cloud metadata endpoints.
  */
 export function isSafePublicUrl(urlString: string): boolean {
   try {
@@ -125,22 +126,48 @@ export async function safeFetchPageHtml(url: string, timeoutMs = 6000): Promise<
 }
 
 /**
+ * Known job aggregator domains that serve search results, feeds, or lead pages
+ */
+const AGGREGATOR_DOMAINS = new Set([
+  'indeed.com',
+  'in.indeed.com',
+  'naukri.com',
+  'adzuna.in',
+  'adzuna.com',
+  'jobhai.com',
+  'shine.com',
+  'monsterindia.com',
+  'foundit.in',
+  'placementindia.com',
+  'linkedin.com',
+  'glassdoor.com',
+  'freshersworld.com',
+  'timesjobs.com',
+  'quickr.com',
+  'olx.in',
+]);
+
+/**
  * Vacancy Verifier
- * Inspects candidate URL and page contents to confirm whether an actual,
- * active individual vacancy exists.
+ * Rigorous multi-stage verification:
+ * - Detects expired / removed listings (404, 410, expiration text)
+ * - Identifies aggregator category search feeds
+ * - Rejects generic pages where only a title + "Apply Now" button is present
+ * - Requires verified Schema.org JobPosting or confirmed employer recruitment notice
+ * - Never fabricates salaries, vacancies, or employer identities
  */
 export class VacancyVerifier {
-  /**
-   * Evaluates a search record and safely confirms or rejects vacancy status.
-   */
   async verifySourceRecord(
     record: NormalizedSourceRecord,
     targetTrade?: string
   ): Promise<VerificationResult> {
     const url = record.url;
     let domain = '';
+    let parsedUrl: URL;
+
     try {
-      domain = new URL(url).hostname.replace('www.', '');
+      parsedUrl = new URL(url);
+      domain = parsedUrl.hostname.replace('www.', '');
     } catch {
       return {
         status: 'unavailable',
@@ -149,14 +176,14 @@ export class VacancyVerifier {
           confidence: 'low',
           sourcePortalName: 'invalid_url',
           observedAt: new Date().toISOString(),
-          notes: 'Invalid URL scheme.',
+          notes: 'Malformed URL.',
         },
         rejectionReason: 'Malformed URL',
       };
     }
 
-    // Step 1: Detect obvious search aggregator / category listing URLs
-    const pathname = new URL(url).pathname.toLowerCase();
+    // Step 1: Detect aggregator / category listing URL patterns
+    const pathname = parsedUrl.pathname.toLowerCase();
     const isCategoryOrSearchListing =
       pathname.startsWith('/q-') ||
       pathname.includes('/search') ||
@@ -165,7 +192,8 @@ export class VacancyVerifier {
       pathname.endsWith('-jobs.html') ||
       pathname.endsWith('/jobs') ||
       pathname.endsWith('/electrician') ||
-      pathname.endsWith('/welder');
+      pathname.endsWith('/welder') ||
+      pathname.includes('/jobs-in-');
 
     if (isCategoryOrSearchListing) {
       return {
@@ -176,7 +204,7 @@ export class VacancyVerifier {
           sourcePortalName: domain,
           sourceUrl: url,
           observedAt: new Date().toISOString(),
-          notes: 'Portal category search or aggregator index page. Does not confirm an individual vacancy.',
+          notes: 'Portal category search or multi-job feed page. Does not confirm an active individual vacancy.',
         },
         rejectionReason: 'Aggregator category page, not an individual vacancy posting',
       };
@@ -219,7 +247,7 @@ export class VacancyVerifier {
     const html = fetchRes.html;
     const lowerHtml = html.toLowerCase();
 
-    // Step 3: Check for expiration or closed vacancy notices
+    // Step 3: Check for explicit expiration or closed vacancy notices
     const expirationMarkers = [
       'this job has expired',
       'this vacancy has expired',
@@ -229,6 +257,7 @@ export class VacancyVerifier {
       'position has been filled',
       'no longer accepting applications',
       'this opening is closed',
+      'this posting has expired',
     ];
 
     for (const marker of expirationMarkers) {
@@ -248,11 +277,12 @@ export class VacancyVerifier {
       }
     }
 
-    // Step 4: Check if page is an aggregator search result rather than a single vacancy
+    // Step 4: Check if page is an aggregator multi-job feed
     if (
       lowerHtml.includes('jobs found') ||
       lowerHtml.includes('showing 1 -') ||
-      lowerHtml.includes('create job alert for this search')
+      lowerHtml.includes('create job alert for this search') ||
+      lowerHtml.includes('sign in to create job alert')
     ) {
       return {
         status: 'unverified_lead',
@@ -262,49 +292,56 @@ export class VacancyVerifier {
           sourcePortalName: domain,
           sourceUrl: url,
           observedAt: new Date().toISOString(),
-          notes: 'Page content is a search result feed with multiple listings, not an individual verified vacancy.',
+          notes: 'Search results feed with multiple job snippets, not an individual confirmed vacancy.',
         },
         rejectionReason: 'Multi-job search result feed',
       };
     }
 
-    // Step 5: Check for individual vacancy markers
-    // Needs title, employer, location, and apply action
-    const hasApplyAction =
-      lowerHtml.includes('apply now') ||
-      lowerHtml.includes('easy apply') ||
-      lowerHtml.includes('apply on company site') ||
-      lowerHtml.includes('submit application') ||
-      lowerHtml.includes('contact employer') ||
-      lowerHtml.includes('send resume');
+    // Step 5: Rigorous schema.org / structured data extraction
+    let verifiedBySchema = false;
+    let schemaEmployer = '';
+    let schemaTitle = '';
+    let schemaLocation = '';
+    let schemaSalaryMin: number | undefined;
+    let schemaSalaryMax: number | undefined;
 
-    // Extract title from <title> tag
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    const rawTitle = titleMatch ? titleMatch[1].trim() : record.title;
-
-    // Clean title
-    const cleanTitle = rawTitle.split(/[-–|]/)[0].trim();
-
-    // Location detection
-    let extractedDistrict = '';
-    let areaOrMidc: string | undefined = undefined;
-
-    if (lowerHtml.includes('nagpur')) extractedDistrict = 'Nagpur';
-    if (lowerHtml.includes('wardha')) extractedDistrict = 'Wardha';
-    if (lowerHtml.includes('amravati')) extractedDistrict = 'Amravati';
-    if (lowerHtml.includes('butibori')) areaOrMidc = 'Butibori MIDC';
-    if (lowerHtml.includes('hingna')) areaOrMidc = 'Hingna MIDC';
-    if (lowerHtml.includes('umred')) areaOrMidc = 'Umred';
-
-    // Employer detection from schema.org or OpenGraph or title
-    let employerName = `Employer on ${domain}`;
-    const ogSiteName = html.match(/<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i);
-    if (ogSiteName && ogSiteName[1]) {
-      employerName = ogSiteName[1].trim();
+    const ldJsonMatches = html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+    for (const match of ldJsonMatches) {
+      try {
+        const parsed = JSON.parse(match[1]);
+        const items = Array.isArray(parsed) ? parsed : [parsed];
+        for (const item of items) {
+          if (item['@type'] === 'JobPosting') {
+            schemaTitle = item.title || '';
+            if (typeof item.hiringOrganization === 'object' && item.hiringOrganization?.name) {
+              schemaEmployer = String(item.hiringOrganization.name).trim();
+            } else if (typeof item.hiringOrganization === 'string') {
+              schemaEmployer = item.hiringOrganization.trim();
+            }
+            if (typeof item.jobLocation === 'object') {
+              schemaLocation = item.jobLocation?.address?.addressLocality || item.jobLocation?.address?.addressRegion || '';
+            }
+            if (item.baseSalary?.value) {
+              const val = item.baseSalary.value;
+              if (typeof val === 'number') schemaSalaryMin = val;
+              else if (typeof val === 'object') {
+                schemaSalaryMin = val.minValue;
+                schemaSalaryMax = val.maxValue;
+              }
+            }
+            if (schemaTitle && schemaEmployer && schemaEmployer !== domain) {
+              verifiedBySchema = true;
+            }
+          }
+        }
+      } catch {
+        // continue
+      }
     }
 
-    // Check if authentic individual vacancy confirmed
-    if (hasApplyAction && cleanTitle.length > 3) {
+    // If verified by schema.org on an authentic page
+    if (verifiedBySchema && schemaTitle) {
       return {
         status: 'verified_vacancy',
         evidence: {
@@ -313,24 +350,61 @@ export class VacancyVerifier {
           sourcePortalName: domain,
           sourceUrl: url,
           observedAt: new Date().toISOString(),
-          notes: `Confirmed individual vacancy page on ${domain} with active application action.`,
+          notes: `Verified individual JobPosting schema from ${schemaEmployer}.`,
         },
         extractedJob: {
-          title: cleanTitle.slice(0, 100),
-          employerName,
-          district: extractedDistrict || 'Nagpur',
-          areaOrMidc,
+          title: schemaTitle.slice(0, 100),
+          employerName: schemaEmployer,
+          district: schemaLocation.toLowerCase().includes('nagpur') ? 'Nagpur' : undefined,
+          salaryMin: schemaSalaryMin,
+          salaryMax: schemaSalaryMax,
           status: 'open',
           sourceType: 'external_public',
           sourceUrl: url,
           sourceDomain: domain,
           freshnessStatus: 'fresh',
-          vacancies: 1, // Only set to 1 when individual vacancy page is confirmed
+          vacancies: 0, // Unstated in schema, do not fabricate 1
         },
       };
     }
 
-    // Otherwise, conservative classification as unverified lead
+    // Step 6: Fallback check for direct employer career portals (e.g. careers.company.com)
+    // CRITICAL: We DO NOT treat a generic page with a title + "Apply Now" as a verified vacancy.
+    // An aggregator page with "Apply Now" buttons without schema.org is strictly an unverified lead.
+    const isDirectEmployerSite = !AGGREGATOR_DOMAINS.has(domain);
+    const hasDetailedJobDescription = lowerHtml.includes('job description') || lowerHtml.includes('responsibilities') || lowerHtml.includes('key skills');
+    const hasApplyAction = lowerHtml.includes('submit your application') || lowerHtml.includes('apply for this position') || lowerHtml.includes('apply on company website');
+
+    if (isDirectEmployerSite && hasDetailedJobDescription && hasApplyAction) {
+      const titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+      const cleanTitle = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : '';
+
+      if (cleanTitle.length > 5 && !cleanTitle.toLowerCase().includes('job') && !cleanTitle.toLowerCase().includes('careers')) {
+        return {
+          status: 'verified_vacancy',
+          evidence: {
+            evidenceType: 'verified_web_page',
+            confidence: 'medium',
+            sourcePortalName: domain,
+            sourceUrl: url,
+            observedAt: new Date().toISOString(),
+            notes: `Confirmed individual vacancy on direct employer domain (${domain}).`,
+          },
+          extractedJob: {
+            title: cleanTitle.slice(0, 100),
+            employerName: domain,
+            status: 'open',
+            sourceType: 'external_public',
+            sourceUrl: url,
+            sourceDomain: domain,
+            freshnessStatus: 'fresh',
+            vacancies: 0, // Unstated, never fabricate
+          },
+        };
+      }
+    }
+
+    // In all other cases, strictly treat as unverified lead
     return {
       status: 'unverified_lead',
       evidence: {
@@ -339,9 +413,9 @@ export class VacancyVerifier {
         sourcePortalName: domain,
         sourceUrl: url,
         observedAt: new Date().toISOString(),
-        notes: 'Public search lead. Could not independently confirm direct application action on individual page.',
+        notes: 'Public search citation. Independent structured vacancy evidence was not confirmed on page.',
       },
-      rejectionReason: 'Insufficient individual vacancy evidence',
+      rejectionReason: 'Lacks structured schema.org JobPosting or confirmed employer recruitment evidence',
     };
   }
 }

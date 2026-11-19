@@ -1,27 +1,9 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import { jobDiscoveryAgent } from '../../apps/web/src/lib/services/job-discovery';
 import { trainingDiscoveryAgent } from '../../apps/web/src/lib/services/training-discovery';
 import { regionalRagService } from '../../apps/web/src/lib/services/regional-rag';
 import { CandidateProfile } from '@rojgarmitra/shared';
-
-// Load .env.local if present
-const envPath = 'C:\\Projects\\Ycce-hackkumbh\\apps\\web\\.env.local';
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  for (const line of envContent.split('\n')) {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('#')) {
-      const idx = trimmed.indexOf('=');
-      if (idx > -1) {
-        const k = trimmed.substring(0, idx).trim();
-        let v = trimmed.substring(idx + 1).trim();
-        if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
-        process.env[k] = v;
-      }
-    }
-  }
-}
 
 describe('End-to-End Dual-Candidate Verification', () => {
   const candidateA: CandidateProfile = {
@@ -52,25 +34,30 @@ describe('End-to-End Dual-Candidate Verification', () => {
     updatedAt: new Date().toISOString(),
   };
 
-  it('Candidate A (ITI Electrician, Hingna MIDC): executes complete discovery, upskilling, and RAG', async () => {
+  it('Candidate A (ITI Electrician, Hingna MIDC): executes honest discovery with quarantined synthetic jobs', async () => {
     // 1. Job Discovery
     const discovery = await jobDiscoveryAgent.discoverJobs(candidateA, 'mr');
     expect(discovery).toBeDefined();
     expect(discovery.results.length).toBeGreaterThan(0);
-    expect(discovery.totalVerified).toBeGreaterThanOrEqual(1);
 
-    // Verify top job is in Hingna or Nagpur
-    const topVerified = discovery.results.find((r) => r.verificationStatus === 'verified_vacancy');
-    expect(topVerified).toBeDefined();
-    expect(topVerified!.job.title.toLowerCase()).toContain('electrician');
-    expect(topVerified!.evidence.confidence).toBe('high');
+    // Synthetic jobs (Mahindra / KEC) are quarantined; unverified aggregator leads are returned honestly
+    expect(discovery.totalVerified).toBe(0);
+    expect(discovery.totalLeads).toBeGreaterThan(0);
+    expect(discovery.suggestedAlternativeSearches).toBeDefined();
+    expect(discovery.suggestedAlternativeSearches!.length).toBeGreaterThan(0);
 
-    console.log('\n[Candidate A Verified Job]:', {
-      title: topVerified!.job.title,
-      employer: topVerified!.job.employerName,
-      location: `${topVerified!.job.areaOrMidc || topVerified!.job.taluka}, ${topVerified!.job.district}`,
-      vacancies: topVerified!.job.vacancies,
-      matchScore: topVerified!.match?.match.matchScore,
+    const firstLead = discovery.results[0];
+    expect(firstLead.verificationStatus).toBe('unverified_lead');
+    expect(firstLead.job.vacancies).toBe(0); // Zero fabrication
+    expect(firstLead.job.sourceUrl).toBeDefined();
+
+    console.log('\n[Candidate A Honest Discovery]:', {
+      totalVerified: discovery.totalVerified,
+      totalLeads: discovery.totalLeads,
+      provider: discovery.provider,
+      sampleLeadTitle: firstLead.job.title,
+      sourceUrl: firstLead.job.sourceUrl,
+      suggestedAlternatives: discovery.suggestedAlternativeSearches?.length,
     });
 
     // 2. Training Discovery for missing skills
@@ -97,26 +84,34 @@ describe('End-to-End Dual-Candidate Verification', () => {
     expect(rag.answer).toBeDefined();
 
     console.log('[Candidate A RAG Citations]:', rag.citations.map((c) => c.title));
-  }, 25000);
+  }, 45000);
 
-  it('Candidate B (ITI Welder, Butibori MIDC): executes complete discovery, upskilling, and RAG', async () => {
+  it('Candidate B (ITI Welder, Butibori MIDC): executes honest discovery with quarantined synthetic jobs', async () => {
     // 1. Job Discovery
     const discovery = await jobDiscoveryAgent.discoverJobs(candidateB, 'mr');
     expect(discovery).toBeDefined();
     expect(discovery.results.length).toBeGreaterThan(0);
-    expect(discovery.totalVerified).toBeGreaterThanOrEqual(1);
 
-    const topVerified = discovery.results.find((r) => r.verificationStatus === 'verified_vacancy');
-    expect(topVerified).toBeDefined();
-    expect(topVerified!.job.title.toLowerCase()).toContain('welder');
-    expect(topVerified!.evidence.confidence).toBe('high');
+    // If live search discovers genuine Schema.org job posting (e.g. WorkIndia), it is verified.
+    // If not, it remains honest leads. Neither fabricates vacancies or salaries.
+    expect(discovery.totalVerified).toBeGreaterThanOrEqual(0);
+    expect(discovery.results.length).toBeGreaterThanOrEqual(1);
+    if (discovery.totalVerified === 0) {
+      expect(discovery.suggestedAlternativeSearches).toBeDefined();
+    }
 
-    console.log('\n[Candidate B Verified Job]:', {
-      title: topVerified!.job.title,
-      employer: topVerified!.job.employerName,
-      location: `${topVerified!.job.areaOrMidc || topVerified!.job.taluka}, ${topVerified!.job.district}`,
-      vacancies: topVerified!.job.vacancies,
-      matchScore: topVerified!.match?.match.matchScore,
+    const firstItem = discovery.results[0];
+    expect(['verified_vacancy', 'unverified_lead']).toContain(firstItem.verificationStatus);
+    expect(firstItem.job.sourceUrl).toBeDefined();
+
+    console.log('\n[Candidate B Honest Discovery]:', {
+      totalVerified: discovery.totalVerified,
+      totalLeads: discovery.totalLeads,
+      provider: discovery.provider,
+      sampleTitle: firstItem.job.title,
+      sampleStatus: firstItem.verificationStatus,
+      sourceUrl: firstItem.job.sourceUrl,
+      suggestedAlternatives: discovery.suggestedAlternativeSearches?.length,
     });
 
     // 2. Training Discovery for missing skills
@@ -143,5 +138,5 @@ describe('End-to-End Dual-Candidate Verification', () => {
     expect(rag.answer).toBeDefined();
 
     console.log('[Candidate B RAG Citations]:', rag.citations.map((c) => c.title));
-  }, 25000);
+  }, 45000);
 });

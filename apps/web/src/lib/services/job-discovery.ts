@@ -80,7 +80,19 @@ export class JobDiscoveryAgent {
       if (adminDb && typeof adminDb.collection === 'function') {
         const jobsSnapshot = await adminDb.collection('jobs').where('status', '==', 'open').get();
         jobsSnapshot.forEach((doc) => {
-          const data = doc.data() as JobPosting;
+          const data = doc.data() as JobPosting & { isQuarantined?: boolean };
+
+          // Strictly filter out quarantined or synthetic seed records
+          if (
+            data.isQuarantined ||
+            data.status !== 'open' ||
+            data.sourceType === 'demo_seed' ||
+            doc.id.startsWith('job_mahindra_') ||
+            doc.id.startsWith('job_kec_')
+          ) {
+            return;
+          }
+
           const isTradeMatch =
             !candidate.trade ||
             data.title.toLowerCase().includes(trade.toLowerCase()) ||
