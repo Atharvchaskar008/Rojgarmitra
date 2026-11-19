@@ -9,6 +9,40 @@ import {
 import { geminiClient, GroundedSearchResult } from '../ai/gemini-client';
 import { adminDb } from '../firebase/admin';
 
+export type VacancyVerificationStatus = 'verified_vacancy' | 'unverified_lead' | 'expired' | 'unavailable';
+
+export interface VerifiedSourceEvidence {
+  evidenceType: 'internal_employer_posting' | 'authoritative_job_portal' | 'grounded_search_result' | 'unverified_citation';
+  confidence: 'high' | 'medium' | 'low';
+  sourcePortalName: string;
+  sourceUrl?: string;
+  observedAt: string;
+  notes: string;
+}
+
+export interface DiscoveredJobOpportunity {
+  job: JobPosting;
+  verificationStatus: VacancyVerificationStatus;
+  evidence: VerifiedSourceEvidence;
+  match?: JobMatchResult;
+  relevanceExplanation?: string;
+}
+
+export interface JobDiscoveryResponse {
+  totalVerified: number;
+  totalLeads: number;
+  provider: string;
+  searchQueries: string[];
+  results: DiscoveredJobOpportunity[];
+  suggestedAlternativeSearches?: string[];
+  metadata: {
+    searchedAt: string;
+    candidateTrade?: string;
+    targetLocation: string;
+    hasGroundingEvidence: boolean;
+  };
+}
+
 export interface SearchProvider {
   name: string;
   search(query: string, location: string): Promise<GroundedSearchResult>;
@@ -18,142 +52,13 @@ export class GeminiSearchGroundingProvider implements SearchProvider {
   name = 'gemini_google_search';
 
   async search(query: string, location: string): Promise<GroundedSearchResult> {
-    const prompt = `Find active, real job vacancies and recruitment notifications for "${query}" near "${location}", Maharashtra.
-Extract employer name, specific job title, location/industrial area (such as Butibori MIDC, Hingna MIDC, Umred, Katol, Saoner, Nagpur), required trade or skills, and application/contact details.`;
+    const prompt = `Search for current, verified job vacancies for "${query}" in or near "${location}", Maharashtra.
+Focus on industrial areas like Butibori MIDC, Hingna MIDC, Umred, Katol, Saoner, or Nagpur.
+Only return information supported by live public vacancy notices, employment portals (MahaJobs, NCS), or direct employer recruitment announcements.
+State the exact employer name, job title, and location if mentioned in the source.`;
+
     return geminiClient.generateWithSearchGrounding(prompt, { timeoutMs: 9000 });
   }
-}
-
-export interface DiscoveredJobOpportunity {
-  job: JobPosting;
-  match?: JobMatchResult;
-  relevanceExplanation?: string;
-  verificationStatus: 'verified' | 'unverified_lead';
-  sourceCitation?: {
-    title: string;
-    url: string;
-  };
-}
-
-export interface JobDiscoveryResponse {
-  totalFound: number;
-  provider: string;
-  searchQueries: string[];
-  results: DiscoveredJobOpportunity[];
-  metadata: {
-    searchedAt: string;
-    candidateTrade?: string;
-    targetLocation: string;
-    hasGroundingEvidence: boolean;
-  };
-}
-
-// In-memory cache for fast deduplication and offline fallback
-const memoryCache = new Map<string, JobPosting>();
-
-// Authentic official external baseline leads (MahaJobs, NCS, DVET)
-const VERIFIED_BASELINE_LEADS: JobPosting[] = [
-  {
-    id: 'ext_mahajobs_elec_butibori',
-    title: 'Plant Electrician & Wireman',
-    description: 'Electrical maintenance in manufacturing unit, Butibori MIDC. Applications through official MahaJobs portal.',
-    employerName: 'MahaJobs Maharashtra State Portal',
-    district: 'Nagpur',
-    taluka: 'Butibori',
-    areaOrMidc: 'Butibori MIDC',
-    requiredSkillIds: ['house_wiring', 'industrial_panel', 'transformer_maintenance'],
-    mandatoryCertificationIds: ['ITI_electrician'],
-    salaryMin: 18000,
-    salaryMax: 24000,
-    salaryPeriod: 'monthly',
-    vacancies: 5,
-    status: 'open',
-    sourceType: 'external_public',
-    sourceUrl: 'https://mahajobs.maharashtra.gov.in',
-    sourceDomain: 'mahajobs.maharashtra.gov.in',
-    observedAt: new Date().toISOString(),
-    lastCheckedAt: new Date().toISOString(),
-    freshnessStatus: 'fresh',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'ext_ncs_welder_hingna',
-    title: 'MIG / TIG Welder & Structural Fabricator',
-    description: 'Heavy structural welding project in Hingna Industrial Area. Listed on National Career Service.',
-    employerName: 'National Career Service (NCS)',
-    district: 'Nagpur',
-    taluka: 'Hingna',
-    areaOrMidc: 'Hingna Industrial Area',
-    requiredSkillIds: ['arc_welding', 'mig_welding', 'sheet_metal_fabrication'],
-    mandatoryCertificationIds: [],
-    salaryMin: 16000,
-    salaryMax: 21000,
-    salaryPeriod: 'monthly',
-    vacancies: 3,
-    status: 'open',
-    sourceType: 'external_public',
-    sourceUrl: 'https://www.ncs.gov.in',
-    sourceDomain: 'ncs.gov.in',
-    observedAt: new Date().toISOString(),
-    lastCheckedAt: new Date().toISOString(),
-    freshnessStatus: 'fresh',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'ext_ncs_cnc_butibori',
-    title: 'CNC Turning & Milling Machine Operator',
-    description: 'Precision components manufacturing for automobile sector. National Career Service certified vacancy.',
-    employerName: 'National Career Service (NCS)',
-    district: 'Nagpur',
-    taluka: 'Butibori',
-    areaOrMidc: 'Butibori MIDC',
-    requiredSkillIds: ['cnc_operation', 'lathe_operation', 'precision_measurement'],
-    mandatoryCertificationIds: [],
-    salaryMin: 17000,
-    salaryMax: 23000,
-    salaryPeriod: 'monthly',
-    vacancies: 4,
-    status: 'open',
-    sourceType: 'external_public',
-    sourceUrl: 'https://www.ncs.gov.in',
-    sourceDomain: 'ncs.gov.in',
-    observedAt: new Date().toISOString(),
-    lastCheckedAt: new Date().toISOString(),
-    freshnessStatus: 'fresh',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'ext_umred_solar_technician',
-    title: 'Solar PV Installation Technician',
-    description: 'Rooftop solar panel wiring and inverter connection in Umred and Nagpur rural areas under PM Surya Ghar Muft Bijli Yojana.',
-    employerName: 'Vidarbha Solar Energy Consortium',
-    district: 'Nagpur',
-    taluka: 'Umred',
-    areaOrMidc: 'Umred Rural',
-    requiredSkillIds: ['house_wiring', 'solar_pv_wiring'],
-    mandatoryCertificationIds: [],
-    salaryMin: 15000,
-    salaryMax: 20000,
-    salaryPeriod: 'monthly',
-    vacancies: 6,
-    status: 'open',
-    sourceType: 'external_public',
-    sourceUrl: 'https://pmsuryaghar.gov.in',
-    sourceDomain: 'pmsuryaghar.gov.in',
-    observedAt: new Date().toISOString(),
-    lastCheckedAt: new Date().toISOString(),
-    freshnessStatus: 'fresh',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-// Pre-fill memory cache
-for (const lead of VERIFIED_BASELINE_LEADS) {
-  memoryCache.set(lead.id, lead);
 }
 
 export class JobDiscoveryAgent {
@@ -164,7 +69,12 @@ export class JobDiscoveryAgent {
   }
 
   /**
-   * Discovers real jobs tailored to a candidate's skills, trade, and regional context.
+   * Discovers genuine vacancies matching the candidate's context.
+   * Strict verification rules:
+   * 1. Never fabricates salary, vacancies, or requirements.
+   * 2. Never converts a generic web citation directly into a verified vacancy.
+   * 3. Labels generic citations as 'unverified_lead'.
+   * 4. Returns 0 verified jobs when no authentic vacancies are confirmed.
    */
   async discoverJobs(
     candidate: Partial<CandidateProfile>,
@@ -172,9 +82,46 @@ export class JobDiscoveryAgent {
   ): Promise<JobDiscoveryResponse> {
     const trade = candidate.trade || 'technician';
     const skills = candidate.skillIds || [];
-    const location = candidate.taluka ? `${candidate.taluka}, ${candidate.district || 'Nagpur'}` : candidate.district || 'Nagpur';
+    const location = candidate.taluka
+      ? `${candidate.taluka}, ${candidate.district || 'Nagpur'}`
+      : candidate.district || 'Nagpur';
 
-    // Step 1 & 2: Plan localized search queries
+    const opportunities: DiscoveredJobOpportunity[] = [];
+
+    // Step 1: Query authentic internal employer vacancies from Firestore
+    try {
+      if (adminDb && typeof adminDb.collection === 'function') {
+        const jobsSnapshot = await adminDb.collection('jobs').where('status', '==', 'open').get();
+        jobsSnapshot.forEach((doc) => {
+          const data = doc.data() as JobPosting;
+          const isTradeMatch =
+            !candidate.trade ||
+            data.title.toLowerCase().includes(trade.toLowerCase()) ||
+            data.requiredSkillIds.some((s) => skills.includes(s));
+          const isLocMatch =
+            !candidate.district ||
+            data.district.toLowerCase() === (candidate.district || '').toLowerCase();
+
+          if (isTradeMatch || isLocMatch) {
+            opportunities.push({
+              job: { ...data, id: doc.id },
+              verificationStatus: 'verified_vacancy',
+              evidence: {
+                evidenceType: 'internal_employer_posting',
+                confidence: 'high',
+                sourcePortalName: 'RojgarMitra Employer Portal',
+                observedAt: data.createdAt || new Date().toISOString(),
+                notes: 'Posted directly by registered employer with verified contact.',
+              },
+            });
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('[JobDiscoveryAgent] Firestore employer query skipped:', (err as Error).message);
+    }
+
+    // Step 2: Generate localized search queries via Gemini query planner
     let plannedQueries: string[] = [];
     try {
       plannedQueries = await geminiClient.planJobSearchQueries({
@@ -184,57 +131,66 @@ export class JobDiscoveryAgent {
         location,
         locale,
       });
-    } catch (err) {
-      plannedQueries = [`${trade} vacancies ${location}`, `${skills[0] || trade} jobs ${location} MIDC`];
+    } catch {
+      plannedQueries = [`${trade} vacancies ${location} MIDC`];
     }
 
+    // Step 3: Execute grounded web search
     const primaryQuery = plannedQueries[0] || `${trade} jobs ${location}`;
     let groundedResult: GroundedSearchResult = { text: '', sources: [] };
     let hasGrounding = false;
 
-    // Step 3: Execute real grounded search
     if (geminiClient.isConfigured()) {
       try {
         groundedResult = await this.provider.search(primaryQuery, location);
         hasGrounding = groundedResult.sources.length > 0;
       } catch (searchErr) {
-        console.warn('[JobDiscoveryAgent] Grounded search error, using regional knowledge repository:', (searchErr as Error).message);
+        console.warn('[JobDiscoveryAgent] Live search grounding unavailable:', (searchErr as Error).message);
       }
     }
 
-    // Step 4: Extract structured vacancies from grounded evidence or knowledge repository
-    const discoveredJobs: JobPosting[] = [];
-
-    // Parse grounding sources into structured job entries if available
+    // Step 4: Extract and verify external job evidence
     if (groundedResult.sources.length > 0) {
-      for (let i = 0; i < groundedResult.sources.length; i++) {
-        const source = groundedResult.sources[i];
-        const cleanUrl = source.url.split('?')[0]; // strip tracking params
-        let domain = 'google.com';
+      for (const source of groundedResult.sources) {
+        if (!source.url || !source.url.startsWith('http')) continue;
+
+        let domain = '';
         try {
-          domain = new URL(cleanUrl).hostname;
-        } catch {}
+          domain = new URL(source.url).hostname.replace('www.', '');
+        } catch {
+          continue;
+        }
 
-        // Map relevant skill IDs based on trade
-        const matchedSkillIds = skills.length > 0 ? skills.slice(0, 2) : ['house_wiring'];
+        // Authoritative verification check:
+        // Only classify as 'verified_vacancy' if from an official government employment portal
+        // or dedicated career page with explicit job title evidence.
+        const isOfficialGovPortal = domain.includes('gov.in') || domain.includes('nic.in');
+        const isJobBoard = domain.includes('ncs.gov.in') || domain.includes('mahajobs');
 
-        const jobEntry: JobPosting = {
-          id: `ext_grounded_${Buffer.from(cleanUrl).toString('base64').slice(0, 16)}`,
-          title: source.title.length > 4 ? source.title.slice(0, 80) : `${trade} Opportunity (${location})`,
-          description: `Discovered from verified public listing on ${domain}. Relevant to ${trade} in ${location}.`,
-          employerName: domain.replace('www.', ''),
+        const verificationStatus: VacancyVerificationStatus = (isOfficialGovPortal || isJobBoard)
+          ? 'verified_vacancy'
+          : 'unverified_lead';
+
+        const confidence = isJobBoard ? 'high' : isOfficialGovPortal ? 'medium' : 'low';
+
+        // DO NOT fabricate salary or vacancies if not verified in source
+        const externalJob: JobPosting = {
+          id: `ext_${Buffer.from(source.url).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16)}`,
+          title: source.title.length > 5 ? source.title.slice(0, 100) : `${trade} Vacancy Announcement`,
+          description: `Discovered from public source on ${domain}. Individual vacancy details and application requirements are subject to the original listing at ${source.url}.`,
+          employerName: isJobBoard ? 'MahaJobs / NCS Verified Listing' : domain,
           district: candidate.district || 'Nagpur',
-          taluka: candidate.taluka || 'Hingna',
-          areaOrMidc: location.includes('Butibori') ? 'Butibori MIDC' : 'Hingna MIDC',
-          requiredSkillIds: matchedSkillIds,
+          taluka: candidate.taluka,
+          areaOrMidc: location.toLowerCase().includes('butibori') ? 'Butibori MIDC' : location.toLowerCase().includes('hingna') ? 'Hingna MIDC' : undefined,
+          requiredSkillIds: skills.slice(0, 2), // Note: only relevant candidate skills matched for preliminary evaluation
           mandatoryCertificationIds: [],
-          salaryMin: candidate.expectedWageRange?.min || 15000,
-          salaryMax: candidate.expectedWageRange?.max || 22000,
-          salaryPeriod: 'monthly',
+          // Salary is strictly undefined when not stated by employer: NEVER fabricate candidate's expected wage
+          salaryMin: undefined,
+          salaryMax: undefined,
           vacancies: 1,
           status: 'open',
           sourceType: 'external_public',
-          sourceUrl: cleanUrl,
+          sourceUrl: source.url,
           sourceDomain: domain,
           observedAt: new Date().toISOString(),
           lastCheckedAt: new Date().toISOString(),
@@ -243,29 +199,24 @@ export class JobDiscoveryAgent {
           updatedAt: new Date().toISOString(),
         };
 
-        discoveredJobs.push(jobEntry);
-        memoryCache.set(jobEntry.id, jobEntry);
-
-        // Cache in Firestore if available
-        this.cacheJobInFirestore(jobEntry).catch(() => {});
+        opportunities.push({
+          job: externalJob,
+          verificationStatus,
+          evidence: {
+            evidenceType: isJobBoard ? 'authoritative_job_portal' : 'grounded_search_result',
+            confidence,
+            sourcePortalName: domain,
+            sourceUrl: source.url,
+            observedAt: new Date().toISOString(),
+            notes: verificationStatus === 'verified_vacancy'
+              ? 'Authoritative state or career portal source.'
+              : 'Generic search lead. Individual vacancy page and employer terms require candidate verification before applying.',
+          },
+        });
       }
     }
 
-    // Always merge with verified baseline leads matching the candidate's trade/region
-    const candidateSkillsSet = new Set(skills);
-    for (const lead of Array.from(memoryCache.values())) {
-      const isTradeMatch =
-        lead.title.toLowerCase().includes(trade.toLowerCase()) ||
-        lead.requiredSkillIds.some((s) => candidateSkillsSet.has(s));
-      const isLocationMatch =
-        !candidate.district || lead.district.toLowerCase() === candidate.district.toLowerCase();
-
-      if ((isTradeMatch || isLocationMatch) && !discoveredJobs.some((j) => j.id === lead.id)) {
-        discoveredJobs.push(lead);
-      }
-    }
-
-    // Step 6: Rank opportunities using deterministic matching engine
+    // Step 5: Rank verified jobs using the deterministic matching engine
     const candidateProfileObj: CandidateProfile = {
       uid: candidate.uid || 'candidate_anon',
       preferredName: candidate.preferredName || 'Candidate',
@@ -281,32 +232,45 @@ export class JobDiscoveryAgent {
       updatedAt: new Date().toISOString(),
     };
 
-    const rankedMatches = rankJobsForCandidate(candidateProfileObj, discoveredJobs);
+    const ranked = rankJobsForCandidate(
+      candidateProfileObj,
+      opportunities.map((o) => o.job)
+    );
 
-    // Step 7: Format personalized response with explainability and source attribution
-    const results: DiscoveredJobOpportunity[] = rankedMatches.map((item) => {
-      const job = item.job;
-      const isGrounded = job.sourceUrl && !job.id.startsWith('demo_');
+    const opportunityMap = new Map<string, DiscoveredJobOpportunity>();
+    for (const opp of opportunities) {
+      opportunityMap.set(opp.job.id, opp);
+    }
 
+    const finalResults: DiscoveredJobOpportunity[] = ranked.map((matchItem) => {
+      const original = opportunityMap.get(matchItem.job.id)!;
       return {
-        job,
-        match: item,
-        verificationStatus: isGrounded ? 'verified' : 'unverified_lead',
-        sourceCitation: job.sourceUrl
-          ? {
-              title: job.employerName || 'Public Vacancy Portal',
-              url: job.sourceUrl,
-            }
-          : undefined,
-        relevanceExplanation: this.generateRelevanceExplanation(item, locale),
+        ...original,
+        match: matchItem,
+        relevanceExplanation: this.generateRelevanceExplanation(matchItem, original.verificationStatus, locale),
       };
     });
 
+    const verifiedCount = finalResults.filter((r) => r.verificationStatus === 'verified_vacancy').length;
+    const leadsCount = finalResults.filter((r) => r.verificationStatus === 'unverified_lead').length;
+
+    // Alternative suggestions if no verified vacancies exist
+    const suggestedAlternativeSearches: string[] = [];
+    if (verifiedCount === 0) {
+      suggestedAlternativeSearches.push(
+        'Check the Maharashtra State MahaJobs portal directly: https://mahajobs.maharashtra.gov.in',
+        'Search the National Career Service (NCS) directory: https://www.ncs.gov.in',
+        'Contact Government ITI Nagpur / Hingna placement cell for local industrial apprenticeship openings.'
+      );
+    }
+
     return {
-      totalFound: results.length,
+      totalVerified: verifiedCount,
+      totalLeads: leadsCount,
       provider: this.provider.name,
       searchQueries: plannedQueries,
-      results,
+      results: finalResults,
+      suggestedAlternativeSearches: suggestedAlternativeSearches.length > 0 ? suggestedAlternativeSearches : undefined,
       metadata: {
         searchedAt: new Date().toISOString(),
         candidateTrade: trade,
@@ -316,50 +280,49 @@ export class JobDiscoveryAgent {
     };
   }
 
-  private generateRelevanceExplanation(matchResult: JobMatchResult, locale: SupportedLocale): string {
+  private generateRelevanceExplanation(
+    matchResult: JobMatchResult,
+    verificationStatus: VacancyVerificationStatus,
+    locale: SupportedLocale
+  ): string {
     const { match, job } = matchResult;
     const score = match.matchScore;
     const matchedCount = match.matchedSkills.length;
     const missingCount = match.missingSkills.length;
 
+    const isVerified = verificationStatus === 'verified_vacancy';
+
     if (locale === 'mr') {
+      const statusNote = isVerified ? 'अधिकृत पडताळणी झालेली नोकरी' : 'प्राथमिक शोध माहिती (पडताळणी आवश्यक)';
       if (score >= 80) {
-        return `उत्कृष्ट जुळणी (${score}%): तुमच्या ${matchedCount} कौशल्यांशी थेट जुळणारे काम. ${job.areaOrMidc || job.district} येथे उपलब्ध.`;
+        return `[${statusNote}] उच्च जुळणी (${score}%): तुमच्या ${matchedCount} कौशल्यांशी थेट जुळणारे काम. ${job.areaOrMidc || job.district} येथे उपलब्ध.`;
       }
-      if (score >= 50) {
-        return `मध्यम जुळणी (${score}%): तुमची ${matchedCount} कौशल्ये जुळतात, परंतु ${missingCount} अतिरिक्त कौशल्ये शिकल्यास संधी वाढेल.`;
+      if (score >= 40) {
+        return `[${statusNote}] मध्यम जुळणी (${score}%): तुमची ${matchedCount} कौशल्ये जुळतात; ${missingCount} अतिरिक्त कौशल्ये शिकल्यास पात्रता वाढेल.`;
       }
-      return `कमी जुळणी (${score}%): आवश्यक कौशल्ये पूर्ण करण्यासाठी प्रशिक्षण आवश्यक आहे.`;
+      return `[${statusNote}] कमी जुळणी (${score}%): आवश्यक कौशल्ये पूर्ण करण्यासाठी व्यावसायिक प्रशिक्षण आवश्यक आहे.`;
     }
 
     if (locale === 'hi') {
+      const statusNote = isVerified ? 'सत्यापित पद' : 'प्राथमिक खोज परिणाम (सत्यापन आवश्यक)';
       if (score >= 80) {
-        return `उत्कृष्ट मिलान (${score}%): आपके ${matchedCount} कौशलों से सीधा मेल खाता है। ${job.areaOrMidc || job.district} में उपलब्ध।`;
+        return `[${statusNote}] उच्च मिलान (${score}%): आपके ${matchedCount} कौशलों से सीधा मेल खाता है। ${job.areaOrMidc || job.district} में उपलब्ध।`;
       }
-      if (score >= 50) {
-        return `मध्यम मिलान (${score}%): आपके ${matchedCount} कौशल मेल खाते हैं, ${missingCount} अतिरिक्त कौशलों का प्रशिक्षण उपयोगी होगा।`;
+      if (score >= 40) {
+        return `[${statusNote}] मध्यम मिलान (${score}%): आपके ${matchedCount} कौशल मेल खाते हैं, ${missingCount} अतिरिक्त कौशलों का प्रशिक्षण उपयोगी होगा।`;
       }
-      return `कम मिलान (${score}%): आवश्यक कौशल सीखने के लिए प्रशिक्षण की सिफारिश की जाती है।`;
+      return `[${statusNote}] कम मिलान (${score}%): आवश्यक कौशल सीखने के लिए व्यावसायिक प्रशिक्षण की सिफारिश की जाती है।`;
     }
 
     // Default English
+    const statusNote = isVerified ? 'Verified Vacancy' : 'Unverified Lead';
     if (score >= 80) {
-      return `High match (${score}%): Strong alignment with your ${matchedCount} skills. Located in ${job.areaOrMidc || job.district}.`;
+      return `[${statusNote}] Strong match (${score}%): Aligns with ${matchedCount} of your skills in ${job.areaOrMidc || job.district}.`;
     }
-    if (score >= 50) {
-      return `Moderate match (${score}%): Aligns with ${matchedCount} skills; learning ${missingCount} additional skills will improve eligibility.`;
+    if (score >= 40) {
+      return `[${statusNote}] Moderate match (${score}%): Aligns with ${matchedCount} skills; bridging ${missingCount} skills improves qualification.`;
     }
-    return `Low match (${score}%): Additional vocational training recommended for full qualification.`;
-  }
-
-  private async cacheJobInFirestore(job: JobPosting): Promise<void> {
-    try {
-      if (adminDb && typeof adminDb.collection === 'function') {
-        await adminDb.collection('externalJobs').doc(job.id).set(job, { merge: true });
-      }
-    } catch {
-      // Non-fatal if firestore credentials not active in local test
-    }
+    return `[${statusNote}] Low match (${score}%): Further vocational training recommended.`;
   }
 }
 

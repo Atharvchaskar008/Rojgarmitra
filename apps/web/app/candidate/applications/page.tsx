@@ -17,7 +17,11 @@ export default function CandidateApplicationsPage() {
     async function loadApplications() {
       setLoading(true);
       try {
-        const token = (await getIdToken()) || 'demo_token_candidate_user_1';
+        const token = await getIdToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
         const res = await fetch('/api/v1/candidate/applications', {
           headers: { Authorization: `Bearer ${token}` },
         });

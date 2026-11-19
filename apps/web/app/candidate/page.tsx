@@ -67,7 +67,15 @@ export default function CandidateJobsFeedPage() {
     setApplyingId(jobId);
     setMessage(null);
     try {
-      const token = (await getIdToken()) || 'demo_token_candidate_user_1';
+      const token = await getIdToken();
+      if (!token) {
+        setMessage({
+          text: preferredLocale === 'mr' ? 'कृपया अर्ज करण्यासाठी प्रथम लॉगिन करा.' : 'Please sign in to submit your application.',
+          type: 'error',
+        });
+        setApplyingId(null);
+        return;
+      }
       const res = await fetch(`/api/v1/jobs/${jobId}/apply`, {
         method: 'POST',
         headers: {

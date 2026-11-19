@@ -248,7 +248,12 @@ Respond ONLY with a JSON array of strings:
           const status = response.status;
           const errorText = await response.text();
 
-          // Handle 429 Too Many Requests or 503 Service Unavailable with retry
+          // If daily quota is exhausted, fail fast to avoid blocking with futile retries
+          if (status === 429 && (errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('daily limit') || errorText.includes('per day'))) {
+            throw new GeminiServiceError(`Gemini daily quota exhausted: ${errorText}`, 429);
+          }
+
+          // Handle transient 429 or 503 Service Unavailable with retry
           if ((status === 429 || status === 503) && attempt < maxRetries) {
             console.warn(`[GeminiClient] HTTP ${status} on attempt ${attempt + 1}. Retrying in ${delay}ms...`);
             await new Promise((r) => setTimeout(r, delay));

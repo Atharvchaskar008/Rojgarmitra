@@ -54,7 +54,12 @@ export default function EmployerPostJobPage() {
     };
 
     try {
-      const token = (await getIdToken()) || 'demo_token_employer_butibori';
+      const token = await getIdToken();
+      if (!token) {
+        setErrorMsg('Please sign in as a verified employer to post vacancies.');
+        setSubmitting(false);
+        return;
+      }
       const res = await fetch('/api/v1/employer/jobs', {
         method: 'POST',
         headers: {

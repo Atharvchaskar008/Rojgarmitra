@@ -42,7 +42,12 @@ export default function CandidateOnboardingPage() {
     setIsTranscribing(true);
     setVoiceMessage(null);
     try {
-      const token = (await getIdToken()) || 'demo_token_candidate_user_1';
+      const token = await getIdToken();
+      if (!token) {
+        setVoiceMessage(preferredLocale === 'mr' ? 'कृपया प्रथम लॉगिन करा.' : 'Please sign in first.');
+        setIsTranscribing(false);
+        return;
+      }
       const res = await fetch('/api/v1/voice/transcribe', {
         method: 'POST',
         headers: {
@@ -90,7 +95,12 @@ export default function CandidateOnboardingPage() {
     };
 
     try {
-      const token = (await getIdToken()) || 'demo_token_candidate_user_1';
+      const token = await getIdToken();
+      if (!token) {
+        setErrorMsg(preferredLocale === 'mr' ? 'कृपया प्रोफाइल सेव्ह करण्यासाठी लॉगिन करा.' : 'Please sign in to save your profile.');
+        setSaving(false);
+        return;
+      }
       const res = await fetch('/api/v1/profile/candidate', {
         method: 'POST',
         headers: {

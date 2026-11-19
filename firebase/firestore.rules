@@ -23,10 +23,9 @@ service cloud.firestore {
       allow delete: if false;
     }
     
-    // Candidate profiles
+    // Candidate profiles: Strictly private to the candidate owner
     match /candidates/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
+      allow read, write: if isOwner(userId);
     }
     
     // Employer profiles

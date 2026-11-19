@@ -18,9 +18,10 @@ beforeAll(() => {
 import { jobDiscoveryAgent } from '../../apps/web/src/lib/services/job-discovery';
 import { trainingDiscoveryAgent } from '../../apps/web/src/lib/services/training-discovery';
 import { careerPlannerService } from '../../apps/web/src/lib/services/career-planner';
+import { regionalRagService } from '../../apps/web/src/lib/services/regional-rag';
 import { CandidateProfile } from '@rojgarmitra/shared';
 
-describe('Dual Profile Verification: Candidate A vs Candidate B', () => {
+describe('Rigorous Evidence-Based Verification: Candidate A vs Candidate B', () => {
   // Candidate A: Hingna ITI Electrician (wiring + motor repair, 24m exp, 25km travel)
   const candidateA: CandidateProfile = {
     uid: 'candidate_A_hingna',
@@ -51,47 +52,58 @@ describe('Dual Profile Verification: Candidate A vs Candidate B', () => {
     updatedAt: new Date().toISOString(),
   };
 
-  it('delivers relevant electrical job opportunities for Candidate A (Hingna)', async () => {
+  it('enforces strict vacancy verification without fabricating salary or requirements', async () => {
     const resultA = await jobDiscoveryAgent.discoverJobs(candidateA, 'mr');
-    expect(resultA.results.length).toBeGreaterThan(0);
 
-    const topMatchA = resultA.results[0];
-    expect(topMatchA.job.title.toLowerCase()).toMatch(/electric|wireman|solar/);
-    expect(topMatchA.match?.match.matchScore).toBeGreaterThanOrEqual(50);
-    expect(topMatchA.job.sourceUrl).toBeDefined();
-    expect(topMatchA.job.sourceUrl?.startsWith('http')).toBe(true);
+    // Never fabricates candidate expected salary as advertised job salary
+    for (const item of resultA.results) {
+      if (item.job.sourceType === 'external_public') {
+        expect(item.job.salaryMin).toBeUndefined();
+        expect(item.job.salaryMax).toBeUndefined();
+      }
+      expect(['verified_vacancy', 'unverified_lead', 'expired', 'unavailable']).toContain(item.verificationStatus);
+    }
+
+    // If zero verified vacancies exist, provides honest alternative guidance
+    if (resultA.totalVerified === 0) {
+      expect(resultA.suggestedAlternativeSearches).toBeDefined();
+      expect(resultA.suggestedAlternativeSearches!.some(s => s.includes('MahaJobs') || s.includes('ncs.gov.in'))).toBe(true);
+    }
   }, 25000);
 
-  it('delivers relevant welding job opportunities for Candidate B (Butibori)', async () => {
-    const resultB = await jobDiscoveryAgent.discoverJobs(candidateB, 'mr');
-    expect(resultB.results.length).toBeGreaterThan(0);
-
-    const topMatchB = resultB.results[0];
-    expect(topMatchB.job.title.toLowerCase()).toContain('weld');
-    expect(topMatchB.match?.match.matchScore).toBeGreaterThanOrEqual(40);
-    expect(topMatchB.job.sourceUrl).toBeDefined();
-    expect(topMatchB.job.sourceUrl?.startsWith('http')).toBe(true);
-  }, 25000);
-
-  it('correctly maps missing skills to verified local ITI training courses', () => {
+  it('correctly maps missing skills to official DVET ITI vocational curriculum', async () => {
     // Candidate A missing industrial_panel
     const missingA = ['industrial_panel'];
-    const trainingA = trainingDiscoveryAgent.discoverTraining(candidateA, missingA, 'mr');
+    const trainingA = await trainingDiscoveryAgent.discoverTraining(candidateA, missingA, 'mr');
 
     expect(trainingA.recommendedCourses.length).toBeGreaterThan(0);
     const topCourseA = trainingA.recommendedCourses[0];
     expect(topCourseA.tradeId).toBe('electrician');
-    expect(topCourseA.officialUrl).toBe('https://admission.dvet.gov.in');
+    expect(topCourseA.officialPortalUrl).toBe('https://admission.dvet.gov.in');
+    expect(topCourseA.admissionCycleNote).toContain('admission.dvet.gov.in');
 
     // Candidate B missing mig_welding
     const missingB = ['mig_welding'];
-    const trainingB = trainingDiscoveryAgent.discoverTraining(candidateB, missingB, 'mr');
+    const trainingB = await trainingDiscoveryAgent.discoverTraining(candidateB, missingB, 'mr');
 
     expect(trainingB.recommendedCourses.length).toBeGreaterThan(0);
     const topCourseB = trainingB.recommendedCourses[0];
     expect(topCourseB.tradeId).toBe('welder');
     expect(topCourseB.centerTaluka?.toLowerCase()).toContain('butibori');
-  });
+  }, 30000);
+
+  it('retrieves evidence-grounded regional RAG answers with citations', async () => {
+    const ragResult = await regionalRagService.answerWithRag(
+      'Where can I learn solar rooftop wiring in Nagpur district?',
+      { trade: 'electrician', taluka: 'Umred', district: 'Nagpur' },
+      'mr'
+    );
+
+    expect(ragResult.answer).toBeDefined();
+    expect(ragResult.citations.length).toBeGreaterThan(0);
+    expect(ragResult.retrievedDocumentCount).toBeGreaterThan(0);
+    expect(ragResult.citations.some(c => c.sourceUrl.includes('dvet') || c.sourceUrl.includes('ncs'))).toBe(true);
+  }, 30000);
 
   it('generates personalized career roadmap for Candidate A', async () => {
     const planA = await careerPlannerService.generateCareerPlan(candidateA, undefined, 'mr');

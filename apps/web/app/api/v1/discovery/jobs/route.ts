@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jobDiscoveryAgent } from '@/lib/services/job-discovery';
+import { checkRateLimit, handleApiError } from '@/lib/auth/server-auth';
 import { SupportedLocale } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || 'local_client';
+    checkRateLimit(`discovery_jobs_${ip}`, 15, 60000);
+
     const body = await req.json();
 
     const candidate = {
@@ -30,24 +34,16 @@ export async function POST(req: NextRequest) {
       success: true,
       data: discoveryResult.results,
       meta: {
-        totalFound: discoveryResult.totalFound,
+        totalVerified: discoveryResult.totalVerified,
+        totalLeads: discoveryResult.totalLeads,
         provider: discoveryResult.provider,
         searchQueries: discoveryResult.searchQueries,
+        suggestedAlternativeSearches: discoveryResult.suggestedAlternativeSearches,
         metadata: discoveryResult.metadata,
         attributionNotice: 'Verified public employment opportunities. Sourced with Google Search Grounding and state employment registries. No charges apply.',
       },
     });
   } catch (error: any) {
-    console.error('[API /api/v1/discovery/jobs] Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'DISCOVERY_ERROR',
-          message: error?.message || 'Failed to discover jobs',
-        },
-      },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

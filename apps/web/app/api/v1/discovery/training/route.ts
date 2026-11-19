@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const missingSkills = Array.isArray(body.missingSkills) ? body.missingSkills : [];
     const locale = (body.locale || body.preferredLanguage || 'mr') as SupportedLocale;
 
-    const result = trainingDiscoveryAgent.discoverTraining(candidate, missingSkills, locale);
+    const result = await trainingDiscoveryAgent.discoverTraining(candidate, missingSkills, locale);
 
     return NextResponse.json({
       success: true,

@@ -6,6 +6,11 @@ describe('Firestore Security Rules Logic', () => {
     return authUid === targetUid;
   }
 
+  function canUserReadCandidateProfile(authUid: string | null, targetUid: string) {
+    if (!authUid) return false;
+    return authUid === targetUid;
+  }
+
   function canClientEscalateRole(authUid: string | null, requestedRole: string) {
     if (!authUid) return false;
     // Disallow self-promotion to admin
@@ -28,6 +33,12 @@ describe('Firestore Security Rules Logic', () => {
     expect(canCandidateWriteProfile('user_123', 'user_123')).toBe(true);
     expect(canCandidateWriteProfile('user_123', 'user_456')).toBe(false);
     expect(canCandidateWriteProfile(null, 'user_123')).toBe(false);
+  });
+
+  it('prevents cross-user access to candidate profiles', () => {
+    expect(canUserReadCandidateProfile('user_123', 'user_123')).toBe(true);
+    expect(canUserReadCandidateProfile('user_123', 'user_456')).toBe(false);
+    expect(canUserReadCandidateProfile(null, 'user_123')).toBe(false);
   });
 
   it('prevents client from self-assigning admin role', () => {

@@ -65,25 +65,45 @@ export default function App() {
     }
   };
 
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
   const handleApply = async (jobId: string) => {
+    if (!authToken) {
+      Alert.alert(
+        locale === 'mr' ? 'लॉगिन आवश्यक' : 'Login Required',
+        locale === 'mr'
+          ? 'नोकरीसाठी अर्ज पाठवण्यासाठी कृपया आधी अधिकृत खात्यात लॉगिन करा.'
+          : 'Please sign in to your verified candidate account to apply.'
+      );
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/jobs/${jobId}/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer demo_token_candidate_user_1',
+          Authorization: `Bearer ${authToken}`,
         },
       });
       const data = await res.json();
       if (res.ok) {
         setAppliedJobIds(prev => new Set(prev).add(jobId));
-        Alert.alert('यशस्वी', 'आपला अर्ज यशस्वीरित्या पाठवला आहे!');
+        Alert.alert(
+          locale === 'mr' ? 'यशस्वी' : 'Success',
+          locale === 'mr' ? 'आपला अर्ज यशस्वीरित्या पाठवला आहे!' : 'Application submitted successfully!'
+        );
       } else {
-        Alert.alert('माहिती', data.error?.message || 'अर्ज स्वीकारला आहे (Offline Demo Mode)');
+        Alert.alert(
+          locale === 'mr' ? 'त्रुटी' : 'Error',
+          data.error?.message || (locale === 'mr' ? 'अर्ज पाठवता आला नाही.' : 'Failed to submit application.')
+        );
       }
-    } catch {
-      setAppliedJobIds(prev => new Set(prev).add(jobId));
-      Alert.alert('यशस्वी', 'अर्ज जतन केला आहे (Demo Mode)');
+    } catch (err: any) {
+      Alert.alert(
+        locale === 'mr' ? 'नेटवर्क त्रुटी' : 'Network Error',
+        locale === 'mr' ? 'सर्व्हरशी संपर्क होऊ शकला नाही. कृपया इंटरनेट तपासा.' : 'Could not reach server. Please check your connection.'
+      );
     }
   };
 

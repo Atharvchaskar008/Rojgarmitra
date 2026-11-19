@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, requireRole, handleApiError } from '@/lib/auth/server-auth';
+import { authenticateRequest, requireRole, handleApiError, checkRateLimit } from '@/lib/auth/server-auth';
 import { adminDb } from '@/lib/firebase/admin';
 import { CandidateProfile, SupportedLocale } from '@rojgarmitra/shared';
 import { careerPlannerService } from '@/lib/services/career-planner';
@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await authenticateRequest(req);
     requireRole(user, ['candidate', 'admin']);
+    checkRateLimit(`career_plan_${user.uid}`, 10, 60000);
 
     const body = await req.json().catch(() => ({}));
     const requestedLocale: SupportedLocale = body.locale || user.preferredLocale || 'mr';

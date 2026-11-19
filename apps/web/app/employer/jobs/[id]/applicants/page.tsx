@@ -27,7 +27,11 @@ export default function EmployerJobApplicantsPage({
     async function loadData() {
       setLoading(true);
       try {
-        const token = (await getIdToken()) || 'demo_token_employer_butibori';
+        const token = await getIdToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
         
         // 1. Load job details
         const jRes = await fetch(`/api/v1/jobs/${jobId}`);
@@ -53,7 +57,12 @@ export default function EmployerJobApplicantsPage({
     setUpdatingId(applicationId);
     setActionMsg(null);
     try {
-      const token = (await getIdToken()) || 'demo_token_employer_butibori';
+      const token = await getIdToken();
+      if (!token) {
+        setActionMsg('Please sign in to update application status.');
+        setUpdatingId(null);
+        return;
+      }
       const res = await fetch(`/api/v1/applications/${applicationId}/status`, {
         method: 'PATCH',
         headers: {

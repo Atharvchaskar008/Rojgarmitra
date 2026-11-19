@@ -17,7 +17,11 @@ export default function EmployerDashboardPage() {
     async function loadEmployerJobs() {
       setLoading(true);
       try {
-        const token = (await getIdToken()) || 'demo_token_employer_butibori';
+        const token = await getIdToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
         const res = await fetch('/api/v1/employer/jobs', {
           headers: { Authorization: `Bearer ${token}` },
         });

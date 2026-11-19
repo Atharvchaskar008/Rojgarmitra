@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { adminAuth, adminDb } from '../firebase/admin';
 import { UserRole, SupportedLocale } from '@rojgarmitra/shared';
 
@@ -18,10 +18,32 @@ export class AuthError extends Error {
   }
 }
 
+// In-memory sliding-window rate limiter per client/UID
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+/**
+ * Enforces per-client rate limiting to protect LLM & discovery endpoints.
+ */
+export function checkRateLimit(key: string, maxRequests = 15, windowMs = 60000): void {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || now > entry.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
+    return;
+  }
+
+  if (entry.count >= maxRequests) {
+    throw new AuthError('Too many requests. Rate limit exceeded. Please wait a moment before trying again.', 429);
+  }
+
+  entry.count++;
+}
+
 /**
  * Verifies the Firebase ID Token from the Authorization header and fetches the user's role from Firestore.
  */
-export async function authenticateRequest(req: NextRequest): Promise<AuthenticatedUser> {
+export async function authenticateRequest(req: NextRequest | { headers: { get(name: string): string | null } }): Promise<AuthenticatedUser> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw new AuthError('Missing or malformed Authorization header. Expected Bearer <token>', 401);
@@ -32,17 +54,28 @@ export async function authenticateRequest(req: NextRequest): Promise<Authenticat
     throw new AuthError('Token is empty', 401);
   }
 
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+
   // Demo fallback token for testing and offline development
-  if (token.startsWith('demo_token_') && (process.env.APP_MODE === 'demo' || process.env.NODE_ENV === 'test')) {
-    const parts = token.split('_'); // demo_token_<role>_<uid>
-    const role = (parts[2] as UserRole) || 'candidate';
-    const uid = parts.slice(3).join('_') || 'demo_user_1';
-    return {
-      uid,
-      email: `${uid}@rojgarmitra.local`,
-      role,
-      preferredLocale: 'mr',
-    };
+  if (token.startsWith('demo_token_')) {
+    // Strictly forbid demo tokens in production or live Vercel deployments
+    if (isProduction) {
+      throw new AuthError('Demo authentication tokens are strictly forbidden in production', 401);
+    }
+
+    if (process.env.APP_MODE === 'demo' || process.env.NODE_ENV === 'test') {
+      const parts = token.split('_'); // demo_token_<role>_<uid>
+      const role = (parts[2] as UserRole) || 'candidate';
+      const uid = parts.slice(3).join('_') || 'demo_user_1';
+      return {
+        uid,
+        email: `${uid}@rojgarmitra.local`,
+        role,
+        preferredLocale: 'mr',
+      };
+    }
+
+    throw new AuthError('Demo tokens disabled in this environment', 401);
   }
 
   try {
@@ -89,14 +122,15 @@ export function requireRole(user: AuthenticatedUser, allowedRoles: UserRole[]) {
 }
 
 /**
- * Standard JSON error response helper.
+ * Standard JSON error response helper using Web Standard Response.
  */
-export function handleApiError(error: any) {
+export function handleApiError(error: any): Response {
   if (error instanceof AuthError) {
-    return NextResponse.json(
+    const code = error.status === 403 ? 'FORBIDDEN' : error.status === 429 ? 'RATE_LIMITED' : 'UNAUTHORIZED';
+    return Response.json(
       {
         error: {
-          code: error.status === 403 ? 'FORBIDDEN' : 'UNAUTHORIZED',
+          code,
           message: error.message,
         },
       },
@@ -105,7 +139,7 @@ export function handleApiError(error: any) {
   }
 
   console.error('[API Handler Error]:', error);
-  return NextResponse.json(
+  return Response.json(
     {
       error: {
         code: 'INTERNAL_ERROR',

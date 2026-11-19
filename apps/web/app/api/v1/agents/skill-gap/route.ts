@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, requireRole, handleApiError } from '@/lib/auth/server-auth';
+import { authenticateRequest, requireRole, handleApiError, checkRateLimit } from '@/lib/auth/server-auth';
 import { adminDb } from '@/lib/firebase/admin';
 import { CandidateProfile, JobPosting, getSkillName, DEMO_SEED_JOBS, SupportedLocale } from '@rojgarmitra/shared';
 import { trainingDiscoveryAgent } from '@/lib/services/training-discovery';
@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await authenticateRequest(req);
     requireRole(user, ['candidate', 'admin']);
+    checkRateLimit(`skill_gap_${user.uid}`, 15, 60000);
 
     const body = await req.json();
     const { jobId, targetSkillIds = [], locale = 'mr' } = body;
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
         : `Vocational courses available at regional ITI centers.`,
     }));
 
-    const trainingResult = trainingDiscoveryAgent.discoverTraining(
+    const trainingResult = await trainingDiscoveryAgent.discoverTraining(
       { skillIds: candidateSkills },
       missingSkills,
       locale as SupportedLocale

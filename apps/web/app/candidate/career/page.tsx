@@ -17,7 +17,11 @@ export default function CandidateCareerPlanPage() {
     async function loadPlan() {
       setLoading(true);
       try {
-        const token = (await getIdToken()) || 'demo_token_candidate_user_1';
+        const token = await getIdToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
         const res = await fetch('/api/v1/agents/career-plan', {
           method: 'POST',
           headers: {
