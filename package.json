@@ -1,0 +1,19 @@
+{
+  "name": "rojgarmitra-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RojgarMitra - Local Skills. Real Opportunities.",
+  "scripts": {
+    "dev": "pnpm --filter @rojgarmitra/web dev",
+    "dev:mobile": "pnpm --filter @rojgarmitra/mobile start",
+    "build": "pnpm --filter @rojgarmitra/web build",
+    "typecheck": "pnpm -r --parallel run typecheck",
+    "test": "vitest run",
+    "emulators": "firebase emulators:start --only firestore,auth"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@12.21.0"
+}
