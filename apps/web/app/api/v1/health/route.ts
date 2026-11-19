@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { geminiClient } from '@/lib/ai/gemini-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,8 @@ export async function GET() {
     services: {
       auth: 'firebase',
       database: 'firestore',
+      gemini: geminiClient.isConfigured() ? 'configured' : 'not_configured',
+      geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
       i18n: ['mr', 'hi', 'en']
     }
   });

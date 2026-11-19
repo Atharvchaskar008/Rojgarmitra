@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, requireRole, handleApiError } from '@/lib/auth/server-auth';
 import { adminDb } from '@/lib/firebase/admin';
-import { CandidateProfile, JobPosting, getSkillName, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
+import { CandidateProfile, JobPosting, getSkillName, DEMO_SEED_JOBS, SupportedLocale } from '@rojgarmitra/shared';
+import { trainingDiscoveryAgent } from '@/lib/services/training-discovery';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,12 @@ export async function POST(req: NextRequest) {
         : `Vocational courses available at regional ITI centers.`,
     }));
 
+    const trainingResult = trainingDiscoveryAgent.discoverTraining(
+      { skillIds: candidateSkills },
+      missingSkills,
+      locale as SupportedLocale
+    );
+
     return NextResponse.json({
       data: {
         jobTitle,
@@ -63,6 +70,7 @@ export async function POST(req: NextRequest) {
         missingCount: missingSkills.length,
         matchedSkills,
         missingSkills: missingWithNames,
+        recommendedCourses: trainingResult.recommendedCourses.slice(0, 3),
         readinessPercentage: requiredSkills.length > 0 
           ? Math.round((matchedSkills.length / requiredSkills.length) * 100) 
           : 100,

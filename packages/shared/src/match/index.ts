@@ -4,6 +4,11 @@ export interface MatchingOptions {
   strictCertification?: boolean;
 }
 
+export type JobMatchResult = {
+  job: JobPosting;
+  match: MatchExplanation;
+};
+
 /**
  * Pure, deterministic, explainable matching engine for RojgarMitra.
  * Evaluates mandatory qualification/certification gates first, then calculates

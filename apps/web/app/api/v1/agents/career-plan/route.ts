@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    const careerPlan = careerPlannerService.generateCareerPlan(
+    const careerPlan = await careerPlannerService.generateCareerPlan(
       candidate,
       targetRole,
       requestedLocale
