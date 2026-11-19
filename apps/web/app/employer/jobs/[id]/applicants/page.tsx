@@ -5,6 +5,17 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { JobApplication, JobPosting, getSkillName } from '@rojgarmitra/shared';
+import { 
+  IconMapPin, 
+  IconBuilding, 
+  IconPhone, 
+  IconUser, 
+  IconUsers, 
+  IconCheck, 
+  IconCheckCircle, 
+  IconArrowLeft, 
+  IconArrowRight 
+} from '@/components/icons';
 
 export default function EmployerJobApplicantsPage({
   params,
@@ -76,7 +87,13 @@ export default function EmployerJobApplicantsPage({
         setApplicants(prev =>
           prev.map(a => (a.id === applicationId ? { ...a, status: newStatus as any } : a))
         );
-        setActionMsg(`उमेदवाराची स्थिती बदलली: ${newStatus}`);
+        const statusMap: Record<string, string> = {
+          shortlisted: 'उमेदवार शॉर्टलिस्ट केला आहे',
+          interview_requested: 'मुलाखतीची विनंती पाठवली आहे',
+          accepted: 'उमेदवाराची निवड निश्चित केली आहे',
+          rejected: 'अर्ज नाकारला आहे',
+        };
+        setActionMsg(statusMap[newStatus] || `Status updated: ${newStatus}`);
       } else {
         alert(json.error?.message || dict.common.error);
       }
@@ -88,43 +105,50 @@ export default function EmployerJobApplicantsPage({
   };
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <main className="max-w-5xl mx-auto px-4 py-6">
+      {/* Top Header Card */}
+      <div className="settle-card-hero p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <Link
             href="/employer"
-            className="text-xs font-bold text-slate-500 hover:text-slate-800 mb-1 inline-block"
+            className="text-xs font-bold text-ink-secondary hover:text-ink mb-2 inline-flex items-center gap-1 transition"
           >
-            ← {dict.employer.my_jobs}
+            <IconArrowLeft className="w-3.5 h-3.5" />
+            <span>{dict.employer.my_jobs}</span>
           </Link>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-ink">
             {job ? job.title : 'भरती अर्जदार'}
           </h1>
-          <p className="text-xs text-slate-500">
-            📍 {job?.areaOrMidc || job?.taluka} • एकूण अर्जदार: <strong>{applicants.length}</strong>
+          <p className="text-xs text-ink-secondary font-bold mt-1 inline-flex items-center gap-1.5">
+            <IconMapPin className="w-3.5 h-3.5 text-primary" />
+            <span>{job?.areaOrMidc || job?.taluka}</span>
+            <span>•</span>
+            <span>एकूण अर्जदार: <strong>{applicants.length}</strong></span>
           </p>
         </div>
       </div>
 
       {actionMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold mb-6">
-          ✓ {actionMsg}
+        <div className="p-3.5 bg-verified-bg border-2 border-verified text-verified rounded-xl text-xs font-bold mb-6 flex items-center gap-2">
+          <IconCheckCircle className="w-4 h-4 text-verified" />
+          <span>{actionMsg}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-slate-500 font-medium">
+        <div className="text-center py-16 text-ink-secondary font-bold text-sm">
           {dict.common.loading}
         </div>
       ) : applicants.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-          <span className="text-4xl mb-3 inline-block">👥</span>
-          <h3 className="text-base font-bold text-slate-800 mb-1">
+        <div className="settle-card p-12 text-center bg-white border-2 border-ink shadow-solid">
+          <div className="w-12 h-12 rounded-full bg-steel-soft border border-steel flex items-center justify-center mx-auto mb-3">
+            <IconUsers className="w-6 h-6 text-ink-secondary" />
+          </div>
+          <h3 className="text-lg font-black text-ink mb-1">
             अद्याप कोणीही अर्ज केलेला नाही
           </h3>
-          <p className="text-sm text-slate-500">
-            उमेदवार ही जाहिरात पाहताच आपल्याला त्यांचे अर्ज येथे दिसतील.
+          <p className="text-xs text-ink-secondary font-medium max-w-md mx-auto">
+            उमेदवार ही जाहिरात पाहताच आपल्याला त्यांचे थेट अर्ज, संपर्क नंबर व कौशल्य माहिती येथे दिसेल.
           </p>
         </div>
       ) : (
@@ -132,42 +156,42 @@ export default function EmployerJobApplicantsPage({
           {applicants.map(applicant => (
             <div
               key={applicant.id}
-              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition"
+              className="settle-card-interactive p-6"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {applicant.candidateName || 'उमेदवार'}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    व्यवसाय: <strong>{applicant.candidateTrade || 'ITI Wireman'}</strong> • फोन: <strong>{applicant.candidatePhone || '9876543210'}</strong>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-black text-ink">
+                      {applicant.candidateName || 'उमेदवार'}
+                    </h3>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-steel-soft text-steel-deep font-bold border border-steel">
+                      {applicant.candidateTrade || 'Technician'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-secondary mt-1 font-semibold">
+                    अर्ज दिनांक: {new Date(applicant.createdAt).toLocaleDateString()}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full ${
-                      applicant.status === 'shortlisted'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : applicant.status === 'interview_requested'
-                        ? 'bg-purple-100 text-purple-800'
-                        : applicant.status === 'rejected'
-                        ? 'bg-slate-100 text-slate-600'
-                        : 'bg-blue-50 text-blue-700'
-                    }`}
+                {/* Direct Dial Phone Button for Employer */}
+                {applicant.candidatePhone && (
+                  <a
+                    href={`tel:${applicant.candidatePhone}`}
+                    className="settle-pill-btn px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5 self-start sm:self-auto"
                   >
-                    स्थिती: {applicant.status}
-                  </span>
-                </div>
+                    <IconPhone className="w-3.5 h-3.5" />
+                    <span>कॉल करा: {applicant.candidatePhone}</span>
+                  </a>
+                )}
               </div>
 
-              {/* Skills Chips */}
+              {/* Skills Badges */}
               {applicant.candidateSkills && applicant.candidateSkills.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {applicant.candidateSkills.map(s => (
                     <span
                       key={s}
-                      className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-700"
+                      className="settle-pill-chip text-xs px-2.5 py-0.5 font-bold"
                     >
                       {getSkillName(s, preferredLocale)}
                     </span>
@@ -175,43 +199,52 @@ export default function EmployerJobApplicantsPage({
                 </div>
               )}
 
-              {/* Action Buttons for Employer */}
-              <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-2 text-xs font-bold">
-                <button
-                  type="button"
-                  disabled={updatingId === applicant.id}
-                  onClick={() => handleStatusUpdate(applicant.id, 'shortlisted')}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition"
-                >
-                  ✓ {dict.employer.action_shortlist}
-                </button>
+              {/* Applicant Status Actions */}
+              <div className="pt-4 border-t border-steel/40 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5 text-xs font-bold">
+                  <span className="text-ink-secondary">सद्यस्थिती:</span>
+                  <span className="px-3 py-0.5 rounded-full border border-ink text-[11px] font-mono font-black uppercase bg-canvas">
+                    {applicant.status}
+                  </span>
+                </div>
 
-                <button
-                  type="button"
-                  disabled={updatingId === applicant.id}
-                  onClick={() => handleStatusUpdate(applicant.id, 'interview_requested')}
-                  className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
-                >
-                  📞 {dict.employer.action_interview}
-                </button>
+                <div className="flex flex-wrap gap-2 text-xs font-bold">
+                  <button
+                    type="button"
+                    disabled={updatingId === applicant.id}
+                    onClick={() => handleStatusUpdate(applicant.id, 'shortlisted')}
+                    className="settle-pill-chip px-3 py-1.5 hover:bg-verified-bg hover:text-verified hover:border-verified transition"
+                  >
+                    {dict.employer.action_shortlist}
+                  </button>
 
-                <button
-                  type="button"
-                  disabled={updatingId === applicant.id}
-                  onClick={() => handleStatusUpdate(applicant.id, 'accepted')}
-                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition"
-                >
-                  🎉 {dict.employer.action_accept}
-                </button>
+                  <button
+                    type="button"
+                    disabled={updatingId === applicant.id}
+                    onClick={() => handleStatusUpdate(applicant.id, 'interview_requested')}
+                    className="settle-pill-btn px-3 py-1.5 text-xs transition"
+                  >
+                    {dict.employer.action_interview}
+                  </button>
 
-                <button
-                  type="button"
-                  disabled={updatingId === applicant.id}
-                  onClick={() => handleStatusUpdate(applicant.id, 'rejected')}
-                  className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition"
-                >
-                  ✕ {dict.employer.action_reject}
-                </button>
+                  <button
+                    type="button"
+                    disabled={updatingId === applicant.id}
+                    onClick={() => handleStatusUpdate(applicant.id, 'accepted')}
+                    className="settle-pill-chip px-3 py-1.5 bg-verified-bg text-verified border-verified transition"
+                  >
+                    {dict.employer.action_accept}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={updatingId === applicant.id}
+                    onClick={() => handleStatusUpdate(applicant.id, 'rejected')}
+                    className="settle-pill-chip px-3 py-1.5 hover:bg-alert-bg hover:text-alert hover:border-alert transition"
+                  >
+                    {dict.employer.action_reject}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

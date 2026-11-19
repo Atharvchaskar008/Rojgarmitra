@@ -5,15 +5,15 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { JobPosting, MatchExplanation, getSkillName } from '@rojgarmitra/shared';
-import { 
-  IconMapPin, 
-  IconBuilding, 
-  IconBriefcase, 
-  IconShieldCheck, 
-  IconMic, 
-  IconGraduationCap, 
-  IconCompass, 
-  IconExternalLink, 
+import {
+  IconMapPin,
+  IconBuilding,
+  IconBriefcase,
+  IconShieldCheck,
+  IconMic,
+  IconGraduationCap,
+  IconCompass,
+  IconExternalLink,
   IconArrowRight,
   IconCheck
 } from '@/components/icons';
@@ -165,11 +165,10 @@ export default function CandidateJobsFeedPage() {
       {/* Message Banner */}
       {message && (
         <div
-          className={`p-4 rounded-xl mb-6 text-sm font-bold border-2 flex items-center justify-between gap-3 ${
-            message.type === 'success'
-              ? 'bg-verified-bg text-verified border-verified'
-              : 'bg-alert-bg text-alert border-alert'
-          }`}
+          className={`p-4 rounded-xl mb-6 text-sm font-bold border-2 flex items-center justify-between gap-3 ${message.type === 'success'
+            ? 'bg-verified-bg text-verified border-verified'
+            : 'bg-alert-bg text-alert border-alert'
+            }`}
         >
           <span>{message.text}</span>
           {!user && (
@@ -192,11 +191,10 @@ export default function CandidateJobsFeedPage() {
           <button
             key={taluka}
             onClick={() => setSelectedTaluka(taluka)}
-            className={`px-4 py-1.5 rounded-full font-bold whitespace-nowrap transition ${
-              selectedTaluka === taluka
-                ? 'settle-pill-chip-active text-xs'
-                : 'settle-pill-chip text-xs'
-            }`}
+            className={`px-4 py-1.5 rounded-full font-bold whitespace-nowrap transition ${selectedTaluka === taluka
+              ? 'settle-pill-chip-active text-xs'
+              : 'settle-pill-chip text-xs'
+              }`}
           >
             {taluka === 'all' ? 'सर्व परिसर (All Areas)' : taluka}
           </button>

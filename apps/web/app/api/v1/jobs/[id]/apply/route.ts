@@ -93,6 +93,25 @@ export async function POST(
 
     await appRef.set(application);
 
+    // Create in-app notification for the employer
+    if (job.employerUid && job.employerUid !== 'unknown_employer') {
+      try {
+        const notifRef = adminDb.collection('notifications').doc();
+        await notifRef.set({
+          id: notifRef.id,
+          recipientUid: job.employerUid,
+          recipientRole: 'employer',
+          title: `नवीन अर्ज प्राप्त: ${job.title}`,
+          message: `${candidateName} (${candidateTrade || 'उमेदवार'}) यांनी ${job.title} पदासाठी अर्ज पाठवला आहे.`,
+          link: `/employer/jobs/${jobId}/applicants`,
+          isRead: false,
+          createdAt: now,
+        });
+      } catch (notifErr) {
+        console.warn('[Notification Error]', notifErr);
+      }
+    }
+
     return NextResponse.json(
       {
         data: application,

@@ -45,6 +45,31 @@ export async function PATCH(
 
     await appRef.update(updates);
 
+    // Create in-app notification for the candidate
+    if (application.candidateUid) {
+      try {
+        const notifRef = adminDb.collection('notifications').doc();
+        const statusTitles: Record<string, string> = {
+          shortlisted: 'आपला अर्ज शॉर्टलिस्ट झाला आहे!',
+          interview_requested: 'मुलाखतीची विनंती: नियोक्त्यांचा थेट संपर्क',
+          accepted: 'अभिनंदन! आपली निवड झाली आहे',
+          rejected: 'अर्जाची सद्यस्थिती अद्ययावत',
+        };
+        await notifRef.set({
+          id: notifRef.id,
+          recipientUid: application.candidateUid,
+          recipientRole: 'candidate',
+          title: statusTitles[validated.status] || 'अर्जाची सद्यस्थिती अद्ययावत',
+          message: `आपल्या नोकरी अर्जाची स्थिती "${validated.status}" म्हणून नोंदवली गेली आहे.`,
+          link: '/candidate/applications',
+          isRead: false,
+          createdAt: now,
+        });
+      } catch (notifErr) {
+        console.warn('[Candidate Notification Error]', notifErr);
+      }
+    }
+
     return NextResponse.json({
       data: { ...application, ...updates },
       message: `Application status updated to ${validated.status}`,

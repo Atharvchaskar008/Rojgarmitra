@@ -4,10 +4,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary, SupportedLocale } from '@rojgarmitra/i18n';
 import { MitraCharacter } from './character/MitraCharacter';
-import { 
-  IconMic, 
-  IconVolume, 
-  IconArrowRight, 
+import {
+  IconMic,
+  IconVolume,
+  IconArrowRight,
   IconShieldCheck,
   IconClock,
   IconBuilding,
@@ -316,8 +316,8 @@ export function FloatingAssistant() {
                   {preferredLocale === 'mr'
                     ? 'थेट बोला किंवा ऐका'
                     : preferredLocale === 'hi'
-                    ? 'सीधे बोलें या सुनें'
-                    : 'Speak naturally or listen'}
+                      ? 'सीधे बोलें या सुनें'
+                      : 'Speak naturally or listen'}
                 </p>
               </div>
             </div>
@@ -356,9 +356,8 @@ export function FloatingAssistant() {
             {messages.map(msg => (
               <div
                 key={msg.id}
-                className={`flex flex-col ${
-                  msg.sender === 'user' ? 'items-end' : 'items-start'
-                }`}
+                className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'
+                  }`}
               >
                 <div
                   className={`max-w-[88%] rounded-2xl p-2.5 border ${
@@ -430,8 +429,8 @@ export function FloatingAssistant() {
                 preferredLocale === 'mr'
                   ? 'येथे प्रश्न विचारा किंवा बोला...'
                   : preferredLocale === 'hi'
-                  ? 'यहाँ प्रश्न पूछें या बोलें...'
-                  : 'Ask question or speak here...'
+                    ? 'यहाँ प्रश्न पूछें या बोलें...'
+                    : 'Ask question or speak here...'
               }
               className="flex-1 bg-canvas border border-ink/20 rounded-full px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:border-ink"
             />

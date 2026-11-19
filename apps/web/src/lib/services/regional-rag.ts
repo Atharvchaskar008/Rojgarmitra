@@ -133,6 +133,7 @@ const INITIAL_REGIONAL_EVIDENCE: EvidenceDocument[] = [
 
 export class RegionalRagService {
   private inMemoryCorpus: Map<string, EvidenceDocument> = new Map();
+  private queryCache: Map<string, { response: RagResponse; expiresAt: number }> = new Map();
 
   constructor() {
     for (const doc of INITIAL_REGIONAL_EVIDENCE) {
@@ -255,6 +256,11 @@ export class RegionalRagService {
     locale: SupportedLocale = 'mr'
   ): Promise<RagResponse> {
     const sanitizedQuestion = geminiClient.sanitizeInput(question);
+    const cacheKey = `${locale}:${candidateContext.trade || ''}:${candidateContext.taluka || ''}:${sanitizedQuestion.toLowerCase().trim()}`;
+    const cached = this.queryCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.response;
+    }
 
     // 1. Retrieve relevant evidence
     const evidenceDocs = await this.retrieveEvidence({
@@ -300,11 +306,13 @@ Respond with a JSON object:
 
         const aiResult = await geminiClient.generateStructuredJson<{ answer: string }>(prompt);
         if (aiResult?.answer) {
-          return {
+          const resObj = {
             answer: aiResult.answer,
             citations,
             retrievedDocumentCount: evidenceDocs.length,
           };
+          this.queryCache.set(cacheKey, { response: resObj, expiresAt: Date.now() + 15 * 60 * 1000 });
+          return resObj;
         }
       } catch (err) {
         console.warn('[RegionalRagService] Gemini synthesis error, using evidence fallback:', (err as Error).message);
@@ -322,11 +330,13 @@ Respond with a JSON object:
       fallbackAnswer = `Based on retrieved official evidence from ${topDoc.title}: ${topDoc.content} For complete details, visit: ${topDoc.sourceUrl}`;
     }
 
-    return {
+    const fallbackResponse = {
       answer: fallbackAnswer,
       citations,
       retrievedDocumentCount: evidenceDocs.length,
     };
+    this.queryCache.set(cacheKey, { response: fallbackResponse, expiresAt: Date.now() + 15 * 60 * 1000 });
+    return fallbackResponse;
   }
 }
 

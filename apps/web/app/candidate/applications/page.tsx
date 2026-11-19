@@ -167,8 +167,9 @@ export default function CandidateApplicationsPage() {
                   <h3 className="text-lg font-black text-ink">
                     {app.jobTitle || 'Industrial Vacancy'}
                   </h3>
-                  <p className="text-xs text-ink-secondary font-bold uppercase tracking-wider mt-0.5">
-                    🏢 {app.employerName || 'Employer'}
+                  <p className="text-xs text-ink-secondary font-bold uppercase tracking-wider mt-0.5 inline-flex items-center gap-1">
+                    <IconBuilding className="w-3.5 h-3.5 text-ink-secondary" />
+                    <span>{app.employerName || 'Employer'}</span>
                   </p>
                 </div>
                 <div>{getStatusBadge(app.status)}</div>
