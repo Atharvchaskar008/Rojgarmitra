@@ -6,6 +6,15 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary, SupportedLocale } from '@rojgarmitra/i18n';
 import { REGIONAL_TRADES, ALL_SKILL_IDS, getSkillName } from '@rojgarmitra/shared';
+import { 
+  IconMic, 
+  IconCheck, 
+  IconClock, 
+  IconAlertCircle, 
+  IconArrowRight, 
+  IconBriefcase, 
+  IconMapPin 
+} from '@/components/icons';
 
 export default function CandidateOnboardingPage() {
   const router = useRouter();
@@ -330,7 +339,7 @@ export default function CandidateOnboardingPage() {
 
       {errorMsg && (
         <div className="mb-5 p-3 rounded-xl bg-alert-bg border border-alert-border text-alert text-xs font-bold flex items-center gap-2">
-          <span>⚠️</span>
+          <IconAlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -339,8 +348,9 @@ export default function CandidateOnboardingPage() {
       {step === 1 && (
         <div className="settle-card-hero p-6 sm:p-8 space-y-6">
           <div className="text-center sm:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
-              <span>🎙️ पायरी १: नैसर्गिक संवाद (Conversational Step)</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
+              <IconMic className="w-3.5 h-3.5 text-primary" />
+              <span>पायरी १: नैसर्गिक संवाद (Conversational Step)</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
               {preferredLocale === 'mr'
@@ -386,7 +396,7 @@ export default function CandidateOnboardingPage() {
                 }`}
                 title="Voice Input"
               >
-                <span>🎤</span>
+                <IconMic className="w-3.5 h-3.5" />
                 <span>{isRecording ? 'ऐकत आहे...' : 'बोलून सांगा'}</span>
               </button>
             </div>
@@ -419,9 +429,10 @@ export default function CandidateOnboardingPage() {
                   key={idx}
                   type="button"
                   onClick={() => setConversationalText(prompt)}
-                  className="text-left text-xs bg-canvas hover:bg-steel-soft border border-steel/80 p-2.5 rounded-xl font-medium text-ink transition hover:border-ink shadow-solid-sm"
+                  className="text-left text-xs bg-canvas hover:bg-steel-soft border border-steel/80 p-2.5 rounded-xl font-medium text-ink transition hover:border-ink shadow-solid-sm inline-flex items-center gap-2"
                 >
-                  🌾 {prompt}
+                  <IconBriefcase className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span>{prompt}</span>
                 </button>
               ))}
             </div>
@@ -438,13 +449,16 @@ export default function CandidateOnboardingPage() {
               type="button"
               onClick={handleExtract}
               disabled={extracting || !conversationalText.trim()}
-              className="settle-pill-btn px-6 py-3 text-sm font-bold disabled:opacity-40"
+              className="settle-pill-btn px-6 py-2.5 text-xs sm:text-sm font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
             >
-              {extracting
-                ? dict.common.loading
-                : preferredLocale === 'mr'
-                ? 'माहिती तपासा व खात्री करा ➔'
-                : 'Extract & Review Details ➔'}
+              <span>
+                {extracting
+                  ? dict.common.loading
+                  : preferredLocale === 'mr'
+                  ? 'माहिती तपासा व खात्री करा'
+                  : 'Extract & Review Details'}
+              </span>
+              <IconArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -455,8 +469,9 @@ export default function CandidateOnboardingPage() {
         <form onSubmit={handleSubmit} className="settle-card-hero p-6 sm:p-8 space-y-6">
           <div className="border-b border-steel/40 pb-4 flex items-center justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-verified-bg border border-verified-border rounded-full text-xs font-bold text-verified mb-2">
-                <span>✓ पायरी २: माहितीची खात्री करा (Review & Confirm)</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-verified-bg border border-verified-border rounded-full text-xs font-bold text-verified mb-2">
+                <IconCheck className="w-3.5 h-3.5" />
+                <span>पायरी २: माहितीची खात्री करा (Review & Confirm)</span>
               </div>
               <h1 className="text-2xl font-black text-ink">
                 {preferredLocale === 'mr'
@@ -592,35 +607,38 @@ export default function CandidateOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setAvailability('immediate')}
-                className={`settle-pill-chip px-4 py-2 text-xs font-bold transition ${
+                className={`settle-pill-chip px-4 py-2 text-xs font-bold transition inline-flex items-center gap-1.5 ${
                   availability === 'immediate'
                     ? 'bg-ink text-white shadow-solid-sm'
                     : 'bg-white text-ink-secondary hover:text-ink'
                 }`}
               >
-                ⚡ {dict.candidate.avail_immediate}
+                <IconClock className="w-3.5 h-3.5" />
+                <span>{dict.candidate.avail_immediate}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAvailability('two_weeks')}
-                className={`settle-pill-chip px-4 py-2 text-xs font-bold transition ${
+                className={`settle-pill-chip px-4 py-2 text-xs font-bold transition inline-flex items-center gap-1.5 ${
                   availability === 'two_weeks'
                     ? 'bg-ink text-white shadow-solid-sm'
                     : 'bg-white text-ink-secondary hover:text-ink'
                 }`}
               >
-                📅 {dict.candidate.avail_two_weeks}
+                <IconClock className="w-3.5 h-3.5" />
+                <span>{dict.candidate.avail_two_weeks}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAvailability('one_month')}
-                className={`settle-pill-chip px-4 py-2 text-xs font-bold transition ${
+                className={`settle-pill-chip px-4 py-2 text-xs font-bold transition inline-flex items-center gap-1.5 ${
                   availability === 'one_month'
                     ? 'bg-ink text-white shadow-solid-sm'
                     : 'bg-white text-ink-secondary hover:text-ink'
                 }`}
               >
-                🗓️ {dict.candidate.avail_one_month}
+                <IconClock className="w-3.5 h-3.5" />
+                <span>{dict.candidate.avail_one_month}</span>
               </button>
             </div>
           </div>
@@ -638,14 +656,14 @@ export default function CandidateOnboardingPage() {
                     key={s.id}
                     type="button"
                     onClick={() => handleSkillToggle(s.id)}
-                    className={`settle-pill-chip px-3.5 py-1.5 text-xs font-bold transition ${
+                    className={`settle-pill-chip px-3.5 py-1.5 text-xs font-bold transition inline-flex items-center gap-1 ${
                       isSelected
                         ? 'bg-primary text-white border-primary-hover shadow-solid-sm'
                         : 'bg-canvas text-ink-secondary hover:bg-steel-soft border-steel'
                     }`}
                   >
-                    {isSelected ? '✓ ' : '+ '}
-                    {s.names[preferredLocale]}
+                    <span>{isSelected ? '✓ ' : '+ '}</span>
+                    <span>{s.names[preferredLocale]}</span>
                   </button>
                 );
               })}
@@ -655,14 +673,15 @@ export default function CandidateOnboardingPage() {
           {/* Submit Profile */}
           <div className="pt-4 border-t border-steel/40 flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="text-xs text-ink-secondary font-medium">
-              🌾 प्रोफाईल सेव्ह केल्यानंतर आपल्यासाठी योग्य नोकऱ्या लगेच दिसतील.
+              प्रोफाईल सेव्ह केल्यानंतर आपल्यासाठी योग्य नोकऱ्या लगेच दिसतील.
             </span>
             <button
               type="submit"
               disabled={saving}
-              className="w-full sm:w-auto settle-pill-btn px-8 py-3 text-sm font-bold shadow-solid"
+              className="w-full sm:w-auto settle-pill-btn px-8 py-2.5 text-xs sm:text-sm font-bold shadow-solid inline-flex items-center justify-center gap-1.5"
             >
-              {saving ? dict.common.loading : `${dict.candidate.save_profile} ➔`}
+              <span>{saving ? dict.common.loading : dict.candidate.save_profile}</span>
+              <IconArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </form>

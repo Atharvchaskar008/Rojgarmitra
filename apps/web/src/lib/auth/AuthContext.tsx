@@ -7,7 +7,12 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  sendPasswordResetEmail 
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
@@ -20,6 +25,10 @@ interface AuthContextValue {
   loading: boolean;
   signIn: (email: string, pass: string) => Promise<void>;
   signUp: (email: string, pass: string, role: UserRole, locale?: SupportedLocale) => Promise<void>;
+  signInWithGoogle: (role?: UserRole) => Promise<User>;
+  setupRecaptcha: (containerId: string) => RecaptchaVerifier;
+  sendPhoneOtp: (phoneNumber: string, appVerifier: RecaptchaVerifier) => Promise<ConfirmationResult>;
+  confirmPhoneOtp: (confirmationResult: ConfirmationResult, code: string, role?: UserRole) => Promise<User>;
   logOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   setLocale: (locale: SupportedLocale) => void;
@@ -102,6 +111,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setPreferredLocale(locale);
   };
 
+  const signInWithGoogle = async (role: UserRole = 'candidate'): Promise<User> => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const result = await signInWithPopup(auth, provider);
+    const u = result.user;
+    const now = new Date().toISOString();
+
+    const userRef = doc(db, 'users', u.uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      await setDoc(userRef, {
+        uid: u.uid,
+        email: u.email || '',
+        displayName: u.displayName || '',
+        photoURL: u.photoURL || '',
+        role,
+        preferredLocale,
+        createdAt: now,
+        updatedAt: now,
+      });
+      setUserRole(role);
+    } else {
+      const data = snap.data();
+      if (data?.role) setUserRole(data.role as UserRole);
+    }
+
+    return u;
+  };
+
+  const setupRecaptcha = (containerId: string): RecaptchaVerifier => {
+    if (typeof window === 'undefined') {
+      throw new Error('reCAPTCHA can only be initialized on the client');
+    }
+    return new RecaptchaVerifier(auth, containerId, {
+      size: 'invisible',
+      callback: () => {
+        // Invisible captcha solved
+      },
+    });
+  };
+
+  const sendPhoneOtp = async (phoneNumber: string, appVerifier: RecaptchaVerifier): Promise<ConfirmationResult> => {
+    return await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+  };
+
+  const confirmPhoneOtp = async (
+    confirmationResult: ConfirmationResult, 
+    code: string, 
+    role: UserRole = 'candidate'
+  ): Promise<User> => {
+    const result = await confirmationResult.confirm(code);
+    const u = result.user;
+    const now = new Date().toISOString();
+
+    const userRef = doc(db, 'users', u.uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      await setDoc(userRef, {
+        uid: u.uid,
+        phoneNumber: u.phoneNumber || '',
+        role,
+        preferredLocale,
+        createdAt: now,
+        updatedAt: now,
+      });
+      setUserRole(role);
+    } else {
+      const data = snap.data();
+      if (data?.role) setUserRole(data.role as UserRole);
+    }
+
+    return u;
+  };
+
   const logOut = async () => {
     await signOut(auth);
     setUserRole(null);
@@ -125,6 +208,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         signIn,
         signUp,
+        signInWithGoogle,
+        setupRecaptcha,
+        sendPhoneOtp,
+        confirmPhoneOtp,
         logOut,
         resetPassword,
         setLocale,

@@ -4,7 +4,15 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { getDictionary, SupportedLocale } from '@rojgarmitra/i18n';
+import { getDictionary } from '@rojgarmitra/i18n';
+import { 
+  IconBriefcase, 
+  IconBuilding, 
+  IconGraduationCap, 
+  IconCompass, 
+  IconUser, 
+  IconArrowRight 
+} from '@/components/icons';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -22,7 +30,9 @@ export function Navbar() {
           {/* Logo & Tagline */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <span className="text-2xl transform group-hover:scale-110 transition-transform">🌾</span>
+              <span className="font-mono text-xs bg-ink text-white px-2.5 py-1 rounded-md font-black tracking-wider group-hover:bg-primary transition">
+                RM
+              </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-black text-ink tracking-tight">
                   रोजगार<span className="text-primary">मित्र</span>
@@ -38,13 +48,14 @@ export function Navbar() {
           <nav className="hidden md:flex items-center gap-1.5 text-xs font-bold">
             <Link
               href="/candidate"
-              className={`transition rounded-full px-3.5 py-1.5 border ${
+              className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${
                 isCandidate && !pathname.includes('applications') && !pathname.includes('upskilling') && !pathname.includes('career')
                   ? 'bg-ink text-white border-ink shadow-solid-sm'
                   : 'text-ink border-transparent hover:bg-steel-soft/60'
               }`}
             >
-              {dict.nav.jobs}
+              <IconBriefcase className="w-3.5 h-3.5" />
+              <span>{dict.nav.jobs}</span>
             </Link>
 
             <Link
@@ -60,37 +71,40 @@ export function Navbar() {
 
             <Link
               href="/candidate/upskilling"
-              className={`transition rounded-full px-3 py-1.5 border ${
+              className={`transition rounded-full px-3 py-1.5 border inline-flex items-center gap-1 ${
                 pathname === '/candidate/upskilling'
                   ? 'bg-ink text-white border-ink shadow-solid-sm'
                   : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
               }`}
             >
-              {dict.nav.upskilling}
+              <IconGraduationCap className="w-3.5 h-3.5" />
+              <span>{dict.nav.upskilling}</span>
             </Link>
 
             <Link
               href="/candidate/career"
-              className={`transition rounded-full px-3 py-1.5 border ${
+              className={`transition rounded-full px-3 py-1.5 border inline-flex items-center gap-1 ${
                 pathname === '/candidate/career'
                   ? 'bg-ink text-white border-ink shadow-solid-sm'
                   : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
               }`}
             >
-              {dict.nav.career}
+              <IconCompass className="w-3.5 h-3.5" />
+              <span>{dict.nav.career}</span>
             </Link>
 
             <span className="text-steel/60 px-1">|</span>
 
             <Link
               href="/employer"
-              className={`transition rounded-full px-3.5 py-1.5 border ${
+              className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${
                 isEmployer
                   ? 'bg-ink text-white border-ink shadow-solid-sm'
                   : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
               }`}
             >
-              🏭 {dict.nav.employer}
+              <IconBuilding className="w-3.5 h-3.5" />
+              <span>{dict.nav.employer}</span>
             </Link>
           </nav>
 
@@ -137,8 +151,9 @@ export function Navbar() {
             <div className="hidden sm:flex items-center gap-2">
               {user ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-ink bg-steel-soft px-2.5 py-1 rounded-full border border-steel">
-                    {userRole === 'employer' ? '🏭 नियोक्ता' : '👷‍♂️ उमेदवार'}
+                  <span className="text-[11px] font-bold text-ink bg-steel-soft px-2.5 py-1 rounded-full border border-steel inline-flex items-center gap-1">
+                    {userRole === 'employer' ? <IconBuilding className="w-3 h-3" /> : <IconUser className="w-3 h-3" />}
+                    <span>{userRole === 'employer' ? 'नियोक्ता' : 'उमेदवार'}</span>
                   </span>
                   <button
                     onClick={() => logOut()}
@@ -169,7 +184,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-xl border border-ink/20 text-ink hover:bg-steel-soft transition"
+              className="md:hidden p-2 rounded-xl border border-ink/20 text-ink hover:bg-steel-soft transition text-xs font-bold"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? '✕' : '☰'}
@@ -187,40 +202,55 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="p-2.5 rounded-xl hover:bg-steel-soft text-ink flex items-center justify-between"
             >
-              <span>👷‍♂️ {dict.nav.jobs}</span>
-              <span className="text-xs text-ink-muted">➔</span>
+              <span className="inline-flex items-center gap-2">
+                <IconBriefcase className="w-4 h-4 text-primary" />
+                <span>{dict.nav.jobs}</span>
+              </span>
+              <IconArrowRight className="w-3.5 h-3.5 text-ink-muted" />
             </Link>
             <Link
               href="/candidate/applications"
               onClick={() => setMobileMenuOpen(false)}
               className="p-2.5 rounded-xl hover:bg-steel-soft text-ink flex items-center justify-between"
             >
-              <span>📄 {dict.nav.applications}</span>
-              <span className="text-xs text-ink-muted">➔</span>
+              <span className="inline-flex items-center gap-2">
+                <IconBriefcase className="w-4 h-4 text-primary" />
+                <span>{dict.nav.applications}</span>
+              </span>
+              <IconArrowRight className="w-3.5 h-3.5 text-ink-muted" />
             </Link>
             <Link
               href="/candidate/upskilling"
               onClick={() => setMobileMenuOpen(false)}
               className="p-2.5 rounded-xl hover:bg-steel-soft text-ink flex items-center justify-between"
             >
-              <span>🎓 {dict.nav.upskilling}</span>
-              <span className="text-xs text-ink-muted">➔</span>
+              <span className="inline-flex items-center gap-2">
+                <IconGraduationCap className="w-4 h-4 text-primary" />
+                <span>{dict.nav.upskilling}</span>
+              </span>
+              <IconArrowRight className="w-3.5 h-3.5 text-ink-muted" />
             </Link>
             <Link
               href="/candidate/career"
               onClick={() => setMobileMenuOpen(false)}
               className="p-2.5 rounded-xl hover:bg-steel-soft text-ink flex items-center justify-between"
             >
-              <span>🧭 {dict.nav.career}</span>
-              <span className="text-xs text-ink-muted">➔</span>
+              <span className="inline-flex items-center gap-2">
+                <IconCompass className="w-4 h-4 text-primary" />
+                <span>{dict.nav.career}</span>
+              </span>
+              <IconArrowRight className="w-3.5 h-3.5 text-ink-muted" />
             </Link>
             <Link
               href="/employer"
               onClick={() => setMobileMenuOpen(false)}
               className="p-2.5 rounded-xl hover:bg-steel-soft text-ink flex items-center justify-between border-t border-steel/40 mt-1 pt-2"
             >
-              <span>🏭 {dict.nav.employer}</span>
-              <span className="text-xs text-ink-muted">➔</span>
+              <span className="inline-flex items-center gap-2">
+                <IconBuilding className="w-4 h-4 text-primary" />
+                <span>{dict.nav.employer}</span>
+              </span>
+              <IconArrowRight className="w-3.5 h-3.5 text-ink-muted" />
             </Link>
           </nav>
 
@@ -228,7 +258,7 @@ export function Navbar() {
             {user ? (
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-ink">
-                  {user.email || 'उपयोगकर्ता'}
+                  {user.email || user.phoneNumber || 'उपयोगकर्ता'}
                 </span>
                 <button
                   onClick={() => {

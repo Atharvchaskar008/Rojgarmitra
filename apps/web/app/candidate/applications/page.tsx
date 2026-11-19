@@ -5,6 +5,16 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { JobApplication } from '@rojgarmitra/shared';
+import { 
+  IconCheckCircle, 
+  IconPhone, 
+  IconBriefcase, 
+  IconBuilding, 
+  IconArrowRight, 
+  IconArrowLeft, 
+  IconUser,
+  IconClock 
+} from '@/components/icons';
 
 export default function CandidateApplicationsPage() {
   const { preferredLocale, user, getIdToken } = useAuth();
@@ -46,32 +56,36 @@ export default function CandidateApplicationsPage() {
     switch (status) {
       case 'shortlisted':
         return (
-          <span className="px-3.5 py-1 bg-verified-bg text-verified rounded-full font-bold text-xs border border-verified">
-            ✓ {dict.employer.action_shortlist} (Shortlisted)
+          <span className="px-3.5 py-1 bg-verified-bg text-verified rounded-full font-bold text-xs border border-verified inline-flex items-center gap-1">
+            <IconCheckCircle className="w-3.5 h-3.5" />
+            <span>{dict.employer.action_shortlist} (Shortlisted)</span>
           </span>
         );
       case 'interview_requested':
         return (
-          <span className="px-3.5 py-1 bg-steel-soft text-primary rounded-full font-bold text-xs border border-steel">
-            📞 {dict.employer.action_interview} (Interview Requested)
+          <span className="px-3.5 py-1 bg-steel-soft text-primary rounded-full font-bold text-xs border border-steel inline-flex items-center gap-1">
+            <IconPhone className="w-3.5 h-3.5" />
+            <span>{dict.employer.action_interview} (Interview Requested)</span>
           </span>
         );
       case 'accepted':
         return (
-          <span className="px-3.5 py-1 bg-verified-bg text-verified rounded-full font-bold text-xs border border-verified">
-            🎉 {dict.employer.action_accept} (Selected)
+          <span className="px-3.5 py-1 bg-verified-bg text-verified rounded-full font-bold text-xs border border-verified inline-flex items-center gap-1">
+            <IconCheckCircle className="w-3.5 h-3.5" />
+            <span>{dict.employer.action_accept} (Selected)</span>
           </span>
         );
       case 'rejected':
         return (
           <span className="px-3.5 py-1 bg-alert-bg text-alert rounded-full font-bold text-xs border border-alert">
-            ✕ {dict.employer.action_reject}
+            {dict.employer.action_reject}
           </span>
         );
       default:
         return (
-          <span className="px-3.5 py-1 bg-steel-soft text-ink rounded-full font-bold text-xs border border-steel/60">
-            🕒 {dict.job.applied} (Under Review)
+          <span className="px-3.5 py-1 bg-steel-soft text-ink rounded-full font-bold text-xs border border-steel/60 inline-flex items-center gap-1">
+            <IconClock className="w-3.5 h-3.5" />
+            <span>{dict.job.applied} (Under Review)</span>
           </span>
         );
     }
@@ -98,12 +112,14 @@ export default function CandidateApplicationsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-ink-secondary font-bold text-base">
-          ⌛ {dict.common.loading}
+        <div className="text-center py-16 text-ink-secondary font-bold text-sm">
+          {dict.common.loading}
         </div>
       ) : !user ? (
         <div className="text-center py-12 settle-card p-8">
-          <span className="text-4xl mb-3 inline-block">🔑</span>
+          <div className="w-12 h-12 rounded-full bg-steel-soft border border-ink/20 flex items-center justify-center mx-auto mb-3">
+            <IconUser className="w-5 h-5 text-primary" />
+          </div>
           <h3 className="text-base font-black text-ink mb-1">
             {preferredLocale === 'mr' ? 'लॉगिन आवश्यक आहे' : 'Login Required'}
           </h3>
@@ -114,14 +130,17 @@ export default function CandidateApplicationsPage() {
           </p>
           <Link
             href="/login"
-            className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
+            className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
           >
-            {dict.nav.login} ➔
+            <span>{dict.nav.login}</span>
+            <IconArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       ) : applications.length === 0 ? (
         <div className="text-center py-12 settle-card p-8">
-          <span className="text-4xl mb-3 inline-block">📄</span>
+          <div className="w-12 h-12 rounded-full bg-steel-soft border border-ink/20 flex items-center justify-center mx-auto mb-3">
+            <IconBriefcase className="w-5 h-5 text-ink-secondary" />
+          </div>
           <h3 className="text-base font-black text-ink mb-1">
             अद्याप कोणताही अर्ज केलेला नाही
           </h3>
@@ -130,9 +149,10 @@ export default function CandidateApplicationsPage() {
           </p>
           <Link
             href="/candidate"
-            className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
+            className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
           >
-            नोकऱ्या शोधा ➔
+            <span>नोकऱ्या शोधा</span>
+            <IconArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       ) : (

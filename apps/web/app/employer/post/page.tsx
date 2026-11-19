@@ -6,6 +6,12 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { ALL_SKILL_IDS, REGIONAL_TRADES } from '@rojgarmitra/shared';
+import { 
+  IconArrowLeft, 
+  IconArrowRight, 
+  IconBuilding, 
+  IconCheck 
+} from '@/components/icons';
 
 export default function EmployerPostJobPage() {
   const router = useRouter();
@@ -100,9 +106,10 @@ export default function EmployerPostJobPage() {
           </div>
           <Link
             href="/employer"
-            className="settle-pill-chip text-xs px-3.5 py-1.5 font-bold"
+            className="settle-pill-chip text-xs px-3.5 py-1.5 font-bold inline-flex items-center gap-1.5"
           >
-            ← {dict.common.back}
+            <IconArrowLeft className="w-3.5 h-3.5" />
+            <span>{dict.common.back}</span>
           </Link>
         </div>
 
@@ -280,9 +287,10 @@ export default function EmployerPostJobPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 settle-pill-btn text-sm"
+            className="w-full py-3.5 settle-pill-btn text-sm font-bold inline-flex items-center justify-center gap-2"
           >
-            {submitting ? dict.common.loading : 'जाहिरात प्रकाशित करा (Publish Job Opening) ➔'}
+            <span>{submitting ? dict.common.loading : 'जाहिरात प्रकाशित करा (Publish Job Opening)'}</span>
+            <IconArrowRight className="w-4 h-4" />
           </button>
         </form>
       </div>

@@ -3,6 +3,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary, SupportedLocale } from '@rojgarmitra/i18n';
+import { MitraCharacter } from './character/MitraCharacter';
+import { 
+  IconMic, 
+  IconVolume, 
+  IconArrowRight, 
+  IconShieldCheck,
+  IconClock,
+  IconBuilding,
+  IconMapPin
+} from './icons';
 
 interface ChatMessage {
   id: string;
@@ -31,9 +41,9 @@ export function FloatingAssistant() {
   // Initialize welcome message when locale changes or on first open
   useEffect(() => {
     const welcomeTexts: Record<SupportedLocale, string> = {
-      mr: 'नमस्कार! मी आपला रोजगारमित्र सहाय्यक आहे. विदर्भातील स्थानिक कारखान्यांतील नोकऱ्या, शासकीय ITI कोर्सेस किंवा थेट संपर्काबद्दल मला काहीही विचारा.',
-      hi: 'नमस्ते! मैं आपका रोजगारमित्र सहायक हूँ। विदर्भ की स्थानीय फैक्टरियों में नौकरियों, सरकारी ITI कोर्सेस या सीधे संपर्क के बारे में मुझसे पूछें।',
-      en: 'Hello! I am your RojgarMitra Assistant. Ask me anything about local factory jobs in Vidarbha, ITI courses, or direct employer contacts.',
+      mr: 'नमस्कार! मी मित्र — आपला रोजगार सल्लागार. नागपूर, बुटीबोरी व विदर्भातील थेट स्थानिक नोकऱ्या, ITI कोर्सेस किंवा वेतनाबद्दल विचारा किंवा बोला.',
+      hi: 'नमस्ते! मैं मित्र — आपका रोजगार सलाहकार। नागपुर, बुटीबोरी और विदर्भ की सीधी नौकरियों, ITI कोर्सेस या वेतन के बारे में पूछें या बोलें।',
+      en: 'Hello! I am Mitra — your regional career advisor. Ask or speak to me about verified factory jobs, wages, or government ITI courses across Vidarbha.',
     };
 
     setMessages([
@@ -68,6 +78,7 @@ export function FloatingAssistant() {
           const transcript = event.results[0][0].transcript;
           if (transcript) {
             setInput(transcript);
+            handleSend(transcript);
           }
           setIsListening(false);
         };
@@ -89,8 +100,8 @@ export function FloatingAssistant() {
     if (!recognitionRef.current) {
       alert(
         preferredLocale === 'mr'
-          ? 'आपल्या ब्राउझरमध्ये व्हॉइस इनपुट उपलब्ध नाही.'
-          : 'Voice input is not supported in this browser.'
+          ? 'आपल्या ब्राउझरमध्ये व्हॉइस इनपुट उपलब्ध नाही. कृपया टाइप करा.'
+          : 'Voice input is not supported in this browser. Please type directly.'
       );
       return;
     }
@@ -141,6 +152,8 @@ export function FloatingAssistant() {
           citations: json.data.citations,
         };
         setMessages(prev => [...prev, botMsg]);
+        // Auto-play speech answer so candidate can listen immediately
+        speakText(botMsg.id, json.data.answer);
       } else {
         throw new Error(json.error?.message || 'Failed to fetch answer');
       }
@@ -212,83 +225,68 @@ export function FloatingAssistant() {
     }
   };
 
+  // Plain-language Tier 2/3 queries
   const sampleQuestions: Record<SupportedLocale, string[]> = {
     mr: [
-      'बुटीबोरी MIDC मध्ये वेल्डरच्या नोकऱ्या?',
-      'शासकीय ITI मध्ये मोफत कोर्सेस?',
-      'कंपनीशी थेट संपर्क कसा करावा?',
+      'बुटीबोरी MIDC मध्ये वेल्डरच्या नोकऱ्या आहेत का?',
+      'शासकीय ITI मध्ये मोफत प्रवेश कसा घ्यावा?',
+      'कारखान्याशी थेट फोनवर कसे बोलावे?',
     ],
     hi: [
-      'बुटीबोरी MIDC में वेल्डर की नौकरियां?',
-      'सरकारी ITI में मुफ्त कोर्सेस कौन से हैं?',
-      'कंपनी से सीधा संपर्क कैसे करें?',
+      'बुटीबोरी MIDC में वेल्डर की नौकरियां हैं क्या?',
+      'सरकारी ITI में निशुल्क एडमिशन कैसे लें?',
+      'फैक्टरी से सीधे फोन पर बात कैसे करें?',
     ],
     en: [
-      'Welder jobs in Butibori MIDC?',
-      'Free government ITI courses?',
-      'How do I contact employers directly?',
+      'Are there welder jobs in Butibori MIDC?',
+      'How to apply for free government ITI courses?',
+      'How can I call the employer plant directly?',
     ],
   };
 
-  return (
-    <>
-      {/* Floating Action Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Open Mitra Assistant"
-          className="relative w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center border-2 border-ink shadow-solid hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 transition duration-150 group"
-        >
-          <span className="text-2xl transform group-hover:scale-110 transition-transform">🌾</span>
-          {/* Subtle live indicator dot */}
-          <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-verified rounded-full border-2 border-white animate-pulse" />
-        </button>
-      </div>
+  const characterState = isListening ? 'listening' : speakingId ? 'speaking' : 'idle';
 
-      {/* Collapsible Chat Panel */}
+  return (
+    <div className="fixed bottom-5 right-4 sm:right-6 z-50 flex items-end gap-3 pointer-events-none">
+      {/* Conversational Text Box (Appears beside the character) */}
       {isOpen && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[92vw] sm:w-[380px] h-[520px] max-h-[80vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="pointer-events-auto w-[92vw] sm:w-[360px] h-[480px] max-h-[82vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           {/* Header */}
           <div className="p-3.5 bg-ink text-white flex items-center justify-between border-b-2 border-ink">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-steel-soft text-ink flex items-center justify-center font-bold text-sm border border-steel">
-                🌾
-              </div>
+              <MitraCharacter state={characterState} size={34} />
               <div>
-                <h3 className="font-extrabold text-sm tracking-tight flex items-center gap-1.5">
-                  रोजगारमित्र सहाय्यक
+                <h3 className="font-extrabold text-xs tracking-tight flex items-center gap-1.5">
+                  मित्र — व्हॉइस मार्गदर्शक
                   <span className="text-[10px] bg-verified/20 text-verified-border px-1.5 py-0.2 rounded font-mono font-bold">
                     ONLINE
                   </span>
                 </h3>
                 <p className="text-[11px] text-steel/80">
                   {preferredLocale === 'mr'
-                    ? 'स्थानिक विदर्भ सल्लागार'
+                    ? 'थेट बोला किंवा ऐका'
                     : preferredLocale === 'hi'
-                    ? 'स्थानीय विदर्भ सलाहकार'
-                    : 'Vidarbha Career Advisor'}
+                    ? 'सीधे बोलें या सुनें'
+                    : 'Speak naturally or listen'}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition"
+              className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition text-xs font-bold"
               aria-label="Close"
             >
               ✕
             </button>
           </div>
 
-          {/* Quick Prompts Bar */}
+          {/* Quick Prompts Bar (Tier 2/3 focus) */}
           <div className="bg-canvas/80 px-3 py-2 border-b border-steel/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
-            <span className="text-[10px] font-bold text-ink-muted uppercase whitespace-nowrap">
-              सुझाव:
-            </span>
             {sampleQuestions[preferredLocale].map((q, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSend(q)}
-                className="whitespace-nowrap bg-white hover:bg-steel-soft border border-steel/80 text-ink text-[11px] font-medium px-2.5 py-1 rounded-full shadow-solid-sm transition"
+                className="whitespace-nowrap bg-white hover:bg-steel-soft border border-steel/80 text-ink text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-solid-sm transition"
               >
                 {q}
               </button>
@@ -305,31 +303,33 @@ export function FloatingAssistant() {
                 }`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl p-3 border ${
+                  className={`max-w-[88%] rounded-2xl p-3 border ${
                     msg.sender === 'user'
                       ? 'bg-primary text-white border-primary-hover shadow-solid-sm'
                       : 'bg-white text-ink border-ink/20 shadow-solid-sm'
                   }`}
                 >
-                  <p className="leading-relaxed font-medium whitespace-pre-wrap">{msg.text}</p>
+                  <p className="leading-relaxed font-semibold whitespace-pre-wrap">{msg.text}</p>
 
-                  {/* Assistant Extra Actions (TTS & Citations) */}
-                  {msg.sender === 'assistant' && msg.id !== 'welcome' && (
-                    <div className="mt-2 pt-2 border-t border-steel/30 flex items-center justify-between text-[11px]">
+                  {/* Audio Listen Button for Vernacular Candidates */}
+                  {msg.sender === 'assistant' && (
+                    <div className="mt-2.5 pt-2 border-t border-steel/30 flex items-center justify-between text-[11px]">
                       <button
                         onClick={() => speakText(msg.id, msg.text)}
-                        className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded transition ${
+                        className={`inline-flex items-center gap-1.5 font-bold px-2 py-0.5 rounded transition ${
                           speakingId === msg.id
                             ? 'bg-alert-bg text-alert border border-alert-border'
                             : 'text-primary hover:bg-steel-soft'
                         }`}
                       >
-                        {speakingId === msg.id ? '🔊 बोलत आहे...' : '🗣️ ऐका (Listen)'}
+                        <IconVolume className="w-3.5 h-3.5" />
+                        <span>{speakingId === msg.id ? 'बोलत आहे...' : 'ऐका (Listen)'}</span>
                       </button>
 
                       {msg.citations && msg.citations.length > 0 && (
-                        <span className="text-[10px] text-ink-muted">
-                          सत्यापित स्रोत: {msg.citations.length}
+                        <span className="text-[10px] text-ink-muted inline-flex items-center gap-1 font-bold">
+                          <IconShieldCheck className="w-3 h-3 text-verified" />
+                          सत्यापित स्रोत
                         </span>
                       )}
                     </div>
@@ -339,27 +339,28 @@ export function FloatingAssistant() {
             ))}
 
             {loading && (
-              <div className="flex items-center gap-2 text-ink-secondary text-xs p-2">
+              <div className="flex items-center gap-2 text-ink-secondary text-xs p-2 font-bold">
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                <span>मित्र विचार करत आहे... (Thinking...)</span>
+                <span>मित्र माहिती तपासत आहे...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Footer */}
+          {/* Input Footer: Big Tactile Microphone for Tier 2/3 Accessibility */}
           <div className="p-2.5 bg-white border-t-2 border-ink flex items-center gap-2">
             <button
               type="button"
               onClick={toggleListening}
-              className={`p-2 rounded-full border border-ink transition ${
+              className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center ${
                 isListening
                   ? 'bg-alert text-white animate-pulse'
-                  : 'bg-steel-soft text-ink hover:bg-steel'
+                  : 'bg-primary hover:bg-primary-hover text-white'
               }`}
               title="Speak Question"
+              aria-label="Voice Input"
             >
-              🎤
+              <IconMic className="w-4 h-4" />
             </button>
 
             <input
@@ -374,21 +375,35 @@ export function FloatingAssistant() {
                   ? 'यहाँ प्रश्न पूछें या बोलें...'
                   : 'Ask question or speak here...'
               }
-              className="flex-1 bg-canvas border border-ink/20 rounded-full px-3.5 py-2 text-xs font-medium text-ink focus:outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+              className="flex-1 bg-canvas border border-ink/20 rounded-full px-3.5 py-2 text-xs font-semibold text-ink focus:outline-none focus:border-ink"
             />
 
             <button
               type="button"
               onClick={() => handleSend()}
               disabled={loading || !input.trim()}
-              className="p-2 bg-ink hover:bg-ink/90 disabled:opacity-40 text-white rounded-full transition border border-ink shadow-solid-sm"
+              className="p-2.5 bg-ink hover:bg-ink/90 disabled:opacity-40 text-white rounded-full transition border border-ink shadow-solid-sm"
               aria-label="Send"
             >
-              ➔
+              <IconArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       )}
-    </>
+
+      {/* Human Smiling Character Launcher (Sitting in the bottom-right corner) */}
+      <div className="pointer-events-auto flex flex-col items-center gap-1">
+        {!isOpen && (
+          <div className="bg-white border-2 border-ink px-2.5 py-1 rounded-full text-[10px] font-black text-ink shadow-solid-sm whitespace-nowrap animate-bounce">
+            मित्र शी बोला (Speak)
+          </div>
+        )}
+        <MitraCharacter
+          state={characterState}
+          size={isOpen ? 54 : 64}
+          onClick={() => setIsOpen(!isOpen)}
+        />
+      </div>
+    </div>
   );
 }

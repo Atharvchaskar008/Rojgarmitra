@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { TrainingCenter, VocationalCourse } from '@rojgarmitra/shared';
+import { 
+  IconGraduationCap, 
+  IconBuilding, 
+  IconMapPin, 
+  IconCheck, 
+  IconExternalLink, 
+  IconArrowRight 
+} from '@/components/icons';
 
 export default function CandidateUpskillingPage() {
   const { preferredLocale } = useAuth();
@@ -41,7 +49,8 @@ export default function CandidateUpskillingPage() {
       {/* Header Banner - SETTLE Hero Card */}
       <div className="settle-card-hero p-6 sm:p-8 mb-8">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
-          <span>🏛️ व्यवसाय शिक्षण व प्रशिक्षण संचालनालय (DVET) महाराष्ट्र</span>
+          <IconGraduationCap className="w-3.5 h-3.5 text-primary" />
+          <span>व्यवसाय शिक्षण व प्रशिक्षण संचालनालय (DVET) महाराष्ट्र</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-ink tracking-tight mb-2">
           {dict.upskilling.title}
@@ -53,22 +62,24 @@ export default function CandidateUpskillingPage() {
           href="https://admission.dvet.gov.in"
           target="_blank"
           rel="noopener noreferrer"
-          className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
+          className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5"
         >
-          🌐 {dict.upskilling.official_portal} ➔
+          <span>{dict.upskilling.official_portal}</span>
+          <IconExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-ink-secondary font-bold text-base">
-          ⌛ {dict.common.loading}
+        <div className="text-center py-16 text-ink-secondary font-bold text-sm">
+          {dict.common.loading}
         </div>
       ) : (
         <div className="space-y-8">
           {/* Section: Accredited ITI Institutes */}
           <div>
             <h2 className="text-xl font-black text-ink mb-4 flex items-center gap-2">
-              <span>🏫</span> मान्यताप्राप्त शासकीय ITI संस्था (Nagpur Region)
+              <IconBuilding className="w-5 h-5 text-primary" />
+              <span>मान्यताप्राप्त शासकीय ITI संस्था (Nagpur Region)</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {centers.map(center => (
@@ -78,11 +89,13 @@ export default function CandidateUpskillingPage() {
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified">
-                        ✓ {center.verifiedStatus === 'official_gov' ? 'शासकीय मान्यताप्राप्त' : 'Verified'}
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified inline-flex items-center gap-1">
+                        <IconCheck className="w-3 h-3" />
+                        <span>{center.verifiedStatus === 'official_gov' ? 'शासकीय मान्यताप्राप्त' : 'Verified'}</span>
                       </span>
-                      <span className="text-xs font-bold text-ink-secondary">
-                        📍 {center.taluka || center.district}
+                      <span className="text-xs font-bold text-ink-secondary inline-flex items-center gap-1">
+                        <IconMapPin className="w-3 h-3 text-ink-muted" />
+                        <span>{center.taluka || center.district}</span>
                       </span>
                     </div>
 
@@ -110,9 +123,10 @@ export default function CandidateUpskillingPage() {
                       href={center.officialUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="settle-pill-btn px-4 py-1.5 text-xs inline-block bg-ink hover:bg-ink/90"
+                      className="settle-pill-btn px-4 py-1.5 text-xs inline-flex items-center gap-1 bg-ink hover:bg-ink/90"
                     >
-                      अधिकृत माहिती पहा ➔
+                      <span>अधिकृत माहिती पहा</span>
+                      <IconExternalLink className="w-3 h-3" />
                     </a>
                   </div>
                 </div>
@@ -123,7 +137,8 @@ export default function CandidateUpskillingPage() {
           {/* Section: Courses Mapped to Skills */}
           <div>
             <h2 className="text-xl font-black text-ink mb-4 flex items-center gap-2">
-              <span>📚</span> उपलब्ध व्यावसायिक अभ्यासक्रम (Courses)
+              <IconGraduationCap className="w-5 h-5 text-primary" />
+              <span>उपलब्ध व्यावसायिक अभ्यासक्रम (Courses)</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map(course => (
@@ -147,9 +162,10 @@ export default function CandidateUpskillingPage() {
                     href={course.officialEnrollUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="settle-pill-btn block text-center py-2 px-4 text-xs"
+                    className="settle-pill-btn block text-center py-2 px-4 text-xs font-bold inline-flex items-center justify-center gap-1.5"
                   >
-                    प्रवेश प्रक्रिया पहा ➔
+                    <span>प्रवेश प्रक्रिया पहा</span>
+                    <IconArrowRight className="w-3.5 h-3.5" />
                   </a>
                 </div>
               ))}

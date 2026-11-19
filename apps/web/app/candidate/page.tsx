@@ -5,6 +5,18 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { JobPosting, MatchExplanation, getSkillName } from '@rojgarmitra/shared';
+import { 
+  IconMapPin, 
+  IconBuilding, 
+  IconBriefcase, 
+  IconShieldCheck, 
+  IconMic, 
+  IconGraduationCap, 
+  IconCompass, 
+  IconExternalLink, 
+  IconArrowRight,
+  IconCheck
+} from '@/components/icons';
 
 export default function CandidateJobsFeedPage() {
   const { preferredLocale, user, getIdToken } = useAuth();
@@ -125,21 +137,25 @@ export default function CandidateJobsFeedPage() {
           <div className="flex flex-wrap gap-2 text-xs">
             <Link
               href="/candidate/onboarding"
-              className="settle-pill-btn px-4 py-2 text-xs"
+              className="settle-pill-btn px-4 py-2 text-xs inline-flex items-center gap-1.5"
             >
-              🎙️ आवाज प्रोफाईल अपडेट करा ➔
+              <IconMic className="w-3.5 h-3.5" />
+              <span>आवाज प्रोफाईल अपडेट करा</span>
+              <IconArrowRight className="w-3.5 h-3.5" />
             </Link>
             <Link
               href="/candidate/upskilling"
-              className="settle-pill-chip px-4 py-2 text-xs font-bold"
+              className="settle-pill-chip px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5"
             >
-              🎓 {dict.nav.upskilling}
+              <IconGraduationCap className="w-3.5 h-3.5 text-primary" />
+              <span>{dict.nav.upskilling}</span>
             </Link>
             <Link
               href="/candidate/career"
-              className="settle-pill-chip px-4 py-2 text-xs font-bold"
+              className="settle-pill-chip px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5"
             >
-              🚀 {dict.nav.career}
+              <IconCompass className="w-3.5 h-3.5 text-primary" />
+              <span>{dict.nav.career}</span>
             </Link>
           </div>
         </div>
@@ -212,22 +228,25 @@ export default function CandidateJobsFeedPage() {
                 <div>
                   {/* Top Badges */}
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-steel-soft text-steel-deep border border-steel/60">
-                      📍 {job.taluka || job.district}
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-steel-soft text-steel-deep border border-steel/60 inline-flex items-center gap-1">
+                      <IconMapPin className="w-3 h-3 text-steel-deep" />
+                      <span>{job.taluka || job.district}</span>
                     </span>
 
                     {/* Source Attribution Badge */}
                     {job.sourceType === 'internal_employer' ? (
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified">
-                        ✓ {dict.job.source_verified}
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified inline-flex items-center gap-1">
+                        <IconCheck className="w-3 h-3" />
+                        <span>{dict.job.source_verified}</span>
                       </span>
                     ) : job.sourceType === 'external_public' ? (
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-steel-soft text-primary border border-steel">
-                        🌐 {job.sourceDomain || 'Public Lead'}
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-steel-soft text-primary border border-steel inline-flex items-center gap-1">
+                        <IconExternalLink className="w-3 h-3" />
+                        <span>{job.sourceDomain || 'Public Lead'}</span>
                       </span>
                     ) : (
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-alert-bg text-alert border border-alert">
-                        ℹ️ {dict.common.demo_badge}
+                        <span>{dict.common.demo_badge}</span>
                       </span>
                     )}
                   </div>
@@ -236,8 +255,9 @@ export default function CandidateJobsFeedPage() {
                   <h3 className="text-lg font-black text-ink leading-snug mb-1">
                     {job.title}
                   </h3>
-                  <p className="text-xs text-ink-secondary font-bold mb-4 uppercase tracking-wider">
-                    🏢 {job.employerName}
+                  <p className="text-xs text-ink-secondary font-bold mb-4 uppercase tracking-wider inline-flex items-center gap-1">
+                    <IconBuilding className="w-3.5 h-3.5" />
+                    <span>{job.employerName}</span>
                   </p>
 
                   {/* Compatibility Match Score Badge (if computed) */}
@@ -262,7 +282,7 @@ export default function CandidateJobsFeedPage() {
                     </div>
                   )}
 
-                  {/* Salary & Openings - WorkIndia Pattern */}
+                  {/* Salary & Openings */}
                   <div className="flex items-center gap-4 text-xs text-ink mb-4 bg-canvas p-3 rounded-xl border border-steel/50">
                     <div>
                       <span className="text-ink-secondary text-[11px] font-bold block uppercase">{dict.job.salary}:</span>
@@ -300,24 +320,27 @@ export default function CandidateJobsFeedPage() {
                       href={job.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full block text-center py-2.5 px-4 settle-pill-btn text-xs bg-ink hover:bg-ink/90"
+                      className="w-full text-center py-2.5 px-4 settle-pill-btn text-xs bg-ink hover:bg-ink/90 inline-flex items-center justify-center gap-1.5"
                     >
-                      🔗 {dict.job.view_original} ➔
+                      <span>{dict.job.view_original}</span>
+                      <IconExternalLink className="w-3.5 h-3.5" />
                     </a>
                   ) : isApplied ? (
                     <button
                       disabled
-                      className="w-full py-2.5 px-4 bg-steel-soft text-ink-muted font-bold rounded-full text-xs cursor-not-allowed border border-steel"
+                      className="w-full py-2.5 px-4 bg-steel-soft text-ink-muted font-bold rounded-full text-xs cursor-not-allowed border border-steel inline-flex items-center justify-center gap-1"
                     >
-                      ✓ {dict.job.applied}
+                      <IconCheck className="w-3.5 h-3.5" />
+                      <span>{dict.job.applied}</span>
                     </button>
                   ) : (
                     <button
                       onClick={() => handleApply(job.id)}
                       disabled={applyingId === job.id}
-                      className="w-full py-2.5 px-4 settle-pill-btn text-xs"
+                      className="w-full py-2.5 px-4 settle-pill-btn text-xs font-bold inline-flex items-center justify-center gap-1.5"
                     >
-                      {applyingId === job.id ? dict.common.loading : dict.job.apply_now}
+                      <span>{applyingId === job.id ? dict.common.loading : dict.job.apply_now}</span>
+                      <IconArrowRight className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>

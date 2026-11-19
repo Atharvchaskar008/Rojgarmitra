@@ -5,6 +5,13 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { CareerPlan } from '@rojgarmitra/shared';
+import { 
+  IconCompass, 
+  IconClock, 
+  IconGraduationCap, 
+  IconUser, 
+  IconArrowRight 
+} from '@/components/icons';
 
 export default function CandidateCareerPlanPage() {
   const { preferredLocale, user, getIdToken } = useAuth();
@@ -48,7 +55,8 @@ export default function CandidateCareerPlanPage() {
       {/* Header Banner - SETTLE Hero Card */}
       <div className="settle-card-hero p-6 sm:p-8 mb-8">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
-          🚀 करिअर मार्गदर्शक (DVET & Industry Grounded Roadmap)
+          <IconCompass className="w-3.5 h-3.5 text-primary" />
+          <span>करिअर मार्गदर्शक (DVET & Industry Grounded Roadmap)</span>
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-ink tracking-tight mt-1">
           {dict.nav.career}
@@ -59,12 +67,14 @@ export default function CandidateCareerPlanPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-ink-secondary font-bold text-base">
-          ⌛ {dict.common.loading}
+        <div className="text-center py-16 text-ink-secondary font-bold text-sm">
+          {dict.common.loading}
         </div>
       ) : !user ? (
         <div className="text-center py-12 settle-card p-8">
-          <span className="text-4xl mb-3 inline-block">🧭</span>
+          <div className="w-12 h-12 rounded-full bg-steel-soft border border-ink/20 flex items-center justify-center mx-auto mb-3">
+            <IconUser className="w-5 h-5 text-primary" />
+          </div>
           <h3 className="text-base font-black text-ink mb-1">
             {preferredLocale === 'mr' ? 'लॉगिन आवश्यक आहे' : 'Login Required'}
           </h3>
@@ -75,9 +85,10 @@ export default function CandidateCareerPlanPage() {
           </p>
           <Link
             href="/login"
-            className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
+            className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
           >
-            {dict.nav.login} ➔
+            <span>{dict.nav.login}</span>
+            <IconArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       ) : !careerPlan ? (
@@ -90,9 +101,10 @@ export default function CandidateCareerPlanPage() {
           </p>
           <Link
             href="/candidate/onboarding"
-            className="settle-pill-btn px-6 py-2.5 text-xs inline-block"
+            className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
           >
-            🎙️ प्रोफाईल तयार करा ➔
+            <span>प्रोफाईल तयार करा</span>
+            <IconArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       ) : (
@@ -111,7 +123,7 @@ export default function CandidateCareerPlanPage() {
           {/* Milestones Timeline */}
           <div className="space-y-4">
             <h3 className="text-xl font-black text-ink mb-2">
-              🎯 प्रगतीचे टप्पे (Actionable Milestones)
+              प्रगतीचे टप्पे (Actionable Milestones)
             </h3>
 
             {careerPlan.milestones.map((m, idx) => (
@@ -121,16 +133,18 @@ export default function CandidateCareerPlanPage() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                   <h4 className="text-base font-black text-ink">{m.title}</h4>
-                  <span className="text-xs font-bold px-3 py-1 bg-steel-soft text-steel-deep rounded-full border border-steel/60">
-                    ⏱️ अंदाजे {m.estimatedMonths} महिने
+                  <span className="text-xs font-bold px-3 py-1 bg-steel-soft text-steel-deep rounded-full border border-steel/60 inline-flex items-center gap-1">
+                    <IconClock className="w-3.5 h-3.5" />
+                    <span>अंदाजे {m.estimatedMonths} महिने</span>
                   </span>
                 </div>
                 <p className="text-sm text-ink-secondary mb-4 font-medium leading-relaxed">{m.description}</p>
 
                 {m.suggestedCourses && m.suggestedCourses.length > 0 && (
                   <div className="mt-3 p-3.5 bg-canvas rounded-xl text-xs text-ink border border-steel/50">
-                    <span className="font-black text-ink block mb-1">
-                      💡 शिफारस केलेले शासकीय अभ्यासक्रम:
+                    <span className="font-black text-ink block mb-1 inline-flex items-center gap-1">
+                      <IconGraduationCap className="w-3.5 h-3.5 text-primary" />
+                      <span>शिफारस केलेले शासकीय अभ्यासक्रम:</span>
                     </span>
                     <ul className="list-disc list-inside space-y-1 text-ink-secondary font-medium">
                       {m.suggestedCourses.map((c, i) => (
