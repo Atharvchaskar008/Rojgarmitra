@@ -6,7 +6,12 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await authenticateRequest(req);
+    let user = null;
+    try {
+      user = await authenticateRequest(req);
+    } catch {
+      // Optional auth: allow public visitors & landing page candidates to hear voice guidance
+    }
     const body = await req.json();
 
     const { text, locale = 'mr' } = body;
@@ -84,7 +89,7 @@ export async function POST(req: NextRequest) {
         message: 'Spoken guidance ready via client speech synthesis or text display.',
       },
       meta: {
-        userId: user.uid,
+        userId: user ? user.uid : 'guest_visitor',
         provider: 'fallback_text',
       },
     });

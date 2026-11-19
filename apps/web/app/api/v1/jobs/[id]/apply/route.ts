@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, requireRole, handleApiError, AuthError } from '@/lib/auth/server-auth';
 import { adminDb } from '@/lib/firebase/admin';
-import { JobPosting, CandidateProfile, JobApplication, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
+import { JobPosting, CandidateProfile, JobApplication } from '@rojgarmitra/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,22 +16,15 @@ export async function POST(
     const resolvedParams = await params;
     const jobId = resolvedParams.id;
 
-    // 1. Fetch Job
-    let job: JobPosting | null = null;
+    // 1. Fetch Job directly from verified database
     const jobDoc = await adminDb.collection('jobs').doc(jobId).get();
-    if (jobDoc.exists) {
-      job = { id: jobDoc.id, ...jobDoc.data() } as JobPosting;
-    } else {
-      const seed = DEMO_SEED_JOBS.find(j => j.id === jobId);
-      if (seed) job = seed;
-    }
-
-    if (!job) {
+    if (!jobDoc.exists) {
       return NextResponse.json(
         { error: { code: 'NOT_FOUND', message: 'Job vacancy not found' } },
         { status: 404 }
       );
     }
+    const job = { id: jobDoc.id, ...jobDoc.data() } as JobPosting;
 
     // Critical Requirement: Candidates cannot apply in-app to external public vacancies
     if (job.sourceType === 'external_public') {

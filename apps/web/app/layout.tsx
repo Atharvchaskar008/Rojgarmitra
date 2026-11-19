@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { Navbar } from '@/components/Navbar';
 import { FloatingAssistant } from '@/components/FloatingAssistant';
+import { SmoothScroll } from '@/components/SmoothScroll';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -38,24 +39,26 @@ export default function RootLayout({
   return (
     <html lang="mr" dir="ltr" className={`${inter.variable} ${notoSansDevanagari.variable}`}>
       <body className="antialiased min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-steel-soft selection:text-ink">
-        <AuthProvider>
-          <Navbar />
-          <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {children}
-          </div>
-          <footer className="mt-auto border-t border-steel/60 bg-white/70 backdrop-blur-sm py-6 text-center text-xs text-ink-secondary">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="font-bold text-ink inline-flex items-center gap-2">
-                <span className="font-mono text-[10px] bg-ink text-white px-2 py-0.5 rounded font-black">RM</span>
-                <span>रोजगारमित्र (RojgarMitra) • विदर्भ औद्योगिक रोजगार व्यासपीठ</span>
-              </p>
-              <p className="text-ink-secondary/80">
-                पायलट परिसर: नागपूर, बुटीबोरी, हिंगणा, उमरेड • 100% सत्यापित पदे • थेट संपर्क
-              </p>
+        <SmoothScroll>
+          <AuthProvider>
+            <Navbar />
+            <div className="flex-1 w-full mx-auto">
+              {children}
             </div>
-          </footer>
-          <FloatingAssistant />
-        </AuthProvider>
+            <footer className="mt-auto border-t border-steel/60 bg-white/70 backdrop-blur-sm py-6 text-center text-xs text-ink-secondary">
+              <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p className="font-bold text-ink inline-flex items-center gap-2">
+                  <span className="font-mono text-[10px] bg-ink text-white px-2 py-0.5 rounded font-black">RM</span>
+                  <span>रोजगारमित्र (RojgarMitra) • विदर्भ औद्योगिक रोजगार व्यासपीठ</span>
+                </p>
+                <p className="text-ink-secondary/80">
+                  पायलट परिसर: नागपूर, बुटीबोरी, हिंगणा, उमरेड • 100% सत्यापित पदे • थेट संपर्क
+                </p>
+              </div>
+            </footer>
+            <FloatingAssistant />
+          </AuthProvider>
+        </SmoothScroll>
       </body>
     </html>
   );

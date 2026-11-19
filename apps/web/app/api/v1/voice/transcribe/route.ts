@@ -5,7 +5,12 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await authenticateRequest(req);
+    let user = null;
+    try {
+      user = await authenticateRequest(req);
+    } catch {
+      // Optional auth: allow public visitors & landing page candidates to transcribe voice input
+    }
     const contentType = req.headers.get('content-type') || '';
 
     let userConsent = false;
@@ -124,7 +129,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Name extraction
-    let extractedName = user.email ? user.email.split('@')[0] : 'Candidate';
+    let extractedName = user?.email ? user.email.split('@')[0] : 'Candidate';
     const nameMatch = spokenText.match(/(?:मी|मेरा नाम|I am|Name is)\s+([A-Za-z\u0900-\u097F\s]{2,25}?)(?:,|\.|\s+नागपूर|\s+राहतो|\s+येथे)/i);
     if (nameMatch && nameMatch[1]) {
       extractedName = nameMatch[1].trim();
@@ -146,7 +151,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       data: extractedData,
       meta: {
-        userId: user.uid,
+        userId: user ? user.uid : 'guest_candidate',
         processedAt: new Date().toISOString(),
         service: sttProvider,
       },

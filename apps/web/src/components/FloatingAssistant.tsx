@@ -33,17 +33,18 @@ export function FloatingAssistant() {
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Initialize welcome message when locale changes or on first open
+  // Initialize welcome message when locale changes or on first mount
   useEffect(() => {
     const welcomeTexts: Record<SupportedLocale, string> = {
-      mr: 'नमस्कार! मी मित्र — आपला रोजगार सल्लागार. नागपूर, बुटीबोरी व विदर्भातील थेट स्थानिक नोकऱ्या, ITI कोर्सेस किंवा वेतनाबद्दल विचारा किंवा बोला.',
-      hi: 'नमस्ते! मैं मित्र — आपका रोजगार सलाहकार। नागपुर, बुटीबोरी और विदर्भ की सीधी नौकरियों, ITI कोर्सेस या वेतन के बारे में पूछें या बोलें।',
-      en: 'Hello! I am Mitra — your regional career advisor. Ask or speak to me about verified factory jobs, wages, or government ITI courses across Vidarbha.',
+      mr: 'नमस्कार! मी मित्र — आपला रोजगार सल्लागार. स्थानिक नोकऱ्या, वेतन, किंवा शासकीय ITI कोर्सेसबद्दल बोला किंवा विचारा.',
+      hi: 'नमस्ते! मैं मित्र — आपका रोजगार सलाहकार। स्थानीय नौकरियों, वेतन, या सरकारी ITI कोर्सेस के बारे में पूछें या बोलें।',
+      en: 'Hello! I am Mitra — your career advisor. Ask or speak to me about local verified jobs, wages, or ITI courses.',
     };
 
     setMessages([
@@ -62,59 +63,78 @@ export function FloatingAssistant() {
     }
   }, [messages, isOpen]);
 
-  // Initialize Speech Recognition
+  // Initialize Speech Recognition cleanly
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition =
         (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang =
-          preferredLocale === 'mr' ? 'mr-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = false;
+          recognition.interimResults = false;
+          recognition.lang =
+            preferredLocale === 'mr' ? 'mr-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
 
-        recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          if (transcript) {
-            setInput(transcript);
-            handleSend(transcript);
-          }
-          setIsListening(false);
-        };
+          recognition.onresult = (event: any) => {
+            const transcript = event.results?.[0]?.[0]?.transcript;
+            if (transcript) {
+              setInput(transcript);
+              handleSend(transcript);
+            }
+            setIsListening(false);
+            setVoiceNotice(null);
+          };
 
-        recognition.onerror = () => {
-          setIsListening(false);
-        };
+          recognition.onerror = (err: any) => {
+            console.warn('Speech recognition error event:', err.error);
+            setIsListening(false);
+            if (err.error === 'not-allowed') {
+              setVoiceNotice(
+                preferredLocale === 'mr'
+                  ? 'मायक्रोफोन परवानगी नाकारली आहे. कृपया परवानगी द्या किंवा टाइप करा.'
+                  : 'Microphone permission denied. Please enable mic or type below.'
+              );
+            }
+          };
 
-        recognition.onend = () => {
-          setIsListening(false);
-        };
+          recognition.onend = () => {
+            setIsListening(false);
+          };
 
-        recognitionRef.current = recognition;
+          recognitionRef.current = recognition;
+        } catch (e) {
+          console.warn('Speech recognition setup failed:', e);
+        }
       }
     }
   }, [preferredLocale]);
 
   const toggleListening = () => {
+    setVoiceNotice(null);
     if (!recognitionRef.current) {
-      alert(
+      setVoiceNotice(
         preferredLocale === 'mr'
-          ? 'आपल्या ब्राउझरमध्ये व्हॉइस इनपुट उपलब्ध नाही. कृपया टाइप करा.'
-          : 'Voice input is not supported in this browser. Please type directly.'
+          ? 'आपल्या ब्राउझरमध्ये थेट व्हॉइस रेकॉर्डर उपलब्ध नाही. कृपया टाइप करा.'
+          : 'Live voice input is not supported in this browser. Please type below.'
       );
       return;
     }
 
     if (isListening) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch {}
       setIsListening(false);
     } else {
       try {
+        recognitionRef.current.lang =
+          preferredLocale === 'mr' ? 'mr-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
         recognitionRef.current.start();
         setIsListening(true);
-      } catch (err) {
-        console.warn('Speech recognition error:', err);
+      } catch (err: any) {
+        console.warn('Speech recognition start error:', err);
+        setIsListening(false);
       }
     }
   };
@@ -132,6 +152,7 @@ export function FloatingAssistant() {
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
+    setVoiceNotice(null);
 
     try {
       const res = await fetch('/api/v1/agents/ask', {
@@ -173,11 +194,16 @@ export function FloatingAssistant() {
   };
 
   const speakText = async (msgId: string, text: string) => {
+    // Stop any ongoing audio immediately
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
     if (speakingId === msgId) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
       setSpeakingId(null);
       return;
     }
@@ -197,7 +223,8 @@ export function FloatingAssistant() {
         }),
       });
 
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('audio')) {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
@@ -206,15 +233,29 @@ export function FloatingAssistant() {
           setSpeakingId(null);
           audioRef.current = null;
         };
-        audio.play();
+        audio.onerror = () => {
+          setSpeakingId(null);
+          audioRef.current = null;
+        };
+        await audio.play();
       } else {
-        // Fallback to browser SpeechSynthesis
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
+        // Fallback to browser SpeechSynthesis with smart Indian voice fallback
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang =
-            preferredLocale === 'mr' ? 'mr-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
+          const voices = window.speechSynthesis.getVoices();
+          
+          const matchVoice = voices.find(v => 
+            v.lang.startsWith(preferredLocale === 'mr' ? 'mr' : preferredLocale === 'hi' ? 'hi' : 'en-IN') ||
+            v.lang.startsWith('hi') ||
+            v.name.toLowerCase().includes('india')
+          );
+          if (matchVoice) {
+            utterance.voice = matchVoice;
+          }
+          utterance.lang = preferredLocale === 'mr' ? 'hi-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
+          utterance.rate = 0.95;
           utterance.onend = () => setSpeakingId(null);
+          utterance.onerror = () => setSpeakingId(null);
           window.speechSynthesis.speak(utterance);
         } else {
           setSpeakingId(null);
@@ -247,22 +288,31 @@ export function FloatingAssistant() {
   const characterState = isListening ? 'listening' : speakingId ? 'speaking' : 'idle';
 
   return (
-    <div className="fixed bottom-5 right-4 sm:right-6 z-50 flex items-end gap-3 pointer-events-none">
-      {/* Conversational Text Box (Appears beside the character) */}
+    <>
+      {/* Mobile Backdrop Overlay when Assistant is Open */}
       {isOpen && (
-        <div className="pointer-events-auto w-[92vw] sm:w-[360px] h-[480px] max-h-[82vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div 
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-ink/20 backdrop-blur-xs z-40 sm:hidden"
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Conversational Text Box (Cleanly docked on mobile and desktop) */}
+      {isOpen && (
+        <div className="fixed inset-x-3 bottom-16 sm:inset-auto sm:right-22 sm:bottom-6 z-50 w-auto sm:w-[380px] h-[480px] max-h-[80vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           {/* Header */}
-          <div className="p-3.5 bg-ink text-white flex items-center justify-between border-b-2 border-ink">
+          <div className="p-3 bg-ink text-white flex items-center justify-between border-b-2 border-ink">
             <div className="flex items-center gap-2.5">
-              <MitraCharacter state={characterState} size={34} />
+              <MitraCharacter state={characterState} size={32} />
               <div>
                 <h3 className="font-extrabold text-xs tracking-tight flex items-center gap-1.5">
                   मित्र — व्हॉइस मार्गदर्शक
-                  <span className="text-[10px] bg-verified/20 text-verified-border px-1.5 py-0.2 rounded font-mono font-bold">
+                  <span className="text-[9px] bg-verified/20 text-verified-border px-1.5 py-0.5 rounded font-mono font-bold">
                     ONLINE
                   </span>
                 </h3>
-                <p className="text-[11px] text-steel/80">
+                <p className="text-[10px] text-steel/80">
                   {preferredLocale === 'mr'
                     ? 'थेट बोला किंवा ऐका'
                     : preferredLocale === 'hi'
@@ -280,21 +330,29 @@ export function FloatingAssistant() {
             </button>
           </div>
 
-          {/* Quick Prompts Bar (Tier 2/3 focus) */}
-          <div className="bg-canvas/80 px-3 py-2 border-b border-steel/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+          {/* Quick Prompts Bar */}
+          <div className="bg-canvas/80 px-2.5 py-1.5 border-b border-steel/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
             {sampleQuestions[preferredLocale].map((q, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSend(q)}
-                className="whitespace-nowrap bg-white hover:bg-steel-soft border border-steel/80 text-ink text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-solid-sm transition"
+                className="whitespace-nowrap bg-white hover:bg-steel-soft border border-steel/80 text-ink text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-solid-sm transition shrink-0"
               >
                 {q}
               </button>
             ))}
           </div>
 
+          {/* Voice Notice (Inline Permission/Warning) */}
+          {voiceNotice && (
+            <div className="bg-alert-bg border-b border-alert-border text-alert px-3 py-1.5 text-[11px] font-bold flex items-center justify-between">
+              <span>{voiceNotice}</span>
+              <button onClick={() => setVoiceNotice(null)} className="text-alert font-black">✕</button>
+            </div>
+          )}
+
           {/* Message List */}
-          <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-canvas/30 text-xs">
+          <div className="flex-1 p-3 overflow-y-auto space-y-2.5 bg-canvas/30 text-xs">
             {messages.map(msg => (
               <div
                 key={msg.id}
@@ -303,7 +361,7 @@ export function FloatingAssistant() {
                 }`}
               >
                 <div
-                  className={`max-w-[88%] rounded-2xl p-3 border ${
+                  className={`max-w-[88%] rounded-2xl p-2.5 border ${
                     msg.sender === 'user'
                       ? 'bg-primary text-white border-primary-hover shadow-solid-sm'
                       : 'bg-white text-ink border-ink/20 shadow-solid-sm'
@@ -311,12 +369,12 @@ export function FloatingAssistant() {
                 >
                   <p className="leading-relaxed font-semibold whitespace-pre-wrap">{msg.text}</p>
 
-                  {/* Audio Listen Button for Vernacular Candidates */}
+                  {/* Audio Listen Button */}
                   {msg.sender === 'assistant' && (
-                    <div className="mt-2.5 pt-2 border-t border-steel/30 flex items-center justify-between text-[11px]">
+                    <div className="mt-2 pt-1.5 border-t border-steel/30 flex items-center justify-between text-[11px]">
                       <button
                         onClick={() => speakText(msg.id, msg.text)}
-                        className={`inline-flex items-center gap-1.5 font-bold px-2 py-0.5 rounded transition ${
+                        className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded transition ${
                           speakingId === msg.id
                             ? 'bg-alert-bg text-alert border border-alert-border'
                             : 'text-primary hover:bg-steel-soft'
@@ -347,12 +405,12 @@ export function FloatingAssistant() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Footer: Big Tactile Microphone for Tier 2/3 Accessibility */}
+          {/* Input Footer: Big Tactile Microphone for Accessibility */}
           <div className="p-2.5 bg-white border-t-2 border-ink flex items-center gap-2">
             <button
               type="button"
               onClick={toggleListening}
-              className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center ${
+              className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center shrink-0 ${
                 isListening
                   ? 'bg-alert text-white animate-pulse'
                   : 'bg-primary hover:bg-primary-hover text-white'
@@ -375,14 +433,14 @@ export function FloatingAssistant() {
                   ? 'यहाँ प्रश्न पूछें या बोलें...'
                   : 'Ask question or speak here...'
               }
-              className="flex-1 bg-canvas border border-ink/20 rounded-full px-3.5 py-2 text-xs font-semibold text-ink focus:outline-none focus:border-ink"
+              className="flex-1 bg-canvas border border-ink/20 rounded-full px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:border-ink"
             />
 
             <button
               type="button"
               onClick={() => handleSend()}
               disabled={loading || !input.trim()}
-              className="p-2.5 bg-ink hover:bg-ink/90 disabled:opacity-40 text-white rounded-full transition border border-ink shadow-solid-sm"
+              className="p-2.5 bg-ink hover:bg-ink/90 disabled:opacity-40 text-white rounded-full transition border border-ink shadow-solid-sm shrink-0"
               aria-label="Send"
             >
               <IconArrowRight className="w-3.5 h-3.5" />
@@ -391,19 +449,20 @@ export function FloatingAssistant() {
         </div>
       )}
 
-      {/* Human Smiling Character Launcher (Sitting in the bottom-right corner) */}
-      <div className="pointer-events-auto flex flex-col items-center gap-1">
+      {/* Human Smiling Character Launcher Button */}
+      <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-center gap-1">
         {!isOpen && (
-          <div className="bg-white border-2 border-ink px-2.5 py-1 rounded-full text-[10px] font-black text-ink shadow-solid-sm whitespace-nowrap animate-bounce">
+          <div className="hidden sm:block bg-white border-2 border-ink px-2.5 py-0.5 rounded-full text-[10px] font-black text-ink shadow-solid-sm whitespace-nowrap animate-bounce">
             मित्र शी बोला (Speak)
           </div>
         )}
         <MitraCharacter
           state={characterState}
-          size={isOpen ? 54 : 64}
+          size={48}
+          className="sm:w-[58px] sm:h-[58px]"
           onClick={() => setIsOpen(!isOpen)}
         />
       </div>
-    </div>
+    </>
   );
 }

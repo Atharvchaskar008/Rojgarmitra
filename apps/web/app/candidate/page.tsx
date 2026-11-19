@@ -126,7 +126,8 @@ export default function CandidateJobsFeedPage() {
       <div className="settle-card-hero p-6 sm:p-8 mb-8">
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
-            <span>📍 {dict.app.pilot_region}</span>
+            <IconMapPin className="w-3.5 h-3.5 text-primary" />
+            <span>{dict.app.pilot_region}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-ink tracking-tight mb-2">
             {dict.nav.jobs} <span className="text-ink-secondary text-xl font-bold font-sans">(Opportunities)</span>
