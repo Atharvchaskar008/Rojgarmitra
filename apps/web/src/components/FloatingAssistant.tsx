@@ -124,7 +124,7 @@ export function FloatingAssistant() {
     if (isListening) {
       try {
         recognitionRef.current.stop();
-      } catch {}
+      } catch { }
       setIsListening(false);
     } else {
       try {
@@ -243,8 +243,8 @@ export function FloatingAssistant() {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(text);
           const voices = window.speechSynthesis.getVoices();
-          
-          const matchVoice = voices.find(v => 
+
+          const matchVoice = voices.find(v =>
             v.lang.startsWith(preferredLocale === 'mr' ? 'mr' : preferredLocale === 'hi' ? 'hi' : 'en-IN') ||
             v.lang.startsWith('hi') ||
             v.name.toLowerCase().includes('india')
@@ -291,7 +291,7 @@ export function FloatingAssistant() {
     <>
       {/* Mobile Backdrop Overlay when Assistant is Open */}
       {isOpen && (
-        <div 
+        <div
           onClick={() => setIsOpen(false)}
           className="fixed inset-0 bg-ink/20 backdrop-blur-xs z-40 sm:hidden"
           aria-hidden="true"
@@ -360,11 +360,10 @@ export function FloatingAssistant() {
                   }`}
               >
                 <div
-                  className={`max-w-[88%] rounded-2xl p-2.5 border ${
-                    msg.sender === 'user'
-                      ? 'bg-primary text-white border-primary-hover shadow-solid-sm'
-                      : 'bg-white text-ink border-ink/20 shadow-solid-sm'
-                  }`}
+                  className={`max-w-[88%] rounded-2xl p-2.5 border ${msg.sender === 'user'
+                    ? 'bg-primary text-white border-primary-hover shadow-solid-sm'
+                    : 'bg-white text-ink border-ink/20 shadow-solid-sm'
+                    }`}
                 >
                   <p className="leading-relaxed font-semibold whitespace-pre-wrap">{msg.text}</p>
 
@@ -373,11 +372,10 @@ export function FloatingAssistant() {
                     <div className="mt-2 pt-1.5 border-t border-steel/30 flex items-center justify-between text-[11px]">
                       <button
                         onClick={() => speakText(msg.id, msg.text)}
-                        className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded transition ${
-                          speakingId === msg.id
-                            ? 'bg-alert-bg text-alert border border-alert-border'
-                            : 'text-primary hover:bg-steel-soft'
-                        }`}
+                        className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded transition ${speakingId === msg.id
+                          ? 'bg-alert-bg text-alert border border-alert-border'
+                          : 'text-primary hover:bg-steel-soft'
+                          }`}
                       >
                         <IconVolume className="w-3.5 h-3.5" />
                         <span>{speakingId === msg.id ? 'बोलत आहे...' : 'ऐका (Listen)'}</span>
@@ -409,11 +407,10 @@ export function FloatingAssistant() {
             <button
               type="button"
               onClick={toggleListening}
-              className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center shrink-0 ${
-                isListening
-                  ? 'bg-alert text-white animate-pulse'
-                  : 'bg-primary hover:bg-primary-hover text-white'
-              }`}
+              className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center shrink-0 ${isListening
+                ? 'bg-alert text-white animate-pulse'
+                : 'bg-primary hover:bg-primary-hover text-white'
+                }`}
               title="Speak Question"
               aria-label="Voice Input"
             >

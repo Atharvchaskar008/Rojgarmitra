@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
-import { 
-  IconBriefcase, 
-  IconBuilding, 
-  IconGraduationCap, 
-  IconCompass, 
-  IconUser, 
-  IconArrowRight 
+import {
+  IconBriefcase,
+  IconBuilding,
+  IconGraduationCap,
+  IconCompass,
+  IconUser,
+  IconArrowRight
 } from '@/components/icons';
 
 export function Navbar() {
@@ -78,11 +78,10 @@ export function Navbar() {
               <>
                 <Link
                   href="/candidate"
-                  className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${
-                    pathname === '/candidate'
-                      ? 'bg-ink text-white border-ink shadow-solid-sm'
-                      : 'text-ink border-transparent hover:bg-steel-soft/60'
-                  }`}
+                  className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${pathname === '/candidate'
+                    ? 'bg-ink text-white border-ink shadow-solid-sm'
+                    : 'text-ink border-transparent hover:bg-steel-soft/60'
+                    }`}
                 >
                   <IconBriefcase className="w-3.5 h-3.5" />
                   <span>{dict.nav.jobs}</span>
@@ -90,22 +89,20 @@ export function Navbar() {
 
                 <Link
                   href="/candidate/applications"
-                  className={`transition rounded-full px-3 py-1.5 border ${
-                    pathname === '/candidate/applications'
-                      ? 'bg-ink text-white border-ink shadow-solid-sm'
-                      : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
-                  }`}
+                  className={`transition rounded-full px-3 py-1.5 border ${pathname === '/candidate/applications'
+                    ? 'bg-ink text-white border-ink shadow-solid-sm'
+                    : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
+                    }`}
                 >
                   {dict.nav.applications}
                 </Link>
 
                 <Link
                   href="/candidate/upskilling"
-                  className={`transition rounded-full px-3 py-1.5 border inline-flex items-center gap-1 ${
-                    pathname === '/candidate/upskilling'
-                      ? 'bg-ink text-white border-ink shadow-solid-sm'
-                      : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
-                  }`}
+                  className={`transition rounded-full px-3 py-1.5 border inline-flex items-center gap-1 ${pathname === '/candidate/upskilling'
+                    ? 'bg-ink text-white border-ink shadow-solid-sm'
+                    : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
+                    }`}
                 >
                   <IconGraduationCap className="w-3.5 h-3.5" />
                   <span>{dict.nav.upskilling}</span>
@@ -113,11 +110,10 @@ export function Navbar() {
 
                 <Link
                   href="/candidate/career"
-                  className={`transition rounded-full px-3 py-1.5 border inline-flex items-center gap-1 ${
-                    pathname === '/candidate/career'
-                      ? 'bg-ink text-white border-ink shadow-solid-sm'
-                      : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
-                  }`}
+                  className={`transition rounded-full px-3 py-1.5 border inline-flex items-center gap-1 ${pathname === '/candidate/career'
+                    ? 'bg-ink text-white border-ink shadow-solid-sm'
+                    : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
+                    }`}
                 >
                   <IconCompass className="w-3.5 h-3.5" />
                   <span>{dict.nav.career}</span>
@@ -127,11 +123,10 @@ export function Navbar() {
               <>
                 <Link
                   href="/employer"
-                  className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${
-                    pathname === '/employer'
-                      ? 'bg-ink text-white border-ink shadow-solid-sm'
-                      : 'text-ink border-transparent hover:bg-steel-soft/60'
-                  }`}
+                  className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${pathname === '/employer'
+                    ? 'bg-ink text-white border-ink shadow-solid-sm'
+                    : 'text-ink border-transparent hover:bg-steel-soft/60'
+                    }`}
                 >
                   <IconBuilding className="w-3.5 h-3.5" />
                   <span>{dict.nav.employer} Dashboard</span>
@@ -139,11 +134,10 @@ export function Navbar() {
 
                 <Link
                   href="/employer/post"
-                  className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${
-                    pathname === '/employer/post'
-                      ? 'bg-ink text-white border-ink shadow-solid-sm'
-                      : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
-                  }`}
+                  className={`transition rounded-full px-3.5 py-1.5 border inline-flex items-center gap-1.5 ${pathname === '/employer/post'
+                    ? 'bg-ink text-white border-ink shadow-solid-sm'
+                    : 'text-ink-secondary border-transparent hover:text-ink hover:bg-steel-soft/60'
+                    }`}
                 >
                   <span>+ {dict.employer.post_new_job}</span>
                 </Link>
@@ -173,33 +167,30 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setLocale('mr')}
-                className={`px-2 sm:px-2.5 py-1 rounded-full transition text-[11px] sm:text-xs ${
-                  preferredLocale === 'mr'
-                    ? 'bg-ink text-white shadow-solid-sm'
-                    : 'text-ink-secondary hover:text-ink'
-                }`}
+                className={`px-2 sm:px-2.5 py-1 rounded-full transition text-[11px] sm:text-xs ${preferredLocale === 'mr'
+                  ? 'bg-ink text-white shadow-solid-sm'
+                  : 'text-ink-secondary hover:text-ink'
+                  }`}
               >
                 मराठी
               </button>
               <button
                 type="button"
                 onClick={() => setLocale('hi')}
-                className={`px-2 sm:px-2.5 py-1 rounded-full transition text-[11px] sm:text-xs ${
-                  preferredLocale === 'hi'
-                    ? 'bg-ink text-white shadow-solid-sm'
-                    : 'text-ink-secondary hover:text-ink'
-                }`}
+                className={`px-2 sm:px-2.5 py-1 rounded-full transition text-[11px] sm:text-xs ${preferredLocale === 'hi'
+                  ? 'bg-ink text-white shadow-solid-sm'
+                  : 'text-ink-secondary hover:text-ink'
+                  }`}
               >
                 हिंदी
               </button>
               <button
                 type="button"
                 onClick={() => setLocale('en')}
-                className={`px-2 sm:px-2.5 py-1 rounded-full transition text-[11px] sm:text-xs ${
-                  preferredLocale === 'en'
-                    ? 'bg-ink text-white shadow-solid-sm'
-                    : 'text-ink-secondary hover:text-ink'
-                }`}
+                className={`px-2 sm:px-2.5 py-1 rounded-full transition text-[11px] sm:text-xs ${preferredLocale === 'en'
+                  ? 'bg-ink text-white shadow-solid-sm'
+                  : 'text-ink-secondary hover:text-ink'
+                  }`}
               >
                 EN
               </button>

@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
         totalLeads: discoveryResult.totalLeads,
         provider: discoveryResult.provider,
         searchQueries: discoveryResult.searchQueries,
+        nearbyIndustrialHubs: discoveryResult.nearbyIndustrialHubs,
         suggestedAlternativeSearches: discoveryResult.suggestedAlternativeSearches,
         metadata: discoveryResult.metadata,
         attributionNotice: 'Verified public employment opportunities. Sourced with Google Search Grounding and state employment registries. No charges apply.',

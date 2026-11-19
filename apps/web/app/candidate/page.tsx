@@ -15,7 +15,9 @@ import {
   IconCompass,
   IconExternalLink,
   IconArrowRight,
-  IconCheck
+  IconCheck,
+  IconNavigation,
+  IconFactory
 } from '@/components/icons';
 
 export default function CandidateJobsFeedPage() {
@@ -23,6 +25,7 @@ export default function CandidateJobsFeedPage() {
   const dict = getDictionary(preferredLocale);
 
   const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [nearbyHubs, setNearbyHubs] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<Record<string, MatchExplanation>>({});
   const [selectedTaluka, setSelectedTaluka] = useState<string>('all');
   const [loading, setLoading] = useState(true);
@@ -39,6 +42,9 @@ export default function CandidateJobsFeedPage() {
         const json = await res.json();
         if (json.data) {
           setJobs(json.data);
+        }
+        if (json.nearbyHubs) {
+          setNearbyHubs(json.nearbyHubs);
         }
 
         // If user is authenticated, try fetching personalized recommendations
@@ -201,6 +207,65 @@ export default function CandidateJobsFeedPage() {
         ))}
       </div>
 
+      {/* Nearby Industrial Plants / Employers via Google Maps */}
+      {nearbyHubs.length > 0 && (
+        <div className="settle-card-hero p-5 sm:p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-1">
+                <IconNavigation className="w-3.5 h-3.5 text-primary" />
+                <span>Google Maps स्थानिक औद्योगिक शोध</span>
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-ink">
+                जवळचे थेट कारखाने व वर्कशॉप्स (Nearby Industrial Hubs)
+              </h2>
+              <p className="text-xs text-ink-secondary font-medium">
+                थेट भेट देण्यासाठी किंवा संपर्कासाठी Google Maps वर सत्यापित स्थानिक कंपन्या.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {nearbyHubs.map((hub, hIdx) => (
+              <div
+                key={hub.placeId || hIdx}
+                className="settle-card p-4 flex flex-col justify-between bg-surface hover:border-ink transition"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-2">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-steel-soft text-primary border border-steel">
+                      {hub.industryCategory || 'औद्योगिक युनिट'}
+                    </span>
+                    {hub.rating && (
+                      <span className="text-[11px] font-bold text-ink inline-flex items-center gap-0.5">
+                        ★ {hub.rating}
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="text-sm font-black text-ink leading-snug mb-1 line-clamp-2">
+                    {hub.name}
+                  </h4>
+                  <p className="text-[11px] text-ink-secondary font-medium line-clamp-2 mb-3">
+                    {hub.formattedAddress}
+                  </p>
+                </div>
+
+                <a
+                  href={hub.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="settle-pill-chip text-xs px-3 py-1.5 text-center font-black inline-flex items-center justify-center gap-1.5 hover:bg-ink hover:text-white transition w-full"
+                >
+                  <IconNavigation className="w-3.5 h-3.5 text-primary" />
+                  <span>रस्ता पहा (Map)</span>
+                  <IconExternalLink className="w-3 h-3 text-ink-muted" />
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Job Cards Grid */}
       {loading ? (
         <div className="text-center py-16 text-ink-secondary font-bold text-base">
@@ -254,10 +319,24 @@ export default function CandidateJobsFeedPage() {
                   <h3 className="text-lg font-black text-ink leading-snug mb-1">
                     {job.title}
                   </h3>
-                  <p className="text-xs text-ink-secondary font-bold mb-4 uppercase tracking-wider inline-flex items-center gap-1">
+                  <p className="text-xs text-ink-secondary font-bold mb-2 uppercase tracking-wider inline-flex items-center gap-1">
                     <IconBuilding className="w-3.5 h-3.5" />
                     <span>{job.employerName}</span>
                   </p>
+
+                  {/* Google Maps Route / Location Pill */}
+                  {job.googleMapsUrl && (
+                    <a
+                      href={job.googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-bold text-steel-deep hover:text-ink mb-3 p-1.5 bg-canvas rounded-lg border border-steel/50 group transition w-full"
+                    >
+                      <IconNavigation className="w-3 h-3 text-primary group-hover:scale-110 transition shrink-0" />
+                      <span className="truncate flex-1 text-left">{job.formattedAddress || 'Google Maps वर रस्ता पहा'}</span>
+                      <IconExternalLink className="w-3 h-3 text-ink-muted shrink-0" />
+                    </a>
+                  )}
 
                   {/* Compatibility Match Score Badge (if computed) */}
                   {match && (

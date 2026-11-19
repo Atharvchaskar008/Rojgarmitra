@@ -79,6 +79,9 @@ export interface JobPosting {
   observedAt?: string;
   lastCheckedAt?: string;
   freshnessStatus?: 'fresh' | 'stale' | 'unverified';
+  googleMapsUrl?: string;
+  formattedAddress?: string;
+  locationCoordinates?: { lat: number; lng: number };
   createdAt: string;
   updatedAt: string;
 }
@@ -149,6 +152,26 @@ export interface VocationalCourse {
   lastCheckedAt: string;
 }
 
+export interface FreeLearningResource {
+  id?: string;
+  title: string;
+  platform: 'YouTube' | 'BharatSkills' | 'PDF' | 'Portal' | 'Web';
+  url: string;
+  language?: string;
+  category?: 'video_tutorial' | 'book_pdf' | 'practical_exercise';
+  publisherOrChannel?: string;
+  estimatedHours?: number;
+  isFree?: boolean;
+}
+
+export interface PracticalProject {
+  title: string;
+  description: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  steps: string[];
+  safetyTips?: string;
+}
+
 export interface CareerMilestone {
   title: string;
   description: string;
@@ -156,6 +179,9 @@ export interface CareerMilestone {
   targetRole: string;
   recommendedSkillIds: string[];
   suggestedCourses?: string[];
+  freeTutorials?: FreeLearningResource[];
+  recommendedBooks?: FreeLearningResource[];
+  practicalProjects?: PracticalProject[];
 }
 
 export interface CareerPlan {
@@ -164,4 +190,5 @@ export interface CareerPlan {
   missingSkills: string[];
   milestones: CareerMilestone[];
   disclaimer: string;
+  generalFreeResources?: FreeLearningResource[];
 }

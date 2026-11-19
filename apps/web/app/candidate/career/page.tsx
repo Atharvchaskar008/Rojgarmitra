@@ -10,7 +10,12 @@ import {
   IconClock, 
   IconGraduationCap, 
   IconUser, 
-  IconArrowRight 
+  IconArrowRight,
+  IconVideo,
+  IconBookOpen,
+  IconWrench,
+  IconExternalLink,
+  IconCheck
 } from '@/components/icons';
 
 export default function CandidateCareerPlanPage() {
@@ -140,17 +145,124 @@ export default function CandidateCareerPlanPage() {
                 </div>
                 <p className="text-sm text-ink-secondary mb-4 font-medium leading-relaxed">{m.description}</p>
 
+                {/* Suggested Government Courses */}
                 {m.suggestedCourses && m.suggestedCourses.length > 0 && (
                   <div className="mt-3 p-3.5 bg-canvas rounded-xl text-xs text-ink border border-steel/50">
-                    <span className="font-black text-ink block mb-1 inline-flex items-center gap-1">
+                    <span className="font-black text-ink block mb-1 inline-flex items-center gap-1.5">
                       <IconGraduationCap className="w-3.5 h-3.5 text-primary" />
-                      <span>शिफारस केलेले शासकीय अभ्यासक्रम:</span>
+                      <span>शिफारस केलेले शासकीय अभ्यासक्रम (DVET ITI):</span>
                     </span>
                     <ul className="list-disc list-inside space-y-1 text-ink-secondary font-medium">
                       {m.suggestedCourses.map((c, i) => (
                         <li key={i}>{c}</li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {/* Free Online YouTube Video Tutorials */}
+                {m.freeTutorials && m.freeTutorials.length > 0 && (
+                  <div className="mt-4 p-4 bg-surface rounded-xl border border-steel">
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <span className="font-black text-ink text-xs inline-flex items-center gap-1.5">
+                        <IconVideo className="w-3.5 h-3.5 text-alert" />
+                        <span>मोफत व्हिडिओ ट्यूटोरियल्स (YouTube):</span>
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-alert-bg text-alert border border-alert rounded-full">
+                        मराठी / हिंदी
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {m.freeTutorials.map((tut, tIdx) => (
+                        <a
+                          key={tIdx}
+                          href={tut.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-2.5 bg-canvas hover:bg-surface-subtle border border-steel/60 hover:border-ink rounded-lg text-xs font-bold text-ink transition group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-alert-bg text-alert flex items-center justify-center text-[10px] font-black group-hover:scale-110 transition">
+                              ▶
+                            </span>
+                            <div>
+                              <p className="leading-tight text-ink">{tut.title}</p>
+                              {tut.publisherOrChannel && (
+                                <p className="text-[10px] text-ink-secondary font-medium">
+                                  चॅनेल: {tut.publisherOrChannel}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <IconExternalLink className="w-3.5 h-3.5 text-ink-secondary group-hover:text-ink shrink-0" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommended Official Free NIMI Books */}
+                {m.recommendedBooks && m.recommendedBooks.length > 0 && (
+                  <div className="mt-4 p-4 bg-surface rounded-xl border border-steel">
+                    <span className="font-black text-ink text-xs block mb-2.5 inline-flex items-center gap-1.5">
+                      <IconBookOpen className="w-3.5 h-3.5 text-primary" />
+                      <span>अधिकृत मोफत पुस्तके व अभ्यास साहित्य (Bharat Skills):</span>
+                    </span>
+                    <div className="space-y-2">
+                      {m.recommendedBooks.map((b, bIdx) => (
+                        <a
+                          key={bIdx}
+                          href={b.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-2.5 bg-canvas hover:bg-surface-subtle border border-steel/60 hover:border-ink rounded-lg text-xs font-bold text-ink transition group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-steel-soft text-primary flex items-center justify-center text-[11px] font-black">
+                              📄
+                            </span>
+                            <div>
+                              <p className="leading-tight text-ink">{b.title}</p>
+                              {b.publisherOrChannel && (
+                                <p className="text-[10px] text-ink-secondary font-medium">
+                                  प्रकाशक: {b.publisherOrChannel} • मोफत PDF
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <span className="settle-pill-chip text-[11px] px-2 py-0.5 group-hover:bg-ink group-hover:text-white transition">
+                            PDF वाचा
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Practical Shop-Floor Projects */}
+                {m.practicalProjects && m.practicalProjects.length > 0 && (
+                  <div className="mt-4 p-4 bg-verified-bg/40 rounded-xl border-2 border-verified">
+                    <span className="font-black text-verified text-xs block mb-2 inline-flex items-center gap-1.5">
+                      <IconWrench className="w-3.5 h-3.5 text-verified" />
+                      <span>वर्कशॉप प्रत्यक्ष सराव (Shop-Floor Hands-on Practice):</span>
+                    </span>
+                    {m.practicalProjects.map((proj, pIdx) => (
+                      <div key={pIdx} className="space-y-1.5 text-xs text-ink font-medium">
+                        <p className="font-black text-sm text-ink">{proj.title}</p>
+                        <p className="text-xs text-ink-secondary mb-2">{proj.description}</p>
+                        <div className="bg-canvas p-3 rounded-lg border border-steel/60 space-y-1 text-[11px]">
+                          <strong className="block text-ink font-bold mb-1">कृतीचे टप्पे:</strong>
+                          {proj.steps.map((st, sIdx) => (
+                            <p key={sIdx} className="text-ink-secondary">{st}</p>
+                          ))}
+                        </div>
+                        {proj.safetyTips && (
+                          <p className="text-[11px] font-bold text-alert mt-1.5 bg-alert-bg p-2 rounded border border-alert/50">
+                            {proj.safetyTips}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

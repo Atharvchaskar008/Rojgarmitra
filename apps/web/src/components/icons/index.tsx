@@ -240,6 +240,26 @@ export const IconEyeOff = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+export const IconBookOpen = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </Icon>
+);
+
+export const IconVideo = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="m22 8-6 4 6 4V8Z" />
+    <rect width="14" height="12" x="2" y="6" rx="2" />
+  </Icon>
+);
+
+export const IconNavigation = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <polygon points="3 11 22 2 13 21 11 13 3 11" />
+  </Icon>
+);
+
 /** Authentic Colored Google Icon */
 export const IconGoogle = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} aria-hidden="true">

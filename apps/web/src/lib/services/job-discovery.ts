@@ -18,8 +18,9 @@ import {
   VerifiedSourceEvidence,
   vacancyVerifier,
 } from './vacancy-verifier';
+import { googleMapsService, NearbyIndustrialPlace } from './google-maps-service';
 
-export type { VacancyVerificationStatus, VerifiedSourceEvidence };
+export type { VacancyVerificationStatus, VerifiedSourceEvidence, NearbyIndustrialPlace };
 
 export interface DiscoveredJobOpportunity {
   job: JobPosting;
@@ -35,6 +36,7 @@ export interface JobDiscoveryResponse {
   provider: string;
   searchQueries: string[];
   results: DiscoveredJobOpportunity[];
+  nearbyIndustrialHubs?: NearbyIndustrialPlace[];
   suggestedAlternativeSearches?: string[];
   metadata: {
     searchedAt: string;
@@ -236,7 +238,27 @@ export class JobDiscoveryAgent {
       }
     }
 
-    // Step 5: Rank verified jobs using the deterministic matching engine
+    // Step 5: Discover real physical industrial employers via Google Maps Places
+    let nearbyIndustrialHubs: NearbyIndustrialPlace[] = [];
+    try {
+      nearbyIndustrialHubs = await googleMapsService.searchNearbyEmployers({
+        trade,
+        location,
+        taluka: candidate.taluka,
+        maxResults: 4,
+      });
+    } catch {
+      // ignore
+    }
+
+    // Enrich discovered opportunities with Google Maps navigation
+    for (const opp of opportunities) {
+      if (!opp.job.googleMapsUrl) {
+        opp.job = await googleMapsService.enrichJobWithMaps(opp.job);
+      }
+    }
+
+    // Step 6: Rank verified jobs using the deterministic matching engine
     const candidateProfileObj: CandidateProfile = {
       uid: candidate.uid || 'candidate_anon',
       preferredName: candidate.preferredName || 'Candidate',
@@ -290,6 +312,7 @@ export class JobDiscoveryAgent {
       provider: this.provider.name,
       searchQueries: plannedQueries,
       results: finalResults,
+      nearbyIndustrialHubs: nearbyIndustrialHubs.length > 0 ? nearbyIndustrialHubs : undefined,
       suggestedAlternativeSearches: suggestedAlternativeSearches.length > 0 ? suggestedAlternativeSearches : undefined,
       metadata: {
         searchedAt: new Date().toISOString(),

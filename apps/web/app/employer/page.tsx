@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { JobPosting } from '@rojgarmitra/shared';
-import { 
-  IconBuilding, 
-  IconBriefcase, 
-  IconUsers, 
-  IconCheck, 
-  IconArrowRight 
+import {
+  IconBuilding,
+  IconBriefcase,
+  IconUsers,
+  IconCheck,
+  IconArrowRight
 } from '@/components/icons';
 
 export default function EmployerDashboardPage() {

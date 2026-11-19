@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
 import { TrainingCenter, VocationalCourse } from '@rojgarmitra/shared';
-import { 
-  IconGraduationCap, 
-  IconBuilding, 
-  IconMapPin, 
-  IconCheck, 
-  IconExternalLink, 
-  IconArrowRight 
+import {
+  IconGraduationCap,
+  IconBuilding,
+  IconMapPin,
+  IconCheck,
+  IconExternalLink,
+  IconArrowRight,
+  IconVideo,
+  IconBookOpen
 } from '@/components/icons';
 
 export default function CandidateUpskillingPage() {
@@ -169,6 +171,119 @@ export default function CandidateUpskillingPage() {
                   </a>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Section: Free Self-Study Library (YouTube + Bharat Skills NIMI) */}
+          <div className="settle-card-hero p-6 sm:p-8 mt-12">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-alert-bg border border-alert rounded-full text-xs font-bold text-alert mb-2">
+                  <IconVideo className="w-3.5 h-3.5 text-alert" />
+                  <span>मोफत स्वयं-अध्ययन संसाधने (Free Self-Learning)</span>
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black text-ink">
+                  घरी बसून मोफत शिका (YouTube & Bharat Skills)
+                </h2>
+                <p className="text-xs text-ink-secondary font-medium mt-1">
+                  महाविद्यालय किंवा क्लास न लावता मोबाइलवरून थेट हिंदी आणि मराठी भाषेत कौशल्य वाढवा.
+                </p>
+              </div>
+              <a
+                href="https://bharatskills.gov.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="settle-pill-btn px-5 py-2 text-xs font-bold inline-flex items-center gap-1.5 shrink-0"
+              >
+                <span>Bharat Skills अधिकृत पोर्टल</span>
+                <IconExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* YouTube Playlists Card */}
+              <div className="settle-card p-6 flex flex-col justify-between bg-surface">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-alert-bg text-alert border border-alert flex items-center justify-center mb-3">
+                    <IconVideo className="w-5 h-5 text-alert" />
+                  </div>
+                  <h3 className="text-base font-black text-ink mb-1">
+                    YouTube मोफत व्हिडिओ लेक्चर्स
+                  </h3>
+                  <p className="text-xs text-ink-secondary mb-4 font-medium">
+                    इलेक्ट्रिशियन, वेल्डर, फिटर व सोलर पॅनल वायरिंगचे हिंदी-मराठी प्रॅक्टिकल व्हिडिओ.
+                  </p>
+                  <div className="space-y-1.5 text-xs font-bold text-ink-secondary mb-4">
+                    <p>• Global ITI प्रात्यक्षिके</p>
+                    <p>• Electrical Dost वायरिंग क्लासेस</p>
+                    <p>• Make It Easy ITI सोल्युशन्स</p>
+                  </div>
+                </div>
+                <a
+                  href="https://www.youtube.com/results?search_query=ITI+practical+tutorial+hindi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="settle-pill-chip text-xs px-3 py-2 text-center block font-black hover:bg-ink hover:text-white transition"
+                >
+                  YouTube वर व्हिडिओ पहा →
+                </a>
+              </div>
+
+              {/* Free Books & PDFs */}
+              <div className="settle-card p-6 flex flex-col justify-between bg-surface">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-steel-soft text-primary border border-steel flex items-center justify-center mb-3">
+                    <IconBookOpen className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-base font-black text-ink mb-1">
+                    NIMI अधिकृत पाठ्यपुस्तके (PDF)
+                  </h3>
+                  <p className="text-xs text-ink-secondary mb-4 font-medium">
+                    केंद्र सरकारच्या कौशल्य विकास मंत्रालयाची मान्यताप्राप्त ट्रेड थिअरी व प्रॅक्टिकल पुस्तके.
+                  </p>
+                  <div className="space-y-1.5 text-xs font-bold text-ink-secondary mb-4">
+                    <p>• १००% मोफत डाऊनलोड</p>
+                    <p>• मराठी व हिंदी भाषा पर्याय</p>
+                    <p>• अधिकृत अभ्यासक्रम आधारित</p>
+                  </div>
+                </div>
+                <a
+                  href="https://bharatskills.gov.in/Home/StudyMaterial"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="settle-pill-chip text-xs px-3 py-2 text-center block font-black hover:bg-ink hover:text-white transition"
+                >
+                  मोफत PDF डाऊनलोड करा →
+                </a>
+              </div>
+
+              {/* Mock Test & Practice */}
+              <div className="settle-card p-6 flex flex-col justify-between bg-surface">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-verified-bg text-verified border border-verified flex items-center justify-center mb-3">
+                    <IconCheck className="w-5 h-5 text-verified" />
+                  </div>
+                  <h3 className="text-base font-black text-ink mb-1">
+                    मोफत मॉक टेस्ट व प्रश्नसंच
+                  </h3>
+                  <p className="text-xs text-ink-secondary mb-4 font-medium">
+                    कारखान्यातील मुलाखत आणि अप्रेंटिसशिप परीक्षेच्या तयारीसाठी Bharat Skills मॉक टेस्ट.
+                  </p>
+                  <div className="space-y-1.5 text-xs font-bold text-ink-secondary mb-4">
+                    <p>• Bharat Skills Mock Test</p>
+                    <p>• Question Bank & Solution</p>
+                    <p>• ट्रेडनिहाय सराव परीक्षा</p>
+                  </div>
+                </div>
+                <a
+                  href="https://bharatskills.gov.in/Home/QuestionBank"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="settle-pill-chip text-xs px-3 py-2 text-center block font-black hover:bg-ink hover:text-white transition"
+                >
+                  सराव प्रश्नसंच सोडवा →
+                </a>
+              </div>
             </div>
           </div>
         </div>

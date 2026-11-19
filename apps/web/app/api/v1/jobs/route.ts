@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { JobPosting, DEMO_SEED_JOBS } from '@rojgarmitra/shared';
+import { googleMapsService } from '@/lib/services/google-maps-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,10 +49,25 @@ export async function GET(req: NextRequest) {
     // Sort by createdAt descending
     jobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+    // Enrich jobs with Google Maps location data
+    const enrichedJobs = await Promise.all(
+      jobs.slice(0, 15).map(j => googleMapsService.enrichJobWithMaps(j))
+    );
+    const finalJobs = [...enrichedJobs, ...jobs.slice(15)];
+
+    // Discover nearby physical industrial hubs via Google Maps
+    const nearbyHubs = await googleMapsService.searchNearbyEmployers({
+      trade: trade || 'industrial technician',
+      location: 'Nagpur',
+      taluka: taluka || undefined,
+      maxResults: 4,
+    });
+
     return NextResponse.json({
-      data: jobs,
+      data: finalJobs,
+      nearbyHubs,
       meta: {
-        count: jobs.length,
+        count: finalJobs.length,
         districtFilter: district || null,
         talukaFilter: taluka || null,
       },
