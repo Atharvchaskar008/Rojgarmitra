@@ -6,37 +6,44 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary, SupportedLocale } from '@rojgarmitra/i18n';
 import { ArtisanWorkshopArt } from '@/components/illustrations/ArtisanWorkshopArt';
-import { 
-  IconGoogle, 
-  IconPhone, 
-  IconMail, 
-  IconLock, 
-  IconArrowLeft, 
-  IconArrowRight, 
-  IconEye, 
-  IconEyeOff, 
-  IconAlertCircle, 
-  IconCheckCircle 
+import {
+  IconGoogle,
+  IconPhone,
+  IconMail,
+  IconLock,
+  IconArrowLeft,
+  IconArrowRight,
+  IconEye,
+  IconEyeOff,
+  IconAlertCircle,
+  IconCheckCircle,
+  IconUser,
+  IconBuilding
 } from '@/components/icons';
 import type { ConfirmationResult, RecaptchaVerifier } from 'firebase/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { 
-    signIn, 
-    signInWithGoogle, 
-    setupRecaptcha, 
-    sendPhoneOtp, 
-    confirmPhoneOtp, 
-    resetPassword, 
-    preferredLocale 
+  const {
+    signIn,
+    signUp,
+    signInWithGoogle,
+    setupRecaptcha,
+    sendPhoneOtp,
+    confirmPhoneOtp,
+    resetPassword,
+    preferredLocale
   } = useAuth();
   const dict = getDictionary(preferredLocale);
 
-  // Auth Method Mode: 'google_phone' | 'email'
+  // Selected User Role for Onboarding / Login: 'candidate' | 'employer'
+  const [selectedRole, setSelectedRole] = useState<'candidate' | 'employer'>('candidate');
+
+  // Auth Method Mode: 'quick' (Google / Phone) | 'email'
   const [authMode, setAuthMode] = useState<'quick' | 'email'>('quick');
 
   // Email form state
+  const [emailAction, setEmailAction] = useState<'signin' | 'register'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -55,21 +62,41 @@ export default function LoginPage() {
   const [showForgot, setShowForgot] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
+  // Parse query parameters on client mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get('role');
+      if (roleParam === 'employer' || roleParam === 'candidate') {
+        setSelectedRole(roleParam);
+      }
+      const modeParam = params.get('mode');
+      if (modeParam === 'register') {
+        setEmailAction('register');
+      }
+    }
+  }, []);
+
   // Friendly error mapping
   const getFriendlyError = (errCode: string, locale: SupportedLocale): string => {
+    if (errCode.includes('email-already-in-use')) {
+      return locale === 'mr'
+        ? 'हा ईमेल आधीच नोंदणीकृत आहे. कृपया लॉगिन करा.'
+        : 'This email is already registered. Please sign in instead.';
+    }
     if (errCode.includes('user-not-found') || errCode.includes('invalid-credential') || errCode.includes('wrong-password')) {
       return locale === 'mr'
         ? 'ईमेल किंवा पासवर्ड चुकीचा आहे. कृपया पुन्हा तपासा.'
         : locale === 'hi'
-        ? 'ईमेल या पासवर्ड गलत है। कृपया दोबारा जाँचें।'
-        : 'Invalid credentials. Please verify and try again.';
+          ? 'ईमेल या पासवर्ड गलत है। कृपया दोबारा जाँचें।'
+          : 'Invalid credentials. Please verify and try again.';
     }
     if (errCode.includes('invalid-verification-code') || errCode.includes('code-expired')) {
       return locale === 'mr'
         ? 'ओटीपी (OTP) चुकीचा किंवा कालबाह्य झाला आहे.'
         : locale === 'hi'
-        ? 'दर्ज किया गया OTP गलत या समाप्त हो चुका है।'
-        : 'Invalid or expired OTP code.';
+          ? 'दर्ज किया गया OTP गलत या समाप्त हो चुका है।'
+          : 'Invalid or expired OTP code.';
     }
     if (errCode.includes('popup-closed-by-user')) {
       return locale === 'mr'
@@ -77,21 +104,21 @@ export default function LoginPage() {
         : 'Google sign-in was canceled.';
     }
     return locale === 'mr'
-      ? 'लॉगिन करताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.'
+      ? 'प्रक्रिया करताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.'
       : locale === 'hi'
-      ? 'लॉगिन में त्रुटि हुई। कृपया दोबारा प्रयास करें।'
-      : 'Sign in failed. Please try again.';
+        ? 'प्रक्रिया में त्रुटि हुई। कृपया दोबारा प्रयास करें।'
+        : 'Authentication failed. Please try again.';
   };
 
-  // 1. Google Sign-In Handler
+  // 1. Google Sign-In / Sign-Up Handler
   const handleGoogleSignIn = async () => {
     setErrorMsg(null);
     setLoading(true);
     try {
-      await signInWithGoogle('candidate');
-      router.push('/candidate');
+      await signInWithGoogle(selectedRole);
+      router.push(selectedRole === 'employer' ? '/employer' : '/candidate');
     } catch (err: any) {
-      console.error('Google sign-in error:', err);
+      console.error('Google auth error:', err);
       setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
     } finally {
       setLoading(false);
@@ -140,8 +167,8 @@ export default function LoginPage() {
     setErrorMsg(null);
     setLoading(true);
     try {
-      await confirmPhoneOtp(confirmationResult, otpCode.trim(), 'candidate');
-      router.push('/candidate');
+      await confirmPhoneOtp(confirmationResult, otpCode.trim(), selectedRole);
+      router.push(selectedRole === 'employer' ? '/employer' : '/candidate');
     } catch (err: any) {
       console.error('OTP confirmation error:', err);
       setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
@@ -150,17 +177,26 @@ export default function LoginPage() {
     }
   };
 
-  // 4. Email/Password Sign-In
-  const handleEmailSignIn = async (e: React.FormEvent) => {
+  // 4. Email/Password Sign-In & Registration Unified
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setLoading(true);
 
     try {
-      await signIn(email.trim(), password);
-      router.push('/candidate');
+      if (emailAction === 'register') {
+        if (password.length < 6) {
+          setErrorMsg(preferredLocale === 'mr' ? 'पासवर्ड किमान ६ अक्षरांचा असावा.' : 'Password must be at least 6 characters.');
+          setLoading(false);
+          return;
+        }
+        await signUp(email.trim(), password, selectedRole, preferredLocale);
+      } else {
+        await signIn(email.trim(), password);
+      }
+      router.push(selectedRole === 'employer' ? '/employer' : '/candidate');
     } catch (err: any) {
-      console.error('Email sign in error:', err);
+      console.error('Email auth error:', err);
       setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
     } finally {
       setLoading(false);
@@ -227,18 +263,51 @@ export default function LoginPage() {
             {/* Header */}
             <div className="mb-6">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-steel-soft border border-steel text-steel-deep text-[11px] font-bold mb-2">
-                <span>सर्व उमेदवारांसाठी व नियोक्त्यांसाठी मुक्त</span>
+                <span>विदर्भ व ग्रामीण महाराष्ट्रासाठी थेट मंच</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
-                {dict.nav.login}
+                {preferredLocale === 'mr' ? 'प्रवेश व थेट नोंदणी' : preferredLocale === 'hi' ? 'प्रवेश एवं सीधी भर्ती' : 'Sign In & Onboarding'}
               </h1>
               <p className="text-xs text-ink-secondary mt-1 font-medium">
                 {preferredLocale === 'mr'
-                  ? 'आपल्या रोजगारमित्र खात्यात प्रवेश करा — फोन, गुगल किंवा ईमेलद्वारे'
+                  ? 'आपल्या खात्यात १-क्लिक प्रवेश करा — फोन, गुगल किंवा ईमेलने'
                   : preferredLocale === 'hi'
-                  ? 'अपने रोजगारमित्र खाते में प्रवेश करें — फोन, गूगल या ईमेल से'
-                  : 'Access your RojgarMitra account via Phone, Google or Email'}
+                    ? 'अपने खाते में १-क्लिक प्रवेश करें — फोन, गूगल या ईमेल से'
+                    : '1-Click access to RojgarMitra — Phone, Google, or Email'}
               </p>
+            </div>
+
+            {/* Unified Role Selector */}
+            <div className="mb-5">
+              <label className="block text-[11px] font-black uppercase tracking-wider text-ink-secondary mb-1.5">
+                {preferredLocale === 'mr' ? 'मी कोण आहे? (आपली भूमिका निवडा)' : 'Select Your Role'}
+              </label>
+              <div className="p-1 bg-canvas rounded-xl border border-ink/20 grid grid-cols-2 gap-1.5 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('candidate')}
+                  className={`py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${
+                    selectedRole === 'candidate'
+                      ? 'bg-ink text-white shadow-solid-sm'
+                      : 'text-ink-secondary hover:text-ink'
+                  }`}
+                >
+                  <IconUser className="w-3.5 h-3.5" />
+                  <span>{preferredLocale === 'mr' ? 'उमेदवार (Jobseeker)' : preferredLocale === 'hi' ? 'उम्मीदवार' : 'Candidate'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('employer')}
+                  className={`py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${
+                    selectedRole === 'employer'
+                      ? 'bg-ink text-white shadow-solid-sm'
+                      : 'text-ink-secondary hover:text-ink'
+                  }`}
+                >
+                  <IconBuilding className="w-3.5 h-3.5" />
+                  <span>{preferredLocale === 'mr' ? 'नियोक्ता (Employer)' : preferredLocale === 'hi' ? 'नियोक्ता' : 'Employer'}</span>
+                </button>
+              </div>
             </div>
 
             {errorMsg && (
@@ -289,11 +358,10 @@ export default function LoginPage() {
                   setAuthMode('quick');
                   setErrorMsg(null);
                 }}
-                className={`flex-1 py-1.5 rounded-full transition ${
-                  authMode === 'quick'
-                    ? 'bg-ink text-white shadow-solid-sm'
-                    : 'text-ink-secondary hover:text-ink'
-                }`}
+                className={`flex-1 py-1.5 rounded-full transition ${authMode === 'quick'
+                  ? 'bg-ink text-white shadow-solid-sm'
+                  : 'text-ink-secondary hover:text-ink'
+                  }`}
               >
                 Google / फोन OTP
               </button>
@@ -303,11 +371,10 @@ export default function LoginPage() {
                   setAuthMode('email');
                   setErrorMsg(null);
                 }}
-                className={`flex-1 py-1.5 rounded-full transition ${
-                  authMode === 'email'
-                    ? 'bg-ink text-white shadow-solid-sm'
-                    : 'text-ink-secondary hover:text-ink'
-                }`}
+                className={`flex-1 py-1.5 rounded-full transition ${authMode === 'email'
+                  ? 'bg-ink text-white shadow-solid-sm'
+                  : 'text-ink-secondary hover:text-ink'
+                  }`}
               >
                 ईमेल व पासवर्ड
               </button>
@@ -460,7 +527,33 @@ export default function LoginPage() {
                     </div>
                   </form>
                 ) : (
-                  <form onSubmit={handleEmailSignIn} className="space-y-3">
+                  <form onSubmit={handleEmailAuth} className="space-y-3">
+                    {/* Action Switcher: Sign In vs Register */}
+                    <div className="flex items-center justify-between p-1 bg-canvas rounded-xl border border-ink/15 mb-2 text-xs font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setEmailAction('signin')}
+                        className={`flex-1 py-1.5 rounded-lg transition ${
+                          emailAction === 'signin'
+                            ? 'bg-ink text-white shadow-solid-sm'
+                            : 'text-ink-secondary hover:text-ink'
+                        }`}
+                      >
+                        {preferredLocale === 'mr' ? 'प्रवेश करा (Sign In)' : 'Sign In'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEmailAction('register')}
+                        className={`flex-1 py-1.5 rounded-lg transition ${
+                          emailAction === 'register'
+                            ? 'bg-ink text-white shadow-solid-sm'
+                            : 'text-ink-secondary hover:text-ink'
+                        }`}
+                      >
+                        {preferredLocale === 'mr' ? 'नवीन खाते (Register)' : 'Register'}
+                      </button>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                         ईमेल पत्ता (Email)
@@ -470,7 +563,7 @@ export default function LoginPage() {
                         required
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        placeholder="ramesh@example.com"
+                        placeholder={selectedRole === 'employer' ? "hr@company.com" : "ramesh@example.com"}
                         className="w-full bg-canvas border border-ink/20 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-ink focus:outline-none focus:border-ink"
                       />
                     </div>
@@ -480,13 +573,15 @@ export default function LoginPage() {
                         <label className="text-xs font-bold text-ink uppercase tracking-wider">
                           पासवर्ड (Password)
                         </label>
-                        <button
-                          type="button"
-                          onClick={() => setShowForgot(true)}
-                          className="text-[11px] font-bold text-primary hover:underline"
-                        >
-                          {preferredLocale === 'mr' ? 'पासवर्ड विसरलात?' : 'Forgot Password?'}
-                        </button>
+                        {emailAction === 'signin' && (
+                          <button
+                            type="button"
+                            onClick={() => setShowForgot(true)}
+                            className="text-[11px] font-bold text-primary hover:underline"
+                          >
+                            {preferredLocale === 'mr' ? 'पासवर्ड विसरलात?' : 'Forgot Password?'}
+                          </button>
+                        )}
                       </div>
                       <div className="relative">
                         <input
@@ -510,9 +605,13 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full settle-pill-btn text-sm py-2.5 mt-2 block text-center font-bold"
+                      className="w-full settle-pill-btn text-sm py-2.5 mt-2 block text-center font-bold shadow-solid-sm"
                     >
-                      {loading ? dict.common.loading : `${dict.nav.login} ➔`}
+                      {loading
+                        ? dict.common.loading
+                        : emailAction === 'register'
+                        ? (preferredLocale === 'mr' ? 'खाते तयार करा व पुढे जा ➔' : 'Create Account ➔')
+                        : `${dict.nav.login} ➔`}
                     </button>
                   </form>
                 )}
@@ -520,19 +619,12 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Switch to Signup */}
+          {/* Friction-Free Assurance */}
           <div className="mt-6 pt-4 border-t border-steel/40 text-center">
             <p className="text-xs text-ink-secondary font-medium">
               {preferredLocale === 'mr'
-                ? 'अद्याप खाते नाही?'
-                : "Don't have an account yet?"}{' '}
-              <Link
-                href="/signup"
-                className="font-bold text-primary hover:underline ml-1 inline-flex items-center gap-1"
-              >
-                <span>नवीन नोंदणी करा (Sign up)</span>
-                <IconArrowRight className="w-3 h-3" />
-              </Link>
+                ? 'कोणतीही मध्यस्थी किंवा शुल्क नाही — १००% थेट आणि मोफत'
+                : '100% Free platform with direct employer connections and zero brokerage.'}
             </p>
           </div>
         </div>

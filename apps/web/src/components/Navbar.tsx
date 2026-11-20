@@ -228,15 +228,16 @@ export function Navbar() {
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   href="/login"
-                  className="settle-pill-chip text-xs px-3 sm:px-4 py-1.5 font-bold hover:bg-steel-soft"
+                  className="settle-pill-btn text-xs px-3.5 sm:px-4 py-1.5 font-bold inline-flex items-center gap-1.5 shadow-solid-sm"
                 >
-                  {dict.nav.login}
-                </Link>
-                <Link
-                  href="/signup"
-                  className="settle-pill-btn text-xs px-3.5 sm:px-4 py-1.5 font-bold"
-                >
-                  {dict.nav.register}
+                  <IconUser className="w-3.5 h-3.5" />
+                  <span>
+                    {preferredLocale === 'mr'
+                      ? 'प्रवेश / नोंदणी'
+                      : preferredLocale === 'hi'
+                      ? 'प्रवेश / पंजीकरण'
+                      : 'Sign In / Register'}
+                  </span>
                 </Link>
               </div>
             )}

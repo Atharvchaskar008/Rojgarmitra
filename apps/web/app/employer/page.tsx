@@ -117,17 +117,11 @@ export default function EmployerDashboardPage() {
           </p>
           <div className="flex justify-center gap-3">
             <Link
-              href="/login"
-              className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
+              href="/login?role=employer"
+              className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold shadow-solid-sm"
             >
-              <span>{dict.nav.login}</span>
+              <span>{preferredLocale === 'mr' ? 'नियोक्ता म्हणून थेट प्रवेश करा' : 'Sign in as Employer'}</span>
               <IconArrowRight className="w-3.5 h-3.5" />
-            </Link>
-            <Link
-              href="/signup"
-              className="settle-pill-btn bg-white text-ink border-ink hover:bg-steel-soft px-6 py-2.5 text-xs inline-block font-bold"
-            >
-              {dict.nav.register}
             </Link>
           </div>
         </div>
