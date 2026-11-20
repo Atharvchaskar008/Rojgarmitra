@@ -39,6 +39,18 @@ Thumbs.db
 # Testing coverage
 coverage/
 
+# IDE & AI Assistant metadata
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.devin/
+.dsh/
+.gemini/
+.kiro/
+.qoder/
+
 # Safety: protect private docs folder from accidental copy into git
 rojgarmitra-private/
 *.private.md
