@@ -303,9 +303,19 @@ export default function CandidateOnboardingPage() {
 
       {/* Error Alert */}
       {errorMsg && (
-        <div className="mb-5 p-3.5 rounded-xl bg-alert-bg border border-alert-border text-alert text-xs font-bold flex items-center gap-2">
-          <IconAlertCircle className="w-4 h-4 shrink-0" />
-          <span>{errorMsg}</span>
+        <div className="mb-5 p-3.5 rounded-xl bg-alert-bg border border-alert-border text-alert text-xs font-bold flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <IconAlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+          {!user && (
+            <Link
+              href="/login?role=candidate"
+              className="px-3 py-1 rounded-lg bg-ink text-white text-[11px] font-bold shrink-0 hover:bg-primary transition shadow-sm"
+            >
+              {preferredLocale === 'mr' ? 'लॉगिन करा ➔' : preferredLocale === 'hi' ? 'लॉग इन करें ➔' : 'Sign In ➔'}
+            </Link>
+          )}
         </div>
       )}
 

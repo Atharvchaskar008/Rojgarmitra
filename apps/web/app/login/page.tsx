@@ -73,45 +73,69 @@ export default function LoginPage() {
       const modeParam = params.get('mode');
       if (modeParam === 'register') {
         setEmailAction('register');
+        setAuthMode('email');
       }
     }
   }, []);
 
-  // Friendly error mapping
-  const getFriendlyError = (errCode: string, locale: SupportedLocale): string => {
+  // Friendly error mapping with comprehensive error code and network inspection
+  const getFriendlyError = (errInput: any, locale: SupportedLocale): string => {
+    const errCode = (errInput?.code || errInput?.message || String(errInput || '')).toLowerCase();
+
     if (errCode.includes('email-already-in-use')) {
       return locale === 'mr'
-        ? 'हा ईमेल आधीच नोंदणीकृत आहे. कृपया लॉगिन करा.'
+        ? 'हा ईमेल आधीच नोंदणीकृत आहे. कृपया वरील "प्रवेश करा (Sign In)" टॅब निवडून लॉगिन करा.'
         : locale === 'hi'
-        ? 'यह ईमेल पहले से पंजीकृत है। कृपया लॉग इन करें।'
-        : 'This email is already registered. Please sign in instead.';
+        ? 'यह ईमेल पहले से पंजीकृत है। कृपया ऊपर "प्रवेश करें (Sign In)" चुनकर लॉग इन करें।'
+        : 'This email is already registered. Please switch to Sign In.';
     }
     if (errCode.includes('user-not-found') || errCode.includes('invalid-credential') || errCode.includes('wrong-password')) {
       return locale === 'mr'
-        ? 'ईमेल किंवा पासवर्ड चुकीचा आहे. कृपया पुन्हा तपासा.'
+        ? 'ईमेल किंवा पासवर्ड चुकीचा आहे. जर आपण नवीन असाल तर कृपया "नवीन खाते (Register)" निवडून नोंदणी करा.'
         : locale === 'hi'
-        ? 'ईमेल या पासवर्ड गलत है। कृपया दोबारा जाँचें।'
-        : 'Invalid credentials. Please verify and try again.';
+        ? 'ईमेल या पासवर्ड गलत है। यदि आप नए उपयोगकर्ता हैं, तो कृपया "नया खाता (Register)" चुनकर पंजीकरण करें।'
+        : 'Invalid credentials. If you are a new user, please switch to "Register" to create an account.';
     }
     if (errCode.includes('invalid-verification-code') || errCode.includes('code-expired')) {
       return locale === 'mr'
-        ? 'ओटीपी (OTP) चुकीचा किंवा कालबाह्य झाला आहे.'
+        ? 'ओटीपी (OTP) चुकीचा किंवा कालबाह्य झाला आहे. कृपया पुन्हा प्रयत्न करा.'
         : locale === 'hi'
-        ? 'दर्ज किया गया OTP गलत या समाप्त हो चुका है।'
-        : 'Invalid or expired OTP code.';
+        ? 'दर्ज किया गया OTP गलत या समाप्त हो चुका है। कृपया दोबारा प्रयास करें।'
+        : 'Invalid or expired OTP code. Please try again.';
     }
     if (errCode.includes('popup-closed-by-user')) {
       return locale === 'mr'
-        ? 'Google लॉगिन रद्द केले गेले.'
+        ? 'Google लॉगिन विंडो बंद केली गेली.'
         : locale === 'hi'
-        ? 'Google साइन-इन रद्द कर दिया गया।'
-        : 'Google sign-in was canceled.';
+        ? 'Google साइन-इन विंडो बंद कर दी गई।'
+        : 'Google sign-in popup was closed.';
+    }
+    if (errCode.includes('unauthorized-domain')) {
+      return locale === 'mr'
+        ? 'हे डोमेन प्रमाणीकरणासाठी अधिकृत केले जात आहे. कृपया १ सेकंदात पुन्हा प्रयत्न करा.'
+        : locale === 'hi'
+        ? 'यह डोमेन प्रमाणीकरण के लिए अधिकृत किया जा रहा है। कृपया १ सेकंड में पुनः प्रयास करें।'
+        : 'Domain authorization updated. Please retry in a moment.';
+    }
+    if (errCode.includes('too-many-requests') || errCode.includes('quota-exceeded')) {
+      return locale === 'mr'
+        ? 'खूप जास्त प्रयत्न झाले आहेत. कृपया १ मिनिट थांबून पुन्हा प्रयत्न करा.'
+        : locale === 'hi'
+        ? 'बहुत अधिक प्रयास किए गए हैं। कृपया १ मिनट प्रतीक्षा करें।'
+        : 'Too many requests. Please wait a minute before retrying.';
+    }
+    if (errCode.includes('network-request-failed')) {
+      return locale === 'mr'
+        ? 'इंटरनेट कनेक्शन समस्या. कृपया आपले नेटवर्क तपासा.'
+        : locale === 'hi'
+        ? 'नेटवर्क समस्या। कृपया अपना इंटरनेट कनेक्शन जाँचें।'
+        : 'Network connection failed. Please check your internet connection.';
     }
     return locale === 'mr'
-      ? 'प्रक्रिया करताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.'
+      ? 'प्रमाणीकरण त्रुटी. कृपया ईमेल/पासवर्ड तपासून पुन्हा प्रयत्न करा.'
       : locale === 'hi'
-      ? 'प्रक्रिया में त्रुटि हुई। कृपया दोबारा प्रयास करें।'
-      : 'Authentication failed. Please try again.';
+      ? 'प्रमाणीकरण में त्रुटि। कृपया ईमेल/पासवर्ड जांचकर पुनः प्रयास करें।'
+      : 'Authentication failed. Please verify credentials and try again.';
   };
 
   // 1. Google Sign-In / Sign-Up Handler
@@ -120,11 +144,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithGoogle(selectedRole);
-      router.push(selectedRole === 'employer' ? '/employer' : '/candidate');
+      window.location.href = selectedRole === 'employer' ? '/employer' : '/candidate';
     } catch (err: any) {
       console.error('Google auth error:', err);
-      setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
-    } finally {
+      setErrorMsg(getFriendlyError(err, preferredLocale));
       setLoading(false);
     }
   };
@@ -159,7 +182,7 @@ export default function LoginPage() {
       setConfirmationResult(result);
     } catch (err: any) {
       console.error('Send OTP error:', err);
-      setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
+      setErrorMsg(getFriendlyError(err, preferredLocale));
     } finally {
       setLoading(false);
     }
@@ -174,11 +197,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await confirmPhoneOtp(confirmationResult, otpCode.trim(), selectedRole);
-      router.push(selectedRole === 'employer' ? '/employer' : '/candidate');
+      window.location.href = selectedRole === 'employer' ? '/employer' : '/candidate';
     } catch (err: any) {
       console.error('OTP confirmation error:', err);
-      setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
-    } finally {
+      setErrorMsg(getFriendlyError(err, preferredLocale));
       setLoading(false);
     }
   };
@@ -206,11 +228,10 @@ export default function LoginPage() {
       } else {
         await signIn(email.trim(), password);
       }
-      router.push(selectedRole === 'employer' ? '/employer' : '/candidate');
+      window.location.href = selectedRole === 'employer' ? '/employer' : '/candidate';
     } catch (err: any) {
       console.error('Email auth error:', err);
-      setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
-    } finally {
+      setErrorMsg(getFriendlyError(err, preferredLocale));
       setLoading(false);
     }
   };
@@ -234,7 +255,7 @@ export default function LoginPage() {
       await resetPassword(email.trim());
       setResetSent(true);
     } catch (err: any) {
-      setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
+      setErrorMsg(getFriendlyError(err, preferredLocale));
     } finally {
       setLoading(false);
     }
@@ -245,13 +266,14 @@ export default function LoginPage() {
     setErrorMsg(null);
     setLoading(true);
     try {
-      const email = role === 'candidate' ? 'candidate.demo@rojgarmitra.in' : 'employer.demo@rojgarmitra.in';
-      await signIn(email, 'DemoPassword@123');
-      router.push(role === 'candidate' ? '/candidate' : '/employer');
+      const demoEmail = role === 'candidate' ? 'candidate.demo@rojgarmitra.in' : 'employer.demo@rojgarmitra.in';
+      setEmail(demoEmail);
+      setPassword('DemoPassword@123');
+      await signIn(demoEmail, 'DemoPassword@123');
+      window.location.href = role === 'candidate' ? '/candidate' : '/employer';
     } catch (err: any) {
       console.error('Demo sign-in error:', err);
-      setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
-    } finally {
+      setErrorMsg(getFriendlyError(err, preferredLocale));
       setLoading(false);
     }
   };
@@ -355,23 +377,25 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => handleDemoSignIn('candidate')}
                   disabled={loading}
-                  className="py-2 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 border-2 border-emerald-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col"
+                  className="py-2.5 px-3 rounded-xl bg-white hover:bg-emerald-50 text-emerald-950 border-2 border-emerald-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col gap-0.5 active:scale-[0.98]"
                 >
                   <span className="text-emerald-700 font-semibold text-[10px]">
-                    {preferredLocale === 'mr' ? 'उमेदवार लॉगिन' : preferredLocale === 'hi' ? 'उम्मीदवार लॉगिन' : 'Candidate Demo'}
+                    {preferredLocale === 'mr' ? 'उमेदवार १-क्लिक लॉगिन' : preferredLocale === 'hi' ? 'उम्मीदवार १-क्लिक लॉगिन' : 'Candidate 1-Click Demo'}
                   </span>
-                  <span className="truncate">👤 रमेश पाटील (ITI)</span>
+                  <span className="truncate font-black">👤 रमेश पाटील (ITI)</span>
+                  <span className="text-[9px] text-emerald-800/80 font-mono font-medium">candidate.demo@rojgarmitra.in</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDemoSignIn('employer')}
                   disabled={loading}
-                  className="py-2 px-2.5 rounded-xl bg-white hover:bg-blue-50 text-blue-900 border-2 border-blue-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col"
+                  className="py-2.5 px-3 rounded-xl bg-white hover:bg-blue-50 text-blue-950 border-2 border-blue-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col gap-0.5 active:scale-[0.98]"
                 >
                   <span className="text-blue-700 font-semibold text-[10px]">
-                    {preferredLocale === 'mr' ? 'नियोक्ता लॉगिन' : preferredLocale === 'hi' ? 'नियोक्ता लॉगिन' : 'Employer Demo'}
+                    {preferredLocale === 'mr' ? 'नियोक्ता १-क्लिक लॉगिन' : preferredLocale === 'hi' ? 'नियोक्ता १-क्लिक लॉगिन' : 'Employer 1-Click Demo'}
                   </span>
-                  <span className="truncate">🏢 महिंद्रा MIDC HR</span>
+                  <span className="truncate font-black">🏢 महिंद्रा MIDC HR</span>
+                  <span className="text-[9px] text-blue-800/80 font-mono font-medium">employer.demo@rojgarmitra.in</span>
                 </button>
               </div>
             </div>
@@ -459,6 +483,16 @@ export default function LoginPage() {
                           className="flex-1 bg-canvas border border-ink/20 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-ink focus:outline-none focus:border-ink"
                         />
                       </div>
+                      <div className="flex items-center justify-between text-[11px] text-ink-muted mt-1 px-1">
+                        <span>{preferredLocale === 'mr' ? 'चाचणी क्रमांक:' : preferredLocale === 'hi' ? 'परीक्षण नंबर:' : 'Test Phone:'}</span>
+                        <button
+                          type="button"
+                          onClick={() => setPhoneNumber('9876543210')}
+                          className="font-mono font-bold text-primary hover:underline"
+                        >
+                          9876543210 (OTP: 123456)
+                        </button>
+                      </div>
                     </div>
 
                     <button
@@ -503,6 +537,16 @@ export default function LoginPage() {
                         placeholder="123456"
                         className="w-full tracking-widest text-center text-lg font-mono font-bold bg-canvas border border-ink/20 rounded-xl px-3.5 py-2 text-ink focus:outline-none focus:border-ink"
                       />
+                      <div className="flex items-center justify-between text-[11px] text-ink-muted mt-1 px-1">
+                        <span>{preferredLocale === 'mr' ? 'चाचणी कोड:' : preferredLocale === 'hi' ? 'परीक्षण कोड:' : 'Test OTP:'}</span>
+                        <button
+                          type="button"
+                          onClick={() => setOtpCode('123456')}
+                          className="font-mono font-bold text-primary hover:underline"
+                        >
+                          123456
+                        </button>
+                      </div>
                     </div>
 
                     <button

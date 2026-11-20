@@ -84,7 +84,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, pass: string) => {
-    await signInWithEmailAndPassword(auth, email, pass);
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    setUser(cred.user);
+    try {
+      const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (data.role) setUserRole(data.role as UserRole);
+        if (data.preferredLocale) {
+          setPreferredLocale(data.preferredLocale as SupportedLocale);
+          localStorage.setItem('rojgarmitra_locale', data.preferredLocale);
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading user role after signIn:', e);
+    }
   };
 
   const signUp = async (
@@ -107,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updatedAt: now,
     });
 
+    setUser(cred.user);
     setUserRole(role);
     setPreferredLocale(locale);
   };
@@ -116,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     provider.setCustomParameters({ prompt: 'select_account' });
     const result = await signInWithPopup(auth, provider);
     const u = result.user;
+    setUser(u);
     const now = new Date().toISOString();
 
     const userRef = doc(db, 'users', u.uid);
@@ -163,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ): Promise<User> => {
     const result = await confirmationResult.confirm(code);
     const u = result.user;
+    setUser(u);
     const now = new Date().toISOString();
 
     const userRef = doc(db, 'users', u.uid);
