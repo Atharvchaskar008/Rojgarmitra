@@ -190,6 +190,22 @@ export default function LoginPage() {
     }
   };
 
+  // 6. Instant 1-Click Demo Evaluation Sign-In
+  const handleDemoSignIn = async (role: 'candidate' | 'employer') => {
+    setErrorMsg(null);
+    setLoading(true);
+    try {
+      const email = role === 'candidate' ? 'candidate.demo@rojgarmitra.in' : 'employer.demo@rojgarmitra.in';
+      await signIn(email, 'DemoPassword@123');
+      router.push(role === 'candidate' ? '/candidate' : '/employer');
+    } catch (err: any) {
+      console.error('Demo sign-in error:', err);
+      setErrorMsg(getFriendlyError(err?.code || '', preferredLocale));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-[85vh] flex items-center justify-center py-8 px-4">
       {/* Invisible reCAPTCHA container for Phone Auth */}
@@ -231,6 +247,39 @@ export default function LoginPage() {
                 <span>{errorMsg}</span>
               </div>
             )}
+
+            {/* Instant Demo Evaluation for Hackathon Judges & Evaluators */}
+            <div className="mb-6 p-3.5 rounded-2xl bg-amber-50/80 border-2 border-amber-300 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  ⚡ परीक्षक व डेमो मूल्यांकन (1-Click Demo Evaluation)
+                </span>
+                <span className="text-[10px] bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">
+                  No OTP Needed
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDemoSignIn('candidate')}
+                  disabled={loading}
+                  className="py-2 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 border-2 border-emerald-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col"
+                >
+                  <span className="text-emerald-700 font-semibold text-[10px]">उमेदवार लॉगिन</span>
+                  <span className="truncate">👤 रमेश पाटील (ITI)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDemoSignIn('employer')}
+                  disabled={loading}
+                  className="py-2 px-2.5 rounded-xl bg-white hover:bg-blue-50 text-blue-900 border-2 border-blue-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col"
+                >
+                  <span className="text-blue-700 font-semibold text-[10px]">नियोक्ता लॉगिन</span>
+                  <span className="truncate">🏢 महिंद्रा MIDC HR</span>
+                </button>
+              </div>
+            </div>
 
             {/* Auth Mode Toggle Tabs (Phone/Google vs Email) */}
             <div className="flex p-1 bg-canvas rounded-full border border-ink/20 mb-6 text-xs font-bold">

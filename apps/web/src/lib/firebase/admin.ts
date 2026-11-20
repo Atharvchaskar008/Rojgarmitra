@@ -2,7 +2,7 @@ import admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
 
-let projectId = process.env.FIREBASE_PROJECT_ID || 'rojgarmitra-dev';
+let projectId = process.env.FIREBASE_PROJECT_ID || 'rojgarmitra-vidarbha';
 let clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 let privateKey = process.env.FIREBASE_PRIVATE_KEY;
 

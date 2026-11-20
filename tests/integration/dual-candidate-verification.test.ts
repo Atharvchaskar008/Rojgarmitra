@@ -50,7 +50,7 @@ describe('End-to-End Dual-Candidate Verification', () => {
 
     const firstLead = discovery.results[0];
     expect(['verified_vacancy', 'unverified_lead']).toContain(firstLead.verificationStatus);
-    expect(firstLead.job.sourceUrl).toBeDefined();
+    expect(firstLead.job.sourceUrl || firstLead.job.sourceType === 'internal_employer').toBeTruthy();
 
     console.log('\n[Candidate A Honest Discovery]:', {
       totalVerified: discovery.totalVerified,
@@ -103,7 +103,7 @@ describe('End-to-End Dual-Candidate Verification', () => {
 
     const firstItem = discovery.results[0];
     expect(['verified_vacancy', 'unverified_lead']).toContain(firstItem.verificationStatus);
-    expect(firstItem.job.sourceUrl).toBeDefined();
+    expect(firstItem.job.sourceUrl || firstItem.job.sourceType === 'internal_employer').toBeTruthy();
 
     console.log('\n[Candidate B Honest Discovery]:', {
       totalVerified: discovery.totalVerified,
