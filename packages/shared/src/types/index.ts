@@ -191,4 +191,10 @@ export interface CareerPlan {
   milestones: CareerMilestone[];
   disclaimer: string;
   generalFreeResources?: FreeLearningResource[];
+  realityCheck?: {
+    currentSituationSummary?: string;
+    competitionAnalysis: string;
+    immediateNextStep: string;
+    targetAchievability: string;
+  };
 }

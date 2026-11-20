@@ -12,6 +12,7 @@ import {
   IconCheck,
   IconArrowRight
 } from '@/components/icons';
+import { DigitalProfileBadge } from '@/components/profile/DigitalProfileBadge';
 
 export default function EmployerDashboardPage() {
   const { preferredLocale, user, getIdToken } = useAuth();
@@ -74,6 +75,13 @@ export default function EmployerDashboardPage() {
           <IconArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
+
+      {/* Employer Digital Identity Profile Badge */}
+      {user && (
+        <div className="mb-8">
+          <DigitalProfileBadge role="employer" />
+        </div>
+      )}
 
       {/* Stats Counter */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">

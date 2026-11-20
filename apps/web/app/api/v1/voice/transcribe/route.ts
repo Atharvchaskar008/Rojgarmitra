@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
       userConsent = consentField === 'true' || consentField === '1' || Boolean(audioFile);
 
       const apiKey = process.env.ELEVENLABS_API_KEY;
+      const sarvamKey = process.env.SARVAM_API_KEY;
+
       if (audioFile && apiKey) {
         try {
           const fileBuffer = await audioFile.arrayBuffer();
@@ -56,6 +58,36 @@ export async function POST(req: NextRequest) {
           }
         } catch (sttErr) {
           console.warn('[ElevenLabs Scribe STT] Network error:', (sttErr as Error).message);
+        }
+      }
+
+      // Fallback or standalone Sarvam Saaras STT if SARVAM_API_KEY is present
+      if (audioFile && !spokenText && sarvamKey) {
+        try {
+          const sarvamForm = new FormData();
+          sarvamForm.append('file', audioFile);
+          sarvamForm.append('model', 'saaras:v1');
+          sarvamForm.append('language_code', 'unknown');
+
+          const sarvamRes = await fetch('https://api.sarvam.ai/speech-to-text', {
+            method: 'POST',
+            headers: {
+              'api-subscription-key': sarvamKey,
+            },
+            body: sarvamForm,
+          });
+
+          if (sarvamRes.ok) {
+            const sarvamData = (await sarvamRes.json()) as { transcript?: string };
+            if (sarvamData.transcript) {
+              spokenText = sarvamData.transcript;
+              sttProvider = 'sarvam_saaras';
+            }
+          } else {
+            console.warn('[Sarvam Saaras STT] API returned HTTP', sarvamRes.status);
+          }
+        } catch (sarvamErr) {
+          console.warn('[Sarvam Saaras STT] Network error:', (sarvamErr as Error).message);
         }
       }
     } else {

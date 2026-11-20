@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const requestedLocale: SupportedLocale = body.locale || user.preferredLocale || 'mr';
     const targetRole: string | undefined = body.targetRole;
+    const currentSituation: string | undefined = body.currentSituation;
 
     // Fetch candidate profile
     let candidate: CandidateProfile | null = null;
@@ -38,7 +39,8 @@ export async function POST(req: NextRequest) {
     const careerPlan = await careerPlannerService.generateCareerPlan(
       candidate,
       targetRole,
-      requestedLocale
+      requestedLocale,
+      currentSituation
     );
 
     return NextResponse.json({

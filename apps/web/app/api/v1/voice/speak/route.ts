@@ -25,8 +25,9 @@ export async function POST(req: NextRequest) {
 
     const config = serverConfig.get();
     const elevenLabsKey = config.ELEVENLABS_API_KEY || process.env.ELEVENLABS_API_KEY;
+    const sarvamKey = process.env.SARVAM_API_KEY;
 
-    // Multilingual Voice Map by Locale and Gender
+    // Multilingual Voice Map by Locale and Gender for ElevenLabs
     const VOICE_MAP: Record<string, { male: string; female: string }> = {
       mr: {
         male: process.env.ELEVENLABS_VOICE_MR_MALE || 'oIhZlnorjQiJ5jF7X73a',
@@ -46,6 +47,51 @@ export async function POST(req: NextRequest) {
     const localeMap = VOICE_MAP[locale] || VOICE_MAP.mr;
     const finalVoiceId = requestedVoiceId || localeMap[targetGender] || config.ELEVENLABS_VOICE_ID || process.env.ELEVENLABS_VOICE_ID || 'oIhZlnorjQiJ5jF7X73a';
 
+    // 1. Try Sarvam AI Bulbul TTS if SARVAM_API_KEY is provided
+    if (sarvamKey) {
+      try {
+        const sarvamLang = locale === 'mr' ? 'mr-IN' : locale === 'hi' ? 'hi-IN' : 'en-IN';
+        const speaker = targetGender === 'female' ? 'aditi' : 'arvind';
+        const sarvamRes = await fetch('https://api.sarvam.ai/text-to-speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'api-subscription-key': sarvamKey,
+          },
+          body: JSON.stringify({
+            inputs: [text.slice(0, 500)],
+            target_language_code: sarvamLang,
+            speaker,
+            pitch: 0,
+            pace: 1.0,
+            loudness: 1.5,
+            speech_sample_rate: 22050,
+            enable_preprocessing: true,
+            model: 'bulbul:v1',
+          }),
+        });
+
+        if (sarvamRes.ok) {
+          const sData = (await sarvamRes.json()) as { audios?: string[] };
+          if (sData.audios && sData.audios[0]) {
+            const buffer = Buffer.from(sData.audios[0], 'base64');
+            return new NextResponse(buffer, {
+              headers: {
+                'Content-Type': 'audio/wav',
+                'Content-Length': buffer.length.toString(),
+                'X-Voice-Provider': 'sarvam_bulbul',
+              },
+            });
+          }
+        } else {
+          console.warn('[Sarvam TTS] API returned HTTP', sarvamRes.status);
+        }
+      } catch (sarvamErr) {
+        console.warn('[Sarvam TTS] API call failed, attempting ElevenLabs fallback:', (sarvamErr as Error).message);
+      }
+    }
+
+    // 2. Try ElevenLabs Pro Multilingual v2
     if (elevenLabsKey) {
       try {
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${finalVoiceId}`, {

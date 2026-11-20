@@ -15,7 +15,9 @@ import {
   IconBookOpen,
   IconWrench,
   IconExternalLink,
-  IconCheck
+  IconCheck,
+  IconAlertCircle,
+  IconBriefcase
 } from '@/components/icons';
 
 export default function CandidateCareerPlanPage() {
@@ -24,36 +26,59 @@ export default function CandidateCareerPlanPage() {
 
   const [careerPlan, setCareerPlan] = useState<CareerPlan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+
+  // Candidate real situation and custom target inputs
+  const [currentSituation, setCurrentSituation] = useState(
+    'गेल्या ६ महिन्यांपासून बेरोजगार आहे. स्पर्धा परीक्षेचा (महाडिस्कॉम) प्रयत्न केला पण अपयश आले. आता तातडीने उत्पन्नाची व प्रत्यक्ष कारखान्यात स्थिर कामाची गरज आहे.'
+  );
+  const [customTarget, setCustomTarget] = useState(
+    '२ वर्षांत ₹२५,०००+ मासिक वेतन व हिंगणा/बुटीबोरी MIDC मध्ये कायम तंत्रज्ञ किंवा सुपरवायझर पद.'
+  );
+
+  async function loadPlan(situation?: string, target?: string) {
+    if (!situation && !target) setLoading(true);
+    else setUpdating(true);
+
+    try {
+      const token = await getIdToken();
+      if (!token) {
+        setLoading(false);
+        setUpdating(false);
+        return;
+      }
+      const res = await fetch('/api/v1/agents/career-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          locale: preferredLocale,
+          currentSituation: situation || currentSituation,
+          targetRole: target || customTarget,
+        }),
+      });
+      const json = await res.json();
+      if (json.data) {
+        setCareerPlan(json.data);
+      }
+    } catch (err) {
+      console.error('Failed to load career plan:', err);
+    } finally {
+      setLoading(false);
+      setUpdating(false);
+    }
+  }
 
   useEffect(() => {
-    async function loadPlan() {
-      setLoading(true);
-      try {
-        const token = await getIdToken();
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-        const res = await fetch('/api/v1/agents/career-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ locale: preferredLocale }),
-        });
-        const json = await res.json();
-        if (json.data) {
-          setCareerPlan(json.data);
-        }
-      } catch (err) {
-        console.error('Failed to load career plan:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadPlan();
   }, [preferredLocale]);
+
+  const handleUpdateRealityPlan = (e: React.FormEvent) => {
+    e.preventDefault();
+    loadPlan(currentSituation, customTarget);
+  };
 
   return (
     <main className="max-w-4xl mx-auto py-4">
@@ -74,16 +99,16 @@ export default function CandidateCareerPlanPage() {
         </h1>
         <p className="text-ink-secondary text-sm mt-1 font-medium">
           {preferredLocale === 'mr'
-            ? 'तुमच्या कौशल्यांवर आधारित पुढील ३ वर्षांचे करिअर नियोजन व वाढीच्या प्रत्यक्ष संधी.'
+            ? 'केवळ पुस्तकी माहिती नव्हे, तर विदर्भातील प्रत्यक्ष नोकरी बाजारावर आधारित वास्तववादी करिअर आराखडा.'
             : preferredLocale === 'hi'
-            ? 'आपके कौशल पर आधारित अगले ३ वर्षों का करियर रोडमैप व विकास के वास्तविक अवसर।'
-            : 'Personalized 3-year vocational career roadmap grounded in Vidarbha industrial reality.'}
+            ? 'केवल किताबी बातें नहीं, बल्कि विदर्भ के वास्तविक औद्योगिक बाजार पर आधारित व्यावहारिक करियर रोडमैप।'
+            : 'Personalized vocational career roadmap grounded in realistic Vidarbha job market demands.'}
         </p>
       </div>
 
       {loading ? (
         <div className="text-center py-16 text-ink-secondary font-bold text-sm">
-          {dict.common.loading}
+          ⌛ {dict.common.loading}
         </div>
       ) : !user ? (
         <div className="text-center py-12 settle-card p-8">
@@ -145,6 +170,127 @@ export default function CandidateCareerPlanPage() {
               <span className="font-bold underline text-white">{careerPlan.currentTrade}</span>
             </p>
           </div>
+
+          {/* Interactive Candidate Situation & Realistic Target Form */}
+          <form onSubmit={handleUpdateRealityPlan} className="settle-card p-6 bg-surface space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+              <h3 className="text-sm sm:text-base font-black text-ink">
+                {preferredLocale === 'mr'
+                  ? 'माझी सद्यस्थिती व लक्ष्य (My Real Situation & Target)'
+                  : preferredLocale === 'hi'
+                  ? 'मेरी वर्तमान स्थिति व लक्ष्य (My Real Situation & Target)'
+                  : 'My Current Situation & Target Goal'}
+              </h3>
+            </div>
+            <p className="text-xs text-ink-secondary font-medium">
+              {preferredLocale === 'mr'
+                ? 'आपल्या आर्थिक अडचणी, स्पर्धा परीक्षांचा अनुभव किंवा विशिष्ट ध्येय येथे लिहा. मित्र AI अति-स्पर्धात्मक पदांऐवजी प्रत्यक्ष साध्य होणारा प्रामाणिक मार्ग दाखवेल.'
+                : 'Share your exact challenges or target goals. Mitra AI will analyze market reality vs hyper-competitive traps.'}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
+              <div>
+                <label className="block text-ink uppercase tracking-wider mb-1 font-black">
+                  {preferredLocale === 'mr' ? '१. सध्याची परिस्थिती (Financial/Job Reality):' : '1. Current Situation & Pressure:'}
+                </label>
+                <textarea
+                  rows={3}
+                  value={currentSituation}
+                  onChange={(e) => setCurrentSituation(e.target.value)}
+                  placeholder="उदा. ६ महिने बेरोजगार, पैशांची निकड, सरकारी परीक्षेत अपयश..."
+                  className="w-full bg-canvas border border-ink/20 rounded-xl p-3 text-xs font-medium text-ink focus:outline-none focus:border-ink"
+                />
+              </div>
+
+              <div>
+                <label className="block text-ink uppercase tracking-wider mb-1 font-black">
+                  {preferredLocale === 'mr' ? '२. काय साध्य करायचे आहे (Realistic Target):' : '2. What You Want to Achieve:'}
+                </label>
+                <textarea
+                  rows={3}
+                  value={customTarget}
+                  onChange={(e) => setCustomTarget(e.target.value)}
+                  placeholder="उदा. २ वर्षांत ₹२५,००० वेतन व MIDC कारखान्यात कायम काम..."
+                  className="w-full bg-canvas border border-ink/20 rounded-xl p-3 text-xs font-medium text-ink focus:outline-none focus:border-ink"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[11px] text-ink-muted">
+                {preferredLocale === 'mr' ? '💡 अति-स्पर्धा विरुद्ध खाजगी/औद्योगिक संधी विश्लेषण' : '💡 Anti-saturation & realistic market matching'}
+              </span>
+              <button
+                type="submit"
+                disabled={updating}
+                className="settle-pill-btn px-5 py-2 text-xs font-black inline-flex items-center gap-1.5 shadow-sm"
+              >
+                <span>
+                  {updating
+                    ? dict.common.loading
+                    : preferredLocale === 'mr'
+                    ? 'सत्यता विश्लेषण व सल्ला अपडेट करा'
+                    : 'Update Realistic Plan'}
+                </span>
+                <IconArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </form>
+
+          {/* REALITY CHECK & COMPANION MENTOR ADVICE CARD */}
+          {careerPlan.realityCheck && (
+            <div className="settle-card-hero p-6 sm:p-7 border-2 border-primary/40 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
+                  <IconAlertCircle className="w-3.5 h-3.5 text-amber-700" />
+                  <span>
+                    {preferredLocale === 'mr'
+                      ? 'सत्यता पडताळणी व मित्रचा सल्ला (Reality Check)'
+                      : 'Market Competition Reality Check'}
+                  </span>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-medium">
+                {/* 1. Competition Analysis */}
+                <div className="bg-canvas p-4 rounded-xl border border-steel flex flex-col justify-between">
+                  <div>
+                    <span className="font-black text-ink block uppercase mb-1.5 text-[11px] text-alert">
+                      ⚖️ {preferredLocale === 'mr' ? 'स्पर्धा वास्तव (Competition Ratio):' : 'Competition Reality:'}
+                    </span>
+                    <p className="text-ink-secondary leading-relaxed">
+                      {careerPlan.realityCheck.competitionAnalysis}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. Immediate Next Step */}
+                <div className="bg-canvas p-4 rounded-xl border border-steel flex flex-col justify-between">
+                  <div>
+                    <span className="font-black text-ink block uppercase mb-1.5 text-[11px] text-verified">
+                      🚀 {preferredLocale === 'mr' ? 'तातडीची पहिली पायरी (Next 30 Days):' : 'Immediate Next 30 Days:'}
+                    </span>
+                    <p className="text-ink-secondary leading-relaxed">
+                      {careerPlan.realityCheck.immediateNextStep}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. Realistically Achievable Target */}
+                <div className="bg-canvas p-4 rounded-xl border border-steel flex flex-col justify-between">
+                  <div>
+                    <span className="font-black text-ink block uppercase mb-1.5 text-[11px] text-primary">
+                      🎯 {preferredLocale === 'mr' ? 'साध्य वास्तव (Achievable Target):' : 'Realistic Progression Curve:'}
+                    </span>
+                    <p className="text-ink-secondary leading-relaxed">
+                      {careerPlan.realityCheck.targetAchievability}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Milestones Timeline */}
           <div className="space-y-4">
@@ -326,11 +472,6 @@ export default function CandidateCareerPlanPage() {
                 )}
               </div>
             ))}
-          </div>
-
-          {/* Disclaimer Banner */}
-          <div className="p-4 bg-surface rounded-xl border border-steel text-xs text-ink-secondary font-medium shadow-sm">
-            <strong className="text-ink">सूचना:</strong> {careerPlan.disclaimer}
           </div>
         </div>
       )}

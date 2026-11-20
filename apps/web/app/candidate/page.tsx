@@ -19,6 +19,7 @@ import {
   IconNavigation,
   IconFactory
 } from '@/components/icons';
+import { DigitalProfileBadge } from '@/components/profile/DigitalProfileBadge';
 
 export default function CandidateJobsFeedPage() {
   const { preferredLocale, user, getIdToken } = useAuth();
@@ -173,6 +174,13 @@ export default function CandidateJobsFeedPage() {
           </div>
         </div>
       </div>
+
+      {/* Candidate Digital Identity Profile Badge */}
+      {user && (
+        <div className="mb-8">
+          <DigitalProfileBadge role="candidate" />
+        </div>
+      )}
 
       {/* Message Banner */}
       {message && (

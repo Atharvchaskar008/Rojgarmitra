@@ -24,6 +24,7 @@ export default function EmployerPostJobPage() {
   const [taluka, setTaluka] = useState('Butibori');
   const [areaOrMidc, setAreaOrMidc] = useState('Butibori MIDC Phase 2');
   const [selectedTrade, setSelectedTrade] = useState('electrician');
+  const [employerScale, setEmployerScale] = useState('msme_workshop');
   const [requiredSkills, setRequiredSkills] = useState<string[]>(['house_wiring']);
   const [vacancies, setVacancies] = useState(2);
   const [salaryMin, setSalaryMin] = useState(16000);
@@ -148,6 +149,22 @@ export default function EmployerPostJobPage() {
             />
           </div>
 
+          <div>
+            <label className="block font-bold text-ink mb-1.5">
+              आस्थापनेचा प्रकार / कामाचे स्वरूप (Employer Category / Scale) *
+            </label>
+            <select
+              value={employerScale}
+              onChange={e => setEmployerScale(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
+            >
+              <option value="msme_workshop">लघु व मध्यम उद्योग (MSME Workshop / Unit / Fabrication)</option>
+              <option value="local_contractor">स्थानिक कंत्राटदार / गॅरेज / सेवा केंद्र (Local Contractor / Workshop)</option>
+              <option value="commercial_logistics">व्यापारी आस्थापना / गोदाम / वितरण (Retail / Warehouse / Logistics)</option>
+              <option value="large_industry">मोठा कारखाना / औद्योगिक प्रकल्प (Large Industrial Plant / MIDC Factory)</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block font-bold text-ink mb-1.5">
@@ -239,6 +256,22 @@ export default function EmployerPostJobPage() {
                 );
               })}
             </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-ink mb-1.5">
+              आस्थापनेचा प्रकार / कामाचे स्वरूप (Employer Category / Scale) *
+            </label>
+            <select
+              value={employerScale}
+              onChange={e => setEmployerScale(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-steel/80 focus:border-ink outline-none bg-white font-medium"
+            >
+              <option value="msme_workshop">लघु व मध्यम उद्योग (MSME Workshop / Unit / Fabrication)</option>
+              <option value="local_contractor">स्थानिक कंत्राटदार / गॅरेज / सेवा केंद्र (Local Contractor / Workshop)</option>
+              <option value="commercial_logistics">व्यापारी आस्थापना / गोदाम / वितरण (Retail / Warehouse / Logistics)</option>
+              <option value="large_industry">मोठा कारखाना / औद्योगिक प्रकल्प (Large Industrial Plant / MIDC Factory)</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

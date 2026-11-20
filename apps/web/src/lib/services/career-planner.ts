@@ -10,7 +10,8 @@ export class CareerPlannerService {
   async generateCareerPlan(
     candidate: Partial<CandidateProfile>,
     targetRole?: string,
-    locale: SupportedLocale = 'mr'
+    locale: SupportedLocale = 'mr',
+    currentSituation?: string
   ): Promise<CareerPlan> {
     const trade = candidate.trade || 'electrician';
     const currentSkills = candidate.skillIds || ['house_wiring'];
@@ -19,30 +20,34 @@ export class CareerPlannerService {
 
     if (geminiClient.isConfigured()) {
       try {
-        const prompt = `You are a vocational career guidance advisor for Maharashtra candidates in rural/semi-urban regions (Nagpur, Hingna, Butibori MIDC, Umred, Katol, Saoner).
+        const prompt = `You are an honest, supportive personal career mentor and vocational advisor for Maharashtra candidates in Vidarbha (Nagpur, Hingna, Butibori MIDC, Umred).
+
 Candidate Context:
 - Current Trade: "${trade}"
 - Skills possessed: ${JSON.stringify(currentSkills)}
 - Experience: ${expMonths} months
 - Target Role: "${targetRole || 'Senior Industrial Technician'}"
+- Candidate Current Situation / Challenges: "${currentSituation || 'Unemployed, seeking stable employment in Vidarbha'}"
 - Location: "${location}"
 - Language: "${locale}" (mr = Marathi, hi = Hindi, en = English)
 
-Generate a grounded 3-stage practical career roadmap for this candidate.
-For each stage, provide:
-1. Title and practical description in "${locale}".
-2. Target role and recommended skills.
-3. Free online tutorials (YouTube search queries/channels in Hindi/Marathi).
-4. Free textbooks or official PDF guides (like Bharat Skills NIMI books).
-5. Practical shop-floor DIY projects they can practice hands-on.
-
-Do NOT invent salary promises. Use honest, supportive phrasing in the requested language "${locale}".
+STRICT MENTORING RULES:
+1. Be realistic and honest! If the candidate is aiming for ultra-competitive government jobs (0.1% ratio, multi-year delay), warn them constructively and propose immediate private/industrial entry in Butibori/Hingna MIDC where factories pay ₹14,000 - ₹24,000/mo immediately.
+2. Provide a concrete "realityCheck" object explaining competition analysis, immediate 30-day next step, and realistically achievable targets.
+3. Suggest practical pathways: MIDC Factory Apprenticeships (with stipend under Apprentices Act 1961), MSME Technology Center Nagpur (Indo-German Tool Room), Government ITIs, and free YouTube/Bharat Skills tutorials.
+4. Do NOT give boilerplate generic answers like "visit nearest ITI". Give actionable local steps.
 
 Respond strictly with a JSON object conforming to this schema:
 {
   "currentTrade": string,
   "targetRole": string,
   "missingSkills": string[],
+  "realityCheck": {
+    "currentSituationSummary": string,
+    "competitionAnalysis": string,
+    "immediateNextStep": string,
+    "targetAchievability": string
+  },
   "milestones": [
     {
       "title": string,
@@ -181,6 +186,28 @@ Respond strictly with a JSON object conforming to this schema:
         currentTrade: isMr ? 'इलेक्ट्रिशियन / वायरमन' : isHi ? 'इलेक्ट्रीशियन / वायरमैन' : 'Electrician / Wireman',
         targetRole: targetRole || (isMr ? 'सोलर व इंडस्ट्रियल इलेक्ट्रिकल सुपरवायझर' : isHi ? 'सोलर एवं औद्योगिक इलेक्ट्रिकल सुपरवाइजर' : 'Solar & Industrial Electrical Supervisor'),
         missingSkills: ['industrial_panel', 'solar_pv_wiring'].filter((s) => !currentSkills.has(s)),
+        realityCheck: {
+          currentSituationSummary: isMr
+            ? 'सध्याची स्थिती: तातडीने उत्पन्नाची गरज व स्पर्धा परीक्षांमधील अनिर्णायक विलंब.'
+            : isHi
+            ? 'वर्तमान स्थिति: तत्काल आय की आवश्यकता एवं प्रतियोगी परीक्षाओं में अनिश्चितता।'
+            : 'Current situation: Immediate income need with prolonged competitive exam uncertainty.',
+          competitionAnalysis: isMr
+            ? 'स्पर्धा वास्तव: महाडिस्कॉम किंवा रेल्वेच्या शासकीय भरतीमध्ये १ जागेसाठी २,००० पेक्षा जास्त अर्जदार असतात आणि निकाल लागण्यास २-३ वर्षे लागतात. याउलट हिंगणा व बुटीबोरी MIDC मध्ये औद्योगिक पॅनल वायरमनसाठी त्वरित ₹१६,००० ते ₹२२,००० वेतनावर थेट काम उपलब्ध आहे.'
+            : isHi
+            ? 'प्रतियोगिता विश्लेषण: सरकारी परीक्षाओं में ०.१% चयन अनुपात होता है। इसके विपरीत हिंगना/बुटीबोरी MIDC में औद्योगिक इलेक्ट्रीशियन के लिए तत्काल ₹१६,०००-२२,००० में काम उपलब्ध है।'
+            : 'Competition Reality: Government technician exams have <0.1% selection ratios and 2-3 years delays. Conversely, Hingna/Butibori MIDC manufacturing units have immediate openings paying ₹16,000 - ₹22,000/mo.',
+          immediateNextStep: isMr
+            ? 'पुढील ३० दिवस: बेरोजगार राहून अभ्यास करण्याऐवजी MIDC कारखान्यात शिकाऊ (Apprentice) किंवा कंत्राटी वायरमन म्हणून रुजू व्हा. दरमहा ₹९,५०० ते ₹१४,००० उत्पन्न सुरू होईल आणि प्रत्यक्ष अनुभव जमा होईल.'
+            : isHi
+            ? 'अगले ३० दिन: बेरोजगार रहने के बजाय MIDC फैक्ट्री में अप्रेंटिस या ट्रेनी के रूप में जुड़ें। तत्काल वजीफा शुरू होगा।'
+            : 'Next 30 Days: Join an MIDC factory apprenticeship or junior technician post to start immediate cash flow (₹9,500 - ₹14,000/mo) and build plant experience.',
+          targetAchievability: isMr
+            ? 'वास्तविक साध्य लक्ष्य: पुढील १८ महिन्यांत इंडस्ट्रियल पॅनल वायरिंग + सोलर इन्स्टॉलेशन शिकून थेट ₹२२,००० ते ₹२६,००० मासिक वेतनावर पोहोचणे १००% साध्य आहे.'
+            : isHi
+            ? 'वास्तविक साध्य लक्ष्य: १८ महीनों में पैनल वायरिंग व सोलर इंस्टॉलेशन सीखकर ₹२२,०००-२६,००० वेतन प्राप्त करना व्यावहारिक है।'
+            : 'Achievable Target: Reaching ₹22,000 - ₹26,000/mo within 18 months via industrial panel wiring & rooftop solar installation is 100% realistic.',
+        },
         milestones: [
           {
             title: isMr ? 'टप्पा १: मूलभूत औद्योगिक वायरिंग व पॅनल असेंबली' : isHi ? 'चरण १: औद्योगिक वायरिंग और कंट्रोल पैनल असेंबली' : 'Milestone 1: Industrial Panel & Motor Wiring',
@@ -293,6 +320,28 @@ Respond strictly with a JSON object conforming to this schema:
       currentTrade: trade === 'welder' ? (isMr ? 'वेल्डर / फॅब्रिकेटर' : isHi ? 'वेल्डर / फैब्रिकेटर' : 'Welder / Fabricator') : trade,
       targetRole: targetRole || (isMr ? 'वरिष्ठ फॅब्रिकेशन व वेल्डिंग सुपरवायझर' : isHi ? 'वरिष्ठ फैब्रिकेशन एवं वेल्डिंग सुपरवाइजर' : 'Senior Fabrication & Welding Supervisor'),
       missingSkills: ['mig_welding', 'sheet_metal_fabrication'].filter((s) => !currentSkills.has(s)),
+      realityCheck: {
+        currentSituationSummary: isMr
+          ? 'सध्याची स्थिती: वेल्डिंग कौशल्याचा प्रत्यक्ष कारखान्यात पुरेपूर वापर करून स्थिर उत्पन्नाची गरज.'
+          : isHi
+          ? 'वर्तमान स्थिति: वेल्डिंग कौशल का व्यावहारिक कारखानों में उपयोग कर स्थायी आय की आवश्यकता।'
+          : 'Current situation: Need for steady industrial employment utilizing practical welding skills.',
+        competitionAnalysis: isMr
+          ? 'स्पर्धा वास्तव: सामान्य सरकारी नोकऱ्यांमध्ये प्रचंड गर्दी असली, तरी बुटीबोरी MIDC (महिंद्रा, सोलर इंडस्ट्रीज, फॅब्रिकेशन युनिट्स) मध्ये कुशल MIG/MAG वेल्डर्सची तीव्र टंचाई आहे. प्रत्यक्ष चाचणीत अचूक वेल्डिंग दाखवल्यास त्वरित नियुक्ती मिळते.'
+          : isHi
+          ? 'प्रतियोगिता विश्लेषण: सामान्य सरकारी पदों में अत्यधिक भीड़ है, परंतु बुटीबोरी MIDC में कुशल MIG वेल्डर की अत्यधिक कमी है। व्यावहारिक टेस्ट पास करते ही तुरंत काम मिलता है।'
+          : 'Competition Reality: While clerical/govt exams have extreme saturation, Butibori MIDC manufacturing plants face acute shortages of certified MIG/MAG welders.',
+        immediateNextStep: isMr
+          ? 'पुढील ३० दिवस: बुटीबोरी किंवा हिंगण्यातील फॅब्रिकेशन कारखान्यात प्रत्यक्ष वेल्डिंग जॉइंट चाचणी (Weld Test) द्या आणि थेट ₹१६,००० ते ₹२०,००० वेतनावर काम सुरू करा.'
+          : isHi
+          ? 'अगले ३० दिन: बुटीबोरी में वेल्डिंग टेस्ट दें और तत्काल ₹१६,०००+ वेल्डर पद पर कार्य आरंभ करें।'
+          : 'Next 30 Days: Appear for a hands-on welding joint test at Butibori/Hingna MIDC plant and secure immediate placement (₹16,000 - ₹20,000/mo).',
+        targetAchievability: isMr
+          ? 'वास्तविक साध्य लक्ष्य: १२ ते १८ महिन्यांत TIG आणि प्रेशर व्हेसल (IBR) वेल्डिंग शिकून ₹२४,००० ते ₹२८,००० चे शाश्वत मासिक उत्पन्न मिळवणे प्रत्यक्ष साध्य आहे.'
+          : isHi
+          ? 'वास्तविक साध्य लक्ष्य: १२-१८ माह में TIG वेल्डिंग सीखकर ₹२४,०००-२८,००० कमाना पूर्णतः व्यावहारिक है।'
+          : 'Achievable Target: Reaching ₹24,000 - ₹28,000/mo in 12-18 months by mastering TIG and pressure vessel joint fabrication.',
+      },
       milestones: [
         {
           title: isMr ? 'टप्पा १: मिग / टिग वेल्डिंग प्राविण्य' : isHi ? 'चरण १: मिग / टिग वेल्डिंग दक्षता' : 'Milestone 1: MIG / TIG Welding Proficiency',
