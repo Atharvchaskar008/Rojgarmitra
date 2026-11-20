@@ -79,7 +79,7 @@ export default function CandidateJobsFeedPage() {
       }
     }
     loadData();
-  }, [user]);
+  }, [user, preferredLocale]);
 
   const handleApply = async (jobId: string) => {
     setApplyingId(jobId);
@@ -147,7 +147,13 @@ export default function CandidateJobsFeedPage() {
               className="settle-pill-btn px-4 py-2 text-xs inline-flex items-center gap-1.5"
             >
               <IconMic className="w-3.5 h-3.5" />
-              <span>आवाज प्रोफाईल अपडेट करा</span>
+              <span>
+                {preferredLocale === 'mr'
+                  ? 'आवाज / प्रोफाइल नोंदवा'
+                  : preferredLocale === 'hi'
+                  ? 'वॉयस / प्रोफाइल भरें'
+                  : 'Update Skills Profile'}
+              </span>
               <IconArrowRight className="w-3.5 h-3.5" />
             </Link>
             <Link
@@ -191,7 +197,7 @@ export default function CandidateJobsFeedPage() {
       {/* Filter Tabs - SETTLE Pill Group */}
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 text-xs sm:text-sm">
         <span className="font-bold text-ink whitespace-nowrap mr-2 uppercase tracking-wider text-xs">
-          परिसर / Area:
+          {preferredLocale === 'mr' ? 'परिसर / Area:' : preferredLocale === 'hi' ? 'परिसर / Area:' : 'Location / Area:'}
         </span>
         {['all', 'Butibori', 'Hingna', 'Umred'].map(taluka => (
           <button
@@ -202,7 +208,9 @@ export default function CandidateJobsFeedPage() {
               : 'settle-pill-chip text-xs'
               }`}
           >
-            {taluka === 'all' ? 'सर्व परिसर (All Areas)' : taluka}
+            {taluka === 'all'
+              ? (preferredLocale === 'mr' ? 'सर्व परिसर (All Areas)' : preferredLocale === 'hi' ? 'सभी क्षेत्र (All Areas)' : 'All Areas')
+              : taluka}
           </button>
         ))}
       </div>
@@ -214,13 +222,27 @@ export default function CandidateJobsFeedPage() {
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-1">
                 <IconNavigation className="w-3.5 h-3.5 text-primary" />
-                <span>Google Maps स्थानिक औद्योगिक शोध</span>
+                <span>
+                  {preferredLocale === 'mr'
+                    ? 'Google Maps स्थानिक औद्योगिक शोध'
+                    : preferredLocale === 'hi'
+                    ? 'Google Maps स्थानीय औद्योगिक खोज'
+                    : 'Google Maps Local Industrial Search'}
+                </span>
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-ink">
-                जवळचे थेट कारखाने व वर्कशॉप्स (Nearby Industrial Hubs)
+                {preferredLocale === 'mr'
+                  ? 'जवळचे थेट कारखाने व वर्कशॉप्स (Nearby Industrial Hubs)'
+                  : preferredLocale === 'hi'
+                  ? 'आसपास के कारखाने और वर्कशॉप्स (Nearby Industrial Hubs)'
+                  : 'Nearby Industrial Hubs & Plants'}
               </h2>
               <p className="text-xs text-ink-secondary font-medium">
-                थेट भेट देण्यासाठी किंवा संपर्कासाठी Google Maps वर सत्यापित स्थानिक कंपन्या.
+                {preferredLocale === 'mr'
+                  ? 'थेट भेट देण्यासाठी किंवा संपर्कासाठी Google Maps वर सत्यापित स्थानिक कंपन्या.'
+                  : preferredLocale === 'hi'
+                  ? 'सीधे मिलने या संपर्क के लिए Google Maps पर सत्यापित स्थानीय कंपनियां।'
+                  : 'Verified local industrial units and workshops on Google Maps for direct contact.'}
               </p>
             </div>
           </div>
@@ -234,7 +256,7 @@ export default function CandidateJobsFeedPage() {
                 <div>
                   <div className="flex items-center justify-between gap-1 mb-2">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-steel-soft text-primary border border-steel">
-                      {hub.industryCategory || 'औद्योगिक युनिट'}
+                      {hub.industryCategory || (preferredLocale === 'mr' ? 'औद्योगिक युनिट' : preferredLocale === 'hi' ? 'औद्योगिक इकाई' : 'Industrial Unit')}
                     </span>
                     {hub.rating && (
                       <span className="text-[11px] font-bold text-ink inline-flex items-center gap-0.5">
@@ -257,7 +279,13 @@ export default function CandidateJobsFeedPage() {
                   className="settle-pill-chip text-xs px-3 py-1.5 text-center font-black inline-flex items-center justify-center gap-1.5 hover:bg-ink hover:text-white transition w-full"
                 >
                   <IconNavigation className="w-3.5 h-3.5 text-primary" />
-                  <span>रस्ता पहा (Map)</span>
+                  <span>
+                    {preferredLocale === 'mr'
+                      ? 'रस्ता पहा (Map)'
+                      : preferredLocale === 'hi'
+                      ? 'रास्ता देखें (Map)'
+                      : 'View Route'}
+                  </span>
                   <IconExternalLink className="w-3 h-3 text-ink-muted" />
                 </a>
               </div>
@@ -275,7 +303,13 @@ export default function CandidateJobsFeedPage() {
         <div className="text-center py-12 settle-card p-8">
           <span className="text-4xl mb-2 inline-block">🔍</span>
           <p className="text-ink font-bold">{dict.common.not_found}</p>
-          <p className="text-xs text-ink-secondary mt-1">निवडलेल्या परिसरात सध्या कोणतीही रिक्त जागा उपलब्ध नाही.</p>
+          <p className="text-xs text-ink-secondary mt-1">
+            {preferredLocale === 'mr'
+              ? 'निवडलेल्या परिसरात सध्या कोणतीही रिक्त जागा उपलब्ध नाही.'
+              : preferredLocale === 'hi'
+              ? 'चयनित क्षेत्र में इस समय कोई रिक्ति उपलब्ध नहीं है।'
+              : 'No vacancies found in the selected area currently.'}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -333,7 +367,14 @@ export default function CandidateJobsFeedPage() {
                       className="inline-flex items-center gap-1.5 text-[11px] font-bold text-steel-deep hover:text-ink mb-3 p-1.5 bg-canvas rounded-lg border border-steel/50 group transition w-full"
                     >
                       <IconNavigation className="w-3 h-3 text-primary group-hover:scale-110 transition shrink-0" />
-                      <span className="truncate flex-1 text-left">{job.formattedAddress || 'Google Maps वर रस्ता पहा'}</span>
+                      <span className="truncate flex-1 text-left">
+                        {job.formattedAddress ||
+                          (preferredLocale === 'mr'
+                            ? 'Google Maps वर रस्ता पहा'
+                            : preferredLocale === 'hi'
+                            ? 'Google Maps पर रास्ता देखें'
+                            : 'View on Google Maps')}
+                      </span>
                       <IconExternalLink className="w-3 h-3 text-ink-muted shrink-0" />
                     </a>
                   )}
@@ -373,7 +414,15 @@ export default function CandidateJobsFeedPage() {
                     <div className="border-l border-steel/60 pl-4">
                       <span className="text-ink-secondary text-[11px] font-bold block uppercase">{dict.job.vacancies}:</span>
                       <span className="font-black text-ink text-sm">
-                        {(job.vacancies && job.vacancies > 0) ? `${job.vacancies} जागा` : 'उपलब्ध (नक्की करा)'}
+                        {job.vacancies && job.vacancies > 0
+                          ? `${job.vacancies} ${
+                              preferredLocale === 'mr' ? 'जागा' : preferredLocale === 'hi' ? 'पद' : 'Openings'
+                            }`
+                          : preferredLocale === 'mr'
+                          ? 'उपलब्ध (नक्की करा)'
+                          : preferredLocale === 'hi'
+                          ? 'उपलब्ध (पुष्टि करें)'
+                          : 'Available'}
                       </span>
                     </div>
                   </div>

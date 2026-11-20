@@ -27,6 +27,8 @@ export async function POST(req: NextRequest) {
       skills: Array.isArray(body.skills) ? body.skills : [],
       taluka: body.taluka || 'Hingna',
       district: body.district || 'Nagpur',
+      currentPath: body.currentPath || body.pathname || '/',
+      userRole: body.userRole || 'candidate',
     };
 
     const ragResult = await regionalRagService.answerWithRag(rawQuestion, candidateContext, locale);

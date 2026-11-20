@@ -71,6 +71,15 @@ Respond strictly with a JSON object conforming to this schema:
         );
 
         if (aiPlan && aiPlan.milestones && Array.isArray(aiPlan.milestones) && aiPlan.milestones.length > 0) {
+          if (locale === 'mr') {
+            if (trade.includes('electric') && !aiPlan.currentTrade.includes('इलेक्ट्रिशियन')) {
+              aiPlan.currentTrade = 'इलेक्ट्रिशियन / ' + aiPlan.currentTrade;
+            } else if (trade.includes('weld') && !aiPlan.currentTrade.includes('वेल्डर')) {
+              aiPlan.currentTrade = 'वेल्डर / ' + aiPlan.currentTrade;
+            } else if (trade.includes('fitter') && !aiPlan.currentTrade.includes('फिटर')) {
+              aiPlan.currentTrade = 'फिटर / ' + aiPlan.currentTrade;
+            }
+          }
           return aiPlan;
         }
       } catch (err) {

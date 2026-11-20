@@ -61,13 +61,23 @@ export default function CandidateCareerPlanPage() {
       <div className="settle-card-hero p-6 sm:p-8 mb-8">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
           <IconCompass className="w-3.5 h-3.5 text-primary" />
-          <span>करिअर मार्गदर्शक (DVET & Industry Grounded Roadmap)</span>
+          <span>
+            {preferredLocale === 'mr'
+              ? 'करिअर मार्गदर्शक (DVET, MSME व उद्योगप्रणीत रोडमॅप)'
+              : preferredLocale === 'hi'
+              ? 'करियर मार्गदर्शक (DVET, MSME व उद्योग आधारित रोडमैप)'
+              : 'Vocational Career Guidance (DVET, MSME & Industry Grounded)'}
+          </span>
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-ink tracking-tight mt-1">
           {dict.nav.career}
         </h1>
         <p className="text-ink-secondary text-sm mt-1 font-medium">
-          तुमच्या कौशल्यांवर आधारित पुढील ३ वर्षांचे करिअर नियोजन व वाढीच्या प्रत्यक्ष संधी.
+          {preferredLocale === 'mr'
+            ? 'तुमच्या कौशल्यांवर आधारित पुढील ३ वर्षांचे करिअर नियोजन व वाढीच्या प्रत्यक्ष संधी.'
+            : preferredLocale === 'hi'
+            ? 'आपके कौशल पर आधारित अगले ३ वर्षों का करियर रोडमैप व विकास के वास्तविक अवसर।'
+            : 'Personalized 3-year vocational career roadmap grounded in Vidarbha industrial reality.'}
         </p>
       </div>
 
@@ -108,7 +118,13 @@ export default function CandidateCareerPlanPage() {
             href="/candidate/onboarding"
             className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
           >
-            <span>प्रोफाईल तयार करा</span>
+            <span>
+              {preferredLocale === 'mr'
+                ? 'प्रोफाईल तयार करा'
+                : preferredLocale === 'hi'
+                ? 'प्रोफ़ाइल बनाएं'
+                : 'Create Profile'}
+            </span>
             <IconArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -117,18 +133,27 @@ export default function CandidateCareerPlanPage() {
           {/* Target Role Card - SETTLE Deep Ink Focus */}
           <div className="bg-ink text-white border-2 border-ink rounded-2xl p-6 shadow-solid">
             <span className="text-xs text-steel font-bold uppercase tracking-wider block mb-1">
-              लक्ष्य पद (Target Career Milestone)
+              {preferredLocale === 'mr'
+                ? 'लक्ष्य पद (Target Career Milestone)'
+                : preferredLocale === 'hi'
+                ? 'लक्ष्य पद (Target Career Milestone)'
+                : 'Target Career Milestone'}
             </span>
             <h2 className="text-2xl sm:text-3xl font-black mb-2 tracking-tight">{careerPlan.targetRole}</h2>
             <p className="text-xs text-steel-soft font-semibold">
-              सध्याचा व्यवसाय: <span className="font-bold underline text-white">{careerPlan.currentTrade}</span>
+              {preferredLocale === 'mr' ? 'सध्याचा व्यवसाय:' : preferredLocale === 'hi' ? 'वर्तमान व्यवसाय:' : 'Current Trade:'}{' '}
+              <span className="font-bold underline text-white">{careerPlan.currentTrade}</span>
             </p>
           </div>
 
           {/* Milestones Timeline */}
           <div className="space-y-4">
             <h3 className="text-xl font-black text-ink mb-2">
-              प्रगतीचे टप्पे (Actionable Milestones)
+              {preferredLocale === 'mr'
+                ? 'प्रगतीचे टप्पे (Actionable Milestones)'
+                : preferredLocale === 'hi'
+                ? 'प्रगति के चरण (Actionable Milestones)'
+                : 'Actionable Career Milestones'}
             </h3>
 
             {careerPlan.milestones.map((m, idx) => (
@@ -140,7 +165,13 @@ export default function CandidateCareerPlanPage() {
                   <h4 className="text-base font-black text-ink">{m.title}</h4>
                   <span className="text-xs font-bold px-3 py-1 bg-steel-soft text-steel-deep rounded-full border border-steel/60 inline-flex items-center gap-1">
                     <IconClock className="w-3.5 h-3.5" />
-                    <span>अंदाजे {m.estimatedMonths} महिने</span>
+                    <span>
+                      {preferredLocale === 'mr'
+                        ? `अंदाजे ${m.estimatedMonths} महिने`
+                        : preferredLocale === 'hi'
+                        ? `लगभग ${m.estimatedMonths} माह`
+                        : `~${m.estimatedMonths} Months`}
+                    </span>
                   </span>
                 </div>
                 <p className="text-sm text-ink-secondary mb-4 font-medium leading-relaxed">{m.description}</p>
@@ -150,7 +181,13 @@ export default function CandidateCareerPlanPage() {
                   <div className="mt-3 p-3.5 bg-canvas rounded-xl text-xs text-ink border border-steel/50">
                     <span className="font-black text-ink block mb-1 inline-flex items-center gap-1.5">
                       <IconGraduationCap className="w-3.5 h-3.5 text-primary" />
-                      <span>शिफारस केलेले शासकीय अभ्यासक्रम (DVET ITI):</span>
+                      <span>
+                        {preferredLocale === 'mr'
+                          ? 'शिफारस केलेले अभ्यासक्रम (DVET ITI, MSME व अप्रेंटिसशिप):'
+                          : preferredLocale === 'hi'
+                          ? 'अनुशंसित प्रशिक्षण (DVET ITI, MSME व अप्रेंटिसशिप):'
+                          : 'Recommended Courses & Apprenticeship:'}
+                      </span>
                     </span>
                     <ul className="list-disc list-inside space-y-1 text-ink-secondary font-medium">
                       {m.suggestedCourses.map((c, i) => (
@@ -166,7 +203,13 @@ export default function CandidateCareerPlanPage() {
                     <div className="flex items-center justify-between gap-2 mb-2.5">
                       <span className="font-black text-ink text-xs inline-flex items-center gap-1.5">
                         <IconVideo className="w-3.5 h-3.5 text-alert" />
-                        <span>मोफत व्हिडिओ ट्यूटोरियल्स (YouTube):</span>
+                        <span>
+                          {preferredLocale === 'mr'
+                            ? 'मोफत व्हिडिओ ट्यूटोरियल्स (YouTube):'
+                            : preferredLocale === 'hi'
+                            ? 'नि:शुल्क वीडियो ट्यूटोरियल्स (YouTube):'
+                            : 'Free Video Tutorials (YouTube):'}
+                        </span>
                       </span>
                       <span className="text-[10px] font-bold px-2 py-0.5 bg-alert-bg text-alert border border-alert rounded-full">
                         मराठी / हिंदी
@@ -189,7 +232,8 @@ export default function CandidateCareerPlanPage() {
                               <p className="leading-tight text-ink">{tut.title}</p>
                               {tut.publisherOrChannel && (
                                 <p className="text-[10px] text-ink-secondary font-medium">
-                                  चॅनेल: {tut.publisherOrChannel}
+                                  {preferredLocale === 'mr' ? 'चॅनेल:' : preferredLocale === 'hi' ? 'चैनल:' : 'Channel:'}{' '}
+                                  {tut.publisherOrChannel}
                                 </p>
                               )}
                             </div>
@@ -206,7 +250,13 @@ export default function CandidateCareerPlanPage() {
                   <div className="mt-4 p-4 bg-surface rounded-xl border border-steel">
                     <span className="font-black text-ink text-xs block mb-2.5 inline-flex items-center gap-1.5">
                       <IconBookOpen className="w-3.5 h-3.5 text-primary" />
-                      <span>अधिकृत मोफत पुस्तके व अभ्यास साहित्य (Bharat Skills):</span>
+                      <span>
+                        {preferredLocale === 'mr'
+                          ? 'अधिकृत मोफत पुस्तके व अभ्यास साहित्य (Bharat Skills NIMI):'
+                          : preferredLocale === 'hi'
+                          ? 'आधिकारिक नि:शुल्क पुस्तकें व अध्ययन सामग्री (Bharat Skills NIMI):'
+                          : 'Official Free Books & Study Guides (Bharat Skills NIMI):'}
+                      </span>
                     </span>
                     <div className="space-y-2">
                       {m.recommendedBooks.map((b, bIdx) => (
@@ -225,13 +275,14 @@ export default function CandidateCareerPlanPage() {
                               <p className="leading-tight text-ink">{b.title}</p>
                               {b.publisherOrChannel && (
                                 <p className="text-[10px] text-ink-secondary font-medium">
-                                  प्रकाशक: {b.publisherOrChannel} • मोफत PDF
+                                  {preferredLocale === 'mr' ? 'प्रकाशक:' : preferredLocale === 'hi' ? 'प्रकाशक:' : 'Publisher:'}{' '}
+                                  {b.publisherOrChannel} • {preferredLocale === 'mr' ? 'मोफत PDF' : preferredLocale === 'hi' ? 'नि:शुल्क PDF' : 'Free PDF'}
                                 </p>
                               )}
                             </div>
                           </div>
                           <span className="settle-pill-chip text-[11px] px-2 py-0.5 group-hover:bg-ink group-hover:text-white transition">
-                            PDF वाचा
+                            {preferredLocale === 'mr' ? 'PDF वाचा' : preferredLocale === 'hi' ? 'PDF पढ़ें' : 'Read PDF'}
                           </span>
                         </a>
                       ))}
@@ -244,14 +295,22 @@ export default function CandidateCareerPlanPage() {
                   <div className="mt-4 p-4 bg-verified-bg/40 rounded-xl border-2 border-verified">
                     <span className="font-black text-verified text-xs block mb-2 inline-flex items-center gap-1.5">
                       <IconWrench className="w-3.5 h-3.5 text-verified" />
-                      <span>वर्कशॉप प्रत्यक्ष सराव (Shop-Floor Hands-on Practice):</span>
+                      <span>
+                        {preferredLocale === 'mr'
+                          ? 'वर्कशॉप प्रत्यक्ष सराव (Shop-Floor Hands-on Practice):'
+                          : preferredLocale === 'hi'
+                          ? 'वर्कशॉप प्रत्यक्ष अभ्यास (Shop-Floor Hands-on Practice):'
+                          : 'Shop-Floor Hands-on Practice Projects:'}
+                      </span>
                     </span>
                     {m.practicalProjects.map((proj, pIdx) => (
                       <div key={pIdx} className="space-y-1.5 text-xs text-ink font-medium">
                         <p className="font-black text-sm text-ink">{proj.title}</p>
                         <p className="text-xs text-ink-secondary mb-2">{proj.description}</p>
                         <div className="bg-canvas p-3 rounded-lg border border-steel/60 space-y-1 text-[11px]">
-                          <strong className="block text-ink font-bold mb-1">कृतीचे टप्पे:</strong>
+                          <strong className="block text-ink font-bold mb-1">
+                            {preferredLocale === 'mr' ? 'कृतीचे टप्पे:' : preferredLocale === 'hi' ? 'क्रियान्वयन चरण:' : 'Action Steps:'}
+                          </strong>
                           {proj.steps.map((st, sIdx) => (
                             <p key={sIdx} className="text-ink-secondary">{st}</p>
                           ))}

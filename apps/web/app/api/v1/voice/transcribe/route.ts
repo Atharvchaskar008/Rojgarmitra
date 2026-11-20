@@ -27,28 +27,32 @@ export async function POST(req: NextRequest) {
       const consentField = formData.get('consent');
       userConsent = consentField === 'true' || consentField === '1' || Boolean(audioFile);
 
-      if (audioFile && process.env.ELEVENLABS_API_KEY) {
+      const apiKey = process.env.ELEVENLABS_API_KEY;
+      if (audioFile && apiKey) {
         try {
+          const fileBuffer = await audioFile.arrayBuffer();
+          const bufferBlob = new Blob([fileBuffer], { type: audioFile.type || 'audio/webm' });
           const elevenFormData = new FormData();
-          elevenFormData.append('file', audioFile);
+          elevenFormData.append('file', bufferBlob, audioFile.name || 'speech.webm');
           elevenFormData.append('model_id', 'scribe_v1');
 
           const scribeRes = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
             method: 'POST',
             headers: {
-              'xi-api-key': process.env.ELEVENLABS_API_KEY,
+              'xi-api-key': apiKey,
             },
             body: elevenFormData,
           });
 
           if (scribeRes.ok) {
-            const scribeData = (await scribeRes.json()) as { text?: string };
+            const scribeData = (await scribeRes.json()) as { text?: string; language_code?: string };
             if (scribeData.text) {
               spokenText = scribeData.text;
               sttProvider = 'elevenlabs_scribe';
             }
           } else {
-            console.warn('[ElevenLabs Scribe STT] API returned HTTP', scribeRes.status);
+            const errTxt = await scribeRes.text();
+            console.warn('[ElevenLabs Scribe STT] API returned HTTP', scribeRes.status, errTxt);
           }
         } catch (sttErr) {
           console.warn('[ElevenLabs Scribe STT] Network error:', (sttErr as Error).message);

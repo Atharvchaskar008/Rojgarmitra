@@ -50,7 +50,7 @@ export default function CandidateApplicationsPage() {
       }
     }
     loadApplications();
-  }, [user]);
+  }, [user, preferredLocale]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -100,7 +100,11 @@ export default function CandidateApplicationsPage() {
             {dict.nav.applications}
           </h1>
           <p className="text-sm text-ink-secondary mt-1 font-medium">
-            आपण पाठवलेल्या नोकरी अर्जांची सद्यस्थिती (Application Status Tracker)
+            {preferredLocale === 'mr'
+              ? 'आपण पाठवलेल्या नोकरी अर्जांची सद्यस्थिती (Application Status Tracker)'
+              : preferredLocale === 'hi'
+              ? 'आपके द्वारा भेजे गए नौकरी आवेदनों की स्थिति (Application Status Tracker)'
+              : 'Real-time status tracker for your submitted job applications'}
           </p>
         </div>
         <Link

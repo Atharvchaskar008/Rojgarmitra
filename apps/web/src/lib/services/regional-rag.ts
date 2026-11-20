@@ -129,6 +129,103 @@ const INITIAL_REGIONAL_EVIDENCE: EvidenceDocument[] = [
     confidence: 'high',
     retrievedAt: '2026-11-19T06:00:00.000Z',
   },
+  {
+    id: 'ev_msme_tc_nagpur',
+    evidenceType: 'training_center',
+    title: 'MSME Technology Centre Nagpur (Indo-German Tool Room - IGTR)',
+    sourceUrl: 'https://msmetcnagpur.org',
+    content: 'Autonomous MSME Ministry institution located at Plot P-142, Hingna MIDC, Nagpur 440028. Provides advanced non-ITI technical training in CNC Machining, CAD/CAM, Master Certificate in Tool Design, Industrial Automation (PLC/SCADA), and Robotics with direct industry placement assistance.',
+    tradeTags: ['fitter_turner', 'welder', 'electrician', 'technician'],
+    skillTags: ['cnc_operation', 'lathe_operation', 'precision_measurement', 'industrial_panel'],
+    geographicMetadata: {
+      district: 'Nagpur',
+      taluka: 'Hingna',
+      areaOrMidc: 'Hingna MIDC',
+    },
+    verificationStatus: 'verified',
+    confidence: 'high',
+    retrievedAt: '2026-11-19T06:00:00.000Z',
+  },
+  {
+    id: 'ev_midc_apprenticeship',
+    evidenceType: 'vocational_course',
+    title: 'MIDC Dual Apprenticeship Program (Apprentices Act 1961)',
+    sourceUrl: 'https://www.apprenticeshipindia.gov.in',
+    content: 'On-the-job industrial apprenticeship program across Butibori & Hingna MIDC factories (including Mahindra, Solar Industries, CEAT, Morarjee). Unemployed youth and fresh ITI/10th/12th pass outs receive monthly government stipends (₹8,500 - ₹12,000/month), direct hands-on machine experience, and National Apprenticeship Certificate (NAC).',
+    tradeTags: ['welder', 'fitter_turner', 'electrician', 'mechanic', 'operator'],
+    skillTags: ['arc_welding', 'mig_welding', 'lathe_operation', 'industrial_panel', 'house_wiring'],
+    geographicMetadata: {
+      district: 'Nagpur',
+      taluka: 'Butibori',
+      areaOrMidc: 'Butibori & Hingna MIDC',
+    },
+    verificationStatus: 'verified',
+    confidence: 'high',
+    retrievedAt: '2026-11-19T06:00:00.000Z',
+  },
+  {
+    id: 'ev_polytechnic_nagpur',
+    evidenceType: 'training_center',
+    title: 'Government Polytechnic Nagpur (Community Development CDTP)',
+    sourceUrl: 'https://www.gpnagpur.ac.in',
+    content: 'Autonomous government institution in Sadar, Nagpur 440001 offering polytechnic engineering diplomas and non-formal Community Development Through Polytechnics (CDTP) short-term vocational courses in electrical maintenance, automotive technician, and fabrication.',
+    tradeTags: ['electrician', 'mechanic', 'fitter_turner', 'welder'],
+    skillTags: ['house_wiring', 'motor_rewinding', 'diesel_engine_repair'],
+    geographicMetadata: {
+      district: 'Nagpur',
+      taluka: 'Nagpur Urban',
+    },
+    verificationStatus: 'verified',
+    confidence: 'high',
+    retrievedAt: '2026-11-19T06:00:00.000Z',
+  },
+  {
+    id: 'ev_pmkvy_nagpur',
+    evidenceType: 'government_scheme',
+    title: 'Pradhan Mantri Kaushal Vikas Yojana (PMKVY 4.0 / NSDC)',
+    sourceUrl: 'https://www.pmkvyofficial.org',
+    content: 'Free government skill training with zero tuition fees, certified under National Skill Development Corporation (NSDC). Offers short-term 3 to 6-month courses in Solar Rooftop PV installation, CNC turning, and logistics, with government assessment, certificate, and tool-kit allowance.',
+    tradeTags: ['electrician', 'welder', 'fitter_turner', 'logistics_warehouse'],
+    skillTags: ['solar_pv_wiring', 'cnc_operation', 'arc_welding'],
+    geographicMetadata: {
+      district: 'Nagpur',
+    },
+    verificationStatus: 'verified',
+    confidence: 'high',
+    retrievedAt: '2026-11-19T06:00:00.000Z',
+  },
+  {
+    id: 'ev_bharat_skills_dgt',
+    evidenceType: 'vocational_course',
+    title: 'Bharat Skills (DGT NIMI) Free Digital Learning Resources',
+    sourceUrl: 'https://bharatskills.gov.in',
+    content: 'Official digital learning portal offering free downloadable textbooks, question banks, interactive practical e-books, and instructional videos in Marathi and Hindi for Electrician, Fitter, Welder, and Wireman trades.',
+    tradeTags: ['electrician', 'welder', 'fitter_turner', 'mechanic'],
+    skillTags: ['house_wiring', 'industrial_panel', 'arc_welding', 'mig_welding', 'lathe_operation'],
+    geographicMetadata: {
+      district: 'Nagpur',
+    },
+    verificationStatus: 'verified',
+    confidence: 'high',
+    retrievedAt: '2026-11-19T06:00:00.000Z',
+  },
+  {
+    id: 'ev_rojgarmitra_platform',
+    evidenceType: 'government_scheme',
+    title: 'RojgarMitra Vidarbha Platform Navigation & Features',
+    sourceUrl: 'https://rojgarmitra-vidarbha.firebaseapp.com',
+    content: 'RojgarMitra is a localized employment and vocational platform for Nagpur and Vidarbha. Features: 1. Jobs Feed (/candidate): Browse and 1-click apply to real verified vacancies in Butibori, Hingna, Umred MIDC. 2. Profile (/candidate/onboarding): Fill in free-form words or speak in Marathi/Hindi to analyze skills. 3. Career Plan (/candidate/career): 3-year grounded roadmap with free YouTube and Bharat Skills resources. 4. Upskilling (/candidate/upskilling): Directory of DVET ITIs, MSME Tool Room, MIDC Apprenticeships, and Government Polytechnics. 5. Applications (/candidate/applications): Track employer interview and selection status.',
+    tradeTags: ['electrician', 'welder', 'fitter_turner', 'mechanic', 'logistics_warehouse'],
+    skillTags: ['house_wiring', 'industrial_panel', 'arc_welding', 'mig_welding', 'cnc_operation'],
+    geographicMetadata: {
+      district: 'Nagpur',
+      taluka: 'Hingna',
+      areaOrMidc: 'Vidarbha',
+    },
+    verificationStatus: 'verified',
+    confidence: 'high',
+    retrievedAt: '2026-11-19T06:00:00.000Z',
+  },
 ];
 
 export class RegionalRagService {
@@ -163,6 +260,7 @@ export class RegionalRagService {
     skills?: string[];
     taluka?: string;
     district?: string;
+    query?: string;
     limit?: number;
   }): Promise<EvidenceDocument[]> {
     const limit = params.limit || 5;
@@ -170,6 +268,10 @@ export class RegionalRagService {
     const targetTaluka = (params.taluka || '').toLowerCase();
     const targetDistrict = (params.district || 'Nagpur').toLowerCase();
     const targetSkills = new Set((params.skills || []).map((s) => s.toLowerCase()));
+    const queryTokens = (params.query || '')
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 2);
 
     // Try fetching latest evidence from Firestore first so allDocs includes external additions
     try {
@@ -209,6 +311,16 @@ export class RegionalRagService {
       for (const skill of doc.skillTags) {
         if (targetSkills.has(skill.toLowerCase())) {
           score += 20;
+        }
+      }
+
+      // Query token overlap against title and content
+      if (queryTokens.length > 0) {
+        const titleLower = doc.title.toLowerCase();
+        const contentLower = doc.content.toLowerCase();
+        for (const token of queryTokens) {
+          if (titleLower.includes(token)) score += 15;
+          if (contentLower.includes(token)) score += 8;
         }
       }
 
@@ -252,6 +364,8 @@ export class RegionalRagService {
       skills?: string[];
       taluka?: string;
       district?: string;
+      currentPath?: string;
+      userRole?: string;
     },
     locale: SupportedLocale = 'mr'
   ): Promise<RagResponse> {
@@ -268,6 +382,7 @@ export class RegionalRagService {
       skills: candidateContext.skills,
       taluka: candidateContext.taluka,
       district: candidateContext.district,
+      query: sanitizedQuestion,
       limit: 4,
     });
 
@@ -285,23 +400,31 @@ export class RegionalRagService {
           .map((doc, idx) => `[DOC-${idx + 1}] Title: ${doc.title}\nURL: ${doc.sourceUrl}\nContent: ${doc.content}`)
           .join('\n\n');
 
-        const prompt = `You are the RojgarMitra regional AI employment & vocational advisor for Maharashtra candidates.
+        const prompt = `You are "Mitra" (मित्र), the intelligent, friendly JARVIS-like AI career and employment companion for Maharashtra youth on the RojgarMitra Vidarbha platform.
 
 Candidate Query: "${sanitizedQuestion}"
 Preferred Language: "${locale}" (mr = Marathi, hi = Hindi, en = English)
+Active Page in App: "${candidateContext.currentPath || '/'}"
+User Role: "${candidateContext.userRole || 'candidate'}"
+Candidate Trade/Location: "${candidateContext.trade || 'general'} in ${candidateContext.taluka || 'Vidarbha'}, ${candidateContext.district || 'Nagpur'}"
 
-STRICT EVIDENCE GROUNDING RULES:
-1. Base your answer ONLY on the retrieved official evidence provided below.
-2. Cite the source document by name or URL (e.g. admission.dvet.gov.in, mahajobs.maharashtra.gov.in).
-3. Do NOT invent fake exam fees or guaranteed salaries.
-4. Keep the tone helpful, clear, and encouraging in "${locale}".
+STRICT GUIDELINES:
+1. Speak naturally as a supportive, knowledgeable mentor ("मी मित्र बोलतोय...").
+2. Base factual claims on the official evidence provided below. When discussing training, highlight that options include not just ITI, but also MIDC Factory Apprenticeships (with monthly stipend under Apprentices Act 1961), MSME Technology Center (Indo-German Tool Room) Hingna, Government Polytechnics, PMKVY 4.0, and free Bharat Skills digital textbooks.
+3. If the user asks about using the website or finding jobs, guide them clearly:
+   - Browse & 1-click apply to jobs at /candidate
+   - Complete skill profile at /candidate/onboarding
+   - View 3-year career development roadmap at /candidate/career
+   - View technical institutions & apprenticeships at /candidate/upskilling
+   - Track application status at /candidate/applications
+4. Always answer in "${locale}". Keep the answer punchy, spoken-friendly, conversational, and uplifting.
 
 RETRIEVED EVIDENCE:
 ${evidenceContextText}
 
 Respond with a JSON object:
 {
-  "answer": "your grounded answer here"
+  "answer": "your conversational, grounded answer here"
 }`;
 
         const aiResult = await geminiClient.generateStructuredJson<{ answer: string }>(prompt);

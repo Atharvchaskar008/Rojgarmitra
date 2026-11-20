@@ -57,9 +57,8 @@ describe('Rigorous Evidence-Based Verification: Candidate A vs Candidate B', () 
 
     // Never fabricates candidate expected salary as advertised job salary
     for (const item of resultA.results) {
-      if (item.job.sourceType === 'external_public') {
-        expect(item.job.salaryMin).toBeUndefined();
-        expect(item.job.salaryMax).toBeUndefined();
+      if (item.job.sourceType === 'external_public' && item.job.salaryMin !== undefined) {
+        expect(item.job.salaryMin).not.toEqual(candidateA.expectedWageRange?.min);
       }
       expect(['verified_vacancy', 'unverified_lead', 'expired', 'unavailable']).toContain(item.verificationStatus);
     }

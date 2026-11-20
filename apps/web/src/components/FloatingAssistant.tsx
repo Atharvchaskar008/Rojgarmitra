@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary, SupportedLocale } from '@rojgarmitra/i18n';
 import { MitraCharacter } from './character/MitraCharacter';
@@ -24,7 +25,8 @@ interface ChatMessage {
 }
 
 export function FloatingAssistant() {
-  const { preferredLocale, getIdToken } = useAuth();
+  const pathname = usePathname();
+  const { preferredLocale, user, userRole, getIdToken } = useAuth();
   const dict = getDictionary(preferredLocale);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -35,17 +37,26 @@ export function FloatingAssistant() {
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('male');
+  const [jarvisMode, setJarvisMode] = useState<boolean>(false);
+  const [statusText, setStatusText] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const jarvisModeRef = useRef<boolean>(false);
 
-  // Initialize welcome message when locale changes or on first mount
+  // Keep jarvisModeRef in sync
+  useEffect(() => {
+    jarvisModeRef.current = jarvisMode;
+  }, [jarvisMode]);
+
+  // Clean localized greetings
   useEffect(() => {
     const welcomeTexts: Record<SupportedLocale, string> = {
-      mr: 'नमस्कार! मी मित्र — आपला रोजगार सल्लागार. स्थानिक नोकऱ्या, वेतन, किंवा शासकीय ITI कोर्सेसबद्दल बोला किंवा विचारा.',
-      hi: 'नमस्ते! मैं मित्र — आपका रोजगार सलाहकार। स्थानीय नौकरियों, वेतन, या सरकारी ITI कोर्सेस के बारे में पूछें या बोलें।',
-      en: 'Hello! I am Mitra — your career advisor. Ask or speak to me about local verified jobs, wages, or ITI courses.',
+      mr: 'नमस्कार! मी मित्र — आपला AI व्हॉइस मार्गदर्शक. विदर्भातील थेट नोकऱ्या, एमआयडीसी अप्रेंटिसशिप किंवा शासकीय कोर्सेसबद्दल मोकळेपणाने बोला किंवा विचारा.',
+      hi: 'नमस्ते! मैं मित्र — आपका AI वॉयस साथी। विदर्भ की सीधी नौकरियां, MIDC अप्रेंटिसशिप या सरकारी कोर्सेस के बारे में सीधे बोलकर या लिखकर पूछें।',
+      en: 'Hello! I am Mitra — your regional AI voice companion. Ask or speak freely about verified Vidarbha jobs, MIDC apprenticeships, or vocational courses.',
     };
 
     setMessages([
@@ -62,84 +73,183 @@ export function FloatingAssistant() {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, loading]);
 
-  // Initialize Speech Recognition cleanly
+  // Stop recording or audio when closed
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        try {
-          const recognition = new SpeechRecognition();
-          recognition.continuous = false;
-          recognition.interimResults = false;
-          recognition.lang =
-            preferredLocale === 'mr' ? 'mr-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
-
-          recognition.onresult = (event: any) => {
-            const transcript = event.results?.[0]?.[0]?.transcript;
-            if (transcript) {
-              setInput(transcript);
-              handleSend(transcript);
-            }
-            setIsListening(false);
-            setVoiceNotice(null);
-          };
-
-          recognition.onerror = (err: any) => {
-            console.warn('Speech recognition error event:', err.error);
-            setIsListening(false);
-            if (err.error === 'not-allowed') {
-              setVoiceNotice(
-                preferredLocale === 'mr'
-                  ? 'मायक्रोफोन परवानगी नाकारली आहे. कृपया परवानगी द्या किंवा टाइप करा.'
-                  : 'Microphone permission denied. Please enable mic or type below.'
-              );
-            }
-          };
-
-          recognition.onend = () => {
-            setIsListening(false);
-          };
-
-          recognitionRef.current = recognition;
-        } catch (e) {
-          console.warn('Speech recognition setup failed:', e);
-        }
+    if (!isOpen) {
+      stopRecording();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
       }
+      setSpeakingId(null);
     }
-  }, [preferredLocale]);
+  }, [isOpen]);
 
-  const toggleListening = () => {
+  /**
+   * Start native browser audio recording via MediaRecorder for ElevenLabs Scribe STT
+   */
+  const startRecording = async () => {
     setVoiceNotice(null);
-    if (!recognitionRef.current) {
-      setVoiceNotice(
-        preferredLocale === 'mr'
-          ? 'आपल्या ब्राउझरमध्ये थेट व्हॉइस रेकॉर्डर उपलब्ध नाही. कृपया टाइप करा.'
-          : 'Live voice input is not supported in this browser. Please type below.'
-      );
-      return;
+    // Stop any ongoing speech playback
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
     }
+    setSpeakingId(null);
 
-    if (isListening) {
-      try {
-        recognitionRef.current.stop();
-      } catch { }
-      setIsListening(false);
-    } else {
-      try {
-        recognitionRef.current.lang =
-          preferredLocale === 'mr' ? 'mr-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (err: any) {
-        console.warn('Speech recognition start error:', err);
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('MEDIA_NOT_SUPPORTED');
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      audioChunksRef.current = [];
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+        ? 'audio/mp4'
+        : '';
+
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        // Stop all audio tracks
+        stream.getTracks().forEach((track) => track.stop());
         setIsListening(false);
+
+        if (audioChunksRef.current.length === 0) {
+          return;
+        }
+
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || 'audio/webm',
+        });
+
+        await processAudioWithElevenLabsScribe(audioBlob);
+      };
+
+      recorder.start(250); // Slice chunks every 250ms
+      setIsListening(true);
+      setStatusText(
+        preferredLocale === 'mr'
+          ? 'मी ऐकत आहे... (ElevenLabs Scribe)'
+          : preferredLocale === 'hi'
+          ? 'मैं सुन रहा हूँ... (ElevenLabs Scribe)'
+          : 'Listening... (ElevenLabs Scribe STT)'
+      );
+    } catch (err: any) {
+      console.warn('Microphone start error:', err);
+      setIsListening(false);
+      setStatusText(null);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setVoiceNotice(
+          preferredLocale === 'mr'
+            ? 'मायक्रोफोन परवानगी नाकारली आहे. कृपया ब्राउझरमध्ये परवानगी द्या.'
+            : preferredLocale === 'hi'
+            ? 'माइक्रोफ़ोन अनुमति अस्वीकृत। कृपया ब्राउज़र सेटिंग्स में अनुमति दें।'
+            : 'Microphone permission denied. Please allow microphone in browser.'
+        );
+      } else {
+        setVoiceNotice(
+          preferredLocale === 'mr'
+            ? 'व्हॉइस रेकॉर्डिंग सुरू होऊ शकले नाही. कृपया टाइप करा.'
+            : 'Could not start voice recording. Please type below.'
+        );
       }
     }
   };
 
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (e) {
+        console.warn('Error stopping MediaRecorder:', e);
+      }
+    }
+    setIsListening(false);
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  /**
+   * Sends audio blob directly to /api/v1/voice/transcribe (ElevenLabs Scribe STT)
+   */
+  const processAudioWithElevenLabsScribe = async (audioBlob: Blob) => {
+    setStatusText(
+      preferredLocale === 'mr'
+        ? 'आवाजाचे रूपांतर होत आहे...'
+        : preferredLocale === 'hi'
+        ? 'आवाज से टेक्स्ट तैयार हो रहा है...'
+        : 'Transcribing speech with ElevenLabs Scribe...'
+    );
+
+    try {
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'candidate_voice.webm');
+      formData.append('consent', 'true');
+      formData.append('locale', preferredLocale);
+
+      const token = await getIdToken();
+      const res = await fetch('/api/v1/voice/transcribe', {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (res.ok && json.data && json.data.rawTranscript) {
+        const transcribedText = json.data.rawTranscript.trim();
+        setStatusText(null);
+        if (transcribedText) {
+          setInput(transcribedText);
+          await handleSend(transcribedText);
+        }
+      } else {
+        throw new Error(json.error?.message || 'STT transcription returned empty text');
+      }
+    } catch (err: any) {
+      console.warn('[ElevenLabs Scribe STT error]:', err.message);
+      setStatusText(null);
+      setVoiceNotice(
+        preferredLocale === 'mr'
+          ? 'आवाज स्पष्ट ऐकू आला नाही. कृपया पुन्हा बोला किंवा टाइप करा.'
+          : preferredLocale === 'hi'
+          ? 'आवाज स्पष्ट नहीं सुनाई दी। कृपया दोबारा बोलें या टाइप करें।'
+          : 'Could not detect clear speech. Please speak clearly or type below.'
+      );
+    }
+  };
+
+  /**
+   * Main query submission to /api/v1/agents/ask with full website context
+   */
   const handleSend = async (questionText?: string) => {
     const query = (questionText || input).trim();
     if (!query || loading) return;
@@ -150,18 +260,31 @@ export function FloatingAssistant() {
       text: query,
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
     setVoiceNotice(null);
+    setStatusText(
+      preferredLocale === 'mr'
+        ? 'मित्र उत्तर तयार करत आहे...'
+        : preferredLocale === 'hi'
+        ? 'मित्र उत्तर तैयार कर रहा है...'
+        : 'Mitra is thinking with site context...'
+    );
 
     try {
+      const token = await getIdToken();
       const res = await fetch('/api/v1/agents/ask', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           question: query,
           locale: preferredLocale,
+          currentPath: pathname || '/',
+          userRole: userRole || 'candidate',
         }),
       });
 
@@ -173,29 +296,37 @@ export function FloatingAssistant() {
           text: json.data.answer,
           citations: json.data.citations,
         };
-        setMessages(prev => [...prev, botMsg]);
-        // Auto-play speech answer so candidate can listen immediately
-        speakText(botMsg.id, json.data.answer);
+        setMessages((prev) => [...prev, botMsg]);
+        setStatusText(null);
+
+        // Auto-speak response using ElevenLabs Pro voice
+        await speakText(botMsg.id, json.data.answer);
       } else {
         throw new Error(json.error?.message || 'Failed to fetch answer');
       }
     } catch {
+      setStatusText(null);
       const errorMsg: ChatMessage = {
         id: `bot-err-${Date.now()}`,
         sender: 'assistant',
         text:
           preferredLocale === 'mr'
-            ? 'माफ करा, तांत्रिक अडचणीमुळे उत्तर देता आले नाही. कृपया पुन्हा विचारा.'
-            : 'Sorry, I could not process your query at this moment. Please try again.',
+            ? 'माफ करा, तांत्रिक अडचणीमुळे संपर्क होऊ शकला नाही. कृपया पुन्हा विचारा.'
+            : preferredLocale === 'hi'
+            ? 'क्षमा करें, तकनीकी कारण से उत्तर नहीं मिल सका। कृपया दोबारा पूछें।'
+            : 'Sorry, I could not process your request at this moment. Please try again.',
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Speak text using ElevenLabs Pro Multilingual Voice (/api/v1/voice/speak)
+   */
   const speakText = async (msgId: string, text: string) => {
-    // Stop any ongoing audio immediately
+    // Stop ongoing audio
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -231,32 +362,50 @@ export function FloatingAssistant() {
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         audioRef.current = audio;
-        audio.onended = () => {
+
+        const onAudioEnd = () => {
           setSpeakingId(null);
           audioRef.current = null;
+
+          // JARVIS Continuous Voice Mode: automatically listen again for next turn!
+          if (jarvisModeRef.current) {
+            setTimeout(() => {
+              if (jarvisModeRef.current) {
+                startRecording();
+              }
+            }, 600);
+          }
         };
+
+        audio.onended = onAudioEnd;
         audio.onerror = () => {
           setSpeakingId(null);
           audioRef.current = null;
         };
+
         await audio.play();
       } else {
-        // Fallback to browser SpeechSynthesis with smart Indian voice fallback
+        // Fallback to browser SpeechSynthesis
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(text);
           const voices = window.speechSynthesis.getVoices();
-
-          const matchVoice = voices.find(v =>
-            v.lang.startsWith(preferredLocale === 'mr' ? 'mr' : preferredLocale === 'hi' ? 'hi' : 'en-IN') ||
-            v.lang.startsWith('hi') ||
-            v.name.toLowerCase().includes('india')
+          const matchVoice = voices.find(
+            (v) =>
+              v.lang.startsWith(preferredLocale === 'mr' ? 'mr' : preferredLocale === 'hi' ? 'hi' : 'en-IN') ||
+              v.lang.startsWith('hi')
           );
-          if (matchVoice) {
-            utterance.voice = matchVoice;
-          }
+          if (matchVoice) utterance.voice = matchVoice;
           utterance.lang = preferredLocale === 'mr' ? 'hi-IN' : preferredLocale === 'hi' ? 'hi-IN' : 'en-IN';
           utterance.rate = 0.95;
-          utterance.onend = () => setSpeakingId(null);
+
+          utterance.onend = () => {
+            setSpeakingId(null);
+            if (jarvisModeRef.current) {
+              setTimeout(() => {
+                if (jarvisModeRef.current) startRecording();
+              }, 600);
+            }
+          };
           utterance.onerror = () => setSpeakingId(null);
           window.speechSynthesis.speak(utterance);
         } else {
@@ -268,22 +417,24 @@ export function FloatingAssistant() {
     }
   };
 
-  // Plain-language Tier 2/3 queries
   const sampleQuestions: Record<SupportedLocale, string[]> = {
     mr: [
-      'बुटीबोरी MIDC मध्ये वेल्डरच्या नोकऱ्या आहेत का?',
-      'शासकीय ITI मध्ये मोफत प्रवेश कसा घ्यावा?',
-      'कारखान्याशी थेट फोनवर कसे बोलावे?',
+      'बुटीबोरी MIDC मध्ये वेल्डरच्या नोकऱ्या कुठे आहेत?',
+      'शासकीय ITI व्यतिरिक्त काय पर्याय आहेत?',
+      'एमआयडीसी प्रत्यक्ष अप्रेंटिसशिप कशी मिळेल?',
+      'माझ्या कौशल्यांचा करिअर प्लॅन कसा पाहावा?',
     ],
     hi: [
-      'बुटीबोरी MIDC में वेल्डर की नौकरियां हैं क्या?',
-      'सरकारी ITI में निशुल्क एडमिशन कैसे लें?',
-      'फैक्टरी से सीधे फोन पर बात कैसे करें?',
+      'बुटीबोरी MIDC में वेल्डर की नौकरियां कहाँ हैं?',
+      'सरकारी ITI के अलावा अन्य क्या विकल्प हैं?',
+      'MIDC ऑन-द-जॉब अप्रेंटिसशिप कैसे मिलेगी?',
+      'मेरा स्किल आधारित करियर प्लान कैसे देखें?',
     ],
     en: [
-      'Are there welder jobs in Butibori MIDC?',
-      'How to apply for free government ITI courses?',
-      'How can I call the employer plant directly?',
+      'Where are the verified jobs in Butibori MIDC?',
+      'What upskilling options exist besides ITI?',
+      'How to get an MIDC factory apprenticeship?',
+      'How does my 3-year career roadmap work?',
     ],
   };
 
@@ -291,7 +442,7 @@ export function FloatingAssistant() {
 
   return (
     <>
-      {/* Mobile Backdrop Overlay when Assistant is Open */}
+      {/* Mobile Backdrop Overlay */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
@@ -300,30 +451,32 @@ export function FloatingAssistant() {
         />
       )}
 
-      {/* Conversational Text Box (Cleanly docked on mobile and desktop) */}
+      {/* Main Assistant Dialog */}
       {isOpen && (
-        <div className="fixed inset-x-3 bottom-16 sm:inset-auto sm:right-22 sm:bottom-6 z-50 w-auto sm:w-[380px] h-[480px] max-h-[80vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed inset-x-3 bottom-16 sm:inset-auto sm:right-22 sm:bottom-6 z-50 w-auto sm:w-[410px] h-[520px] max-h-[85vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           {/* Header */}
           <div className="p-3 bg-ink text-white flex items-center justify-between border-b-2 border-ink">
             <div className="flex items-center gap-2.5">
-              <MitraCharacter state={characterState} size={32} />
+              <MitraCharacter state={characterState} size={34} />
               <div>
                 <h3 className="font-extrabold text-xs tracking-tight flex items-center gap-1.5">
-                  मित्र — व्हॉइस मार्गदर्शक
-                  <span className="text-[9px] bg-verified/20 text-verified-border px-1.5 py-0.5 rounded font-mono font-bold">
-                    ONLINE
+                  <span>मित्र — AI व्हॉइस साथी</span>
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-1.5 py-0.2 rounded font-mono font-bold">
+                    PRO LIVE
                   </span>
                 </h3>
                 <p className="text-[10px] text-steel/80">
                   {preferredLocale === 'mr'
-                    ? 'थेट बोला किंवा ऐका'
+                    ? 'ElevenLabs Pro व्हॉइस + थेट संवाद'
                     : preferredLocale === 'hi'
-                      ? 'सीधे बोलें या सुनें'
-                      : 'Speak naturally or listen'}
+                    ? 'ElevenLabs Pro वॉयस + सीधा संवाद'
+                    : 'ElevenLabs Pro Voice + Full Context'}
                 </p>
               </div>
             </div>
+
             <div className="flex items-center gap-1.5">
+              {/* Voice Gender Switcher */}
               <button
                 type="button"
                 onClick={() => setVoiceGender(voiceGender === 'male' ? 'female' : 'male')}
@@ -332,6 +485,8 @@ export function FloatingAssistant() {
               >
                 <span>{voiceGender === 'male' ? '👨 पुरुष' : '👩 स्त्री'}</span>
               </button>
+
+              {/* Close Button */}
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition text-xs font-bold"
@@ -342,8 +497,39 @@ export function FloatingAssistant() {
             </div>
           </div>
 
+          {/* JARVIS Hands-Free Voice Mode Banner */}
+          <div className="bg-canvas border-b border-steel/60 px-3 py-1.5 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${jarvisMode ? 'bg-primary animate-ping' : 'bg-steel'}`} />
+              <span className="text-[11px] font-bold text-ink">
+                {preferredLocale === 'mr'
+                  ? 'सतत व्हॉइस संवाद (JARVIS Mode)'
+                  : preferredLocale === 'hi'
+                  ? 'सतत वॉयस मोड (JARVIS Mode)'
+                  : 'Continuous Voice (JARVIS Mode)'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const nextState = !jarvisMode;
+                setJarvisMode(nextState);
+                if (nextState && !isListening) {
+                  startRecording();
+                }
+              }}
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-black transition border ${
+                jarvisMode
+                  ? 'bg-primary text-white border-primary shadow-sm'
+                  : 'bg-white text-ink-secondary border-steel hover:text-ink'
+              }`}
+            >
+              {jarvisMode ? 'ON ✓' : 'OFF'}
+            </button>
+          </div>
+
           {/* Quick Prompts Bar */}
-          <div className="bg-canvas/80 px-2.5 py-1.5 border-b border-steel/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+          <div className="bg-canvas/60 px-2.5 py-1.5 border-b border-steel/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
             {sampleQuestions[preferredLocale].map((q, idx) => (
               <button
                 key={idx}
@@ -355,27 +541,37 @@ export function FloatingAssistant() {
             ))}
           </div>
 
-          {/* Voice Notice (Inline Permission/Warning) */}
+          {/* Inline Permission / Warning Notice */}
           {voiceNotice && (
             <div className="bg-alert-bg border-b border-alert-border text-alert px-3 py-1.5 text-[11px] font-bold flex items-center justify-between">
               <span>{voiceNotice}</span>
-              <button onClick={() => setVoiceNotice(null)} className="text-alert font-black">✕</button>
+              <button onClick={() => setVoiceNotice(null)} className="text-alert font-black">
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Active Status Indicator */}
+          {statusText && (
+            <div className="bg-steel-soft/80 border-b border-steel px-3 py-1 text-[11px] font-bold text-primary flex items-center gap-2 animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span>{statusText}</span>
             </div>
           )}
 
           {/* Message List */}
           <div className="flex-1 p-3 overflow-y-auto space-y-2.5 bg-canvas/30 text-xs">
-            {messages.map(msg => (
+            {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'
-                  }`}
+                className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[88%] rounded-2xl p-2.5 border ${msg.sender === 'user'
-                    ? 'bg-primary text-white border-primary-hover shadow-solid-sm'
-                    : 'bg-white text-ink border-ink/20 shadow-solid-sm'
-                    }`}
+                  className={`max-w-[88%] rounded-2xl p-2.5 border ${
+                    msg.sender === 'user'
+                      ? 'bg-primary text-white border-primary-hover shadow-solid-sm'
+                      : 'bg-white text-ink border-ink/20 shadow-solid-sm'
+                  }`}
                 >
                   <p className="leading-relaxed font-semibold whitespace-pre-wrap">{msg.text}</p>
 
@@ -384,10 +580,11 @@ export function FloatingAssistant() {
                     <div className="mt-2 pt-1.5 border-t border-steel/30 flex items-center justify-between text-[11px]">
                       <button
                         onClick={() => speakText(msg.id, msg.text)}
-                        className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded transition ${speakingId === msg.id
-                          ? 'bg-alert-bg text-alert border border-alert-border'
-                          : 'text-primary hover:bg-steel-soft'
-                          }`}
+                        className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded transition ${
+                          speakingId === msg.id
+                            ? 'bg-alert-bg text-alert border border-alert-border animate-pulse'
+                            : 'text-primary hover:bg-steel-soft'
+                        }`}
                       >
                         <IconVolume className="w-3.5 h-3.5" />
                         <span>{speakingId === msg.id ? 'बोलत आहे...' : 'ऐका (Listen)'}</span>
@@ -408,22 +605,29 @@ export function FloatingAssistant() {
             {loading && (
               <div className="flex items-center gap-2 text-ink-secondary text-xs p-2 font-bold">
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                <span>मित्र माहिती तपासत आहे...</span>
+                <span>
+                  {preferredLocale === 'mr'
+                    ? 'मित्र माहिती तपासत आहे...'
+                    : preferredLocale === 'hi'
+                    ? 'मित्र जानकारी जांच रहा है...'
+                    : 'Mitra is verifying information...'}
+                </span>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Footer: Big Tactile Microphone for Accessibility */}
+          {/* Input Footer */}
           <div className="p-2.5 bg-white border-t-2 border-ink flex items-center gap-2">
             <button
               type="button"
               onClick={toggleListening}
-              className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center shrink-0 ${isListening
-                ? 'bg-alert text-white animate-pulse'
-                : 'bg-primary hover:bg-primary-hover text-white'
-                }`}
-              title="Speak Question"
+              className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center shrink-0 ${
+                isListening
+                  ? 'bg-alert text-white animate-pulse ring-4 ring-alert/30'
+                  : 'bg-primary hover:bg-primary-hover text-white'
+              }`}
+              title={isListening ? 'Stop Recording' : 'Speak via ElevenLabs Scribe STT'}
               aria-label="Voice Input"
             >
               <IconMic className="w-4 h-4" />
@@ -432,14 +636,14 @@ export function FloatingAssistant() {
             <input
               type="text"
               value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder={
                 preferredLocale === 'mr'
                   ? 'येथे प्रश्न विचारा किंवा बोला...'
                   : preferredLocale === 'hi'
-                    ? 'यहाँ प्रश्न पूछें या बोलें...'
-                    : 'Ask question or speak here...'
+                  ? 'यहाँ प्रश्न पूछें या बोलें...'
+                  : 'Ask question or speak here...'
               }
               className="flex-1 bg-canvas border border-ink/20 rounded-full px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:border-ink"
             />
@@ -461,7 +665,11 @@ export function FloatingAssistant() {
       <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-center gap-1">
         {!isOpen && (
           <div className="hidden sm:block bg-white border-2 border-ink px-2.5 py-0.5 rounded-full text-[10px] font-black text-ink shadow-solid-sm whitespace-nowrap animate-bounce">
-            मित्र शी बोला (Speak)
+            {preferredLocale === 'mr'
+              ? 'मित्राशी बोला (Speak)'
+              : preferredLocale === 'hi'
+              ? 'मित्र से बोलें (Speak)'
+              : 'Speak with Mitra'}
           </div>
         )}
         <MitraCharacter

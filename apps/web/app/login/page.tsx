@@ -263,7 +263,13 @@ export default function LoginPage() {
             {/* Header */}
             <div className="mb-6">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-steel-soft border border-steel text-steel-deep text-[11px] font-bold mb-2">
-                <span>विदर्भ व ग्रामीण महाराष्ट्रासाठी थेट मंच</span>
+                <span>
+                  {preferredLocale === 'mr'
+                    ? 'विदर्भ व ग्रामीण महाराष्ट्रासाठी थेट मंच'
+                    : preferredLocale === 'hi'
+                      ? 'विदर्भ और ग्रामीण क्षेत्र के लिए सीधा मंच'
+                      : 'Direct Employment Platform for Vidarbha'}
+                </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
                 {preferredLocale === 'mr' ? 'प्रवेश व थेट नोंदणी' : preferredLocale === 'hi' ? 'प्रवेश एवं सीधी भर्ती' : 'Sign In & Onboarding'}
@@ -286,11 +292,10 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedRole('candidate')}
-                  className={`py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${
-                    selectedRole === 'candidate'
-                      ? 'bg-ink text-white shadow-solid-sm'
-                      : 'text-ink-secondary hover:text-ink'
-                  }`}
+                  className={`py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${selectedRole === 'candidate'
+                    ? 'bg-ink text-white shadow-solid-sm'
+                    : 'text-ink-secondary hover:text-ink'
+                    }`}
                 >
                   <IconUser className="w-3.5 h-3.5" />
                   <span>{preferredLocale === 'mr' ? 'उमेदवार (Jobseeker)' : preferredLocale === 'hi' ? 'उम्मीदवार' : 'Candidate'}</span>
@@ -298,11 +303,10 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedRole('employer')}
-                  className={`py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${
-                    selectedRole === 'employer'
-                      ? 'bg-ink text-white shadow-solid-sm'
-                      : 'text-ink-secondary hover:text-ink'
-                  }`}
+                  className={`py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${selectedRole === 'employer'
+                    ? 'bg-ink text-white shadow-solid-sm'
+                    : 'text-ink-secondary hover:text-ink'
+                    }`}
                 >
                   <IconBuilding className="w-3.5 h-3.5" />
                   <span>{preferredLocale === 'mr' ? 'नियोक्ता (Employer)' : preferredLocale === 'hi' ? 'नियोक्ता' : 'Employer'}</span>
@@ -322,7 +326,11 @@ export default function LoginPage() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  ⚡ परीक्षक व डेमो मूल्यांकन (1-Click Demo Evaluation)
+                  {preferredLocale === 'mr'
+                    ? '⚡ परीक्षक व डेमो मूल्यांकन (1-Click Evaluation)'
+                    : preferredLocale === 'hi'
+                      ? '⚡ परीक्षक व डेमो मूल्यांकन (1-Click Evaluation)'
+                      : '⚡ 1-Click Evaluation Demo Sign-In'}
                 </span>
                 <span className="text-[10px] bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full font-bold">
                   No OTP Needed
@@ -335,7 +343,9 @@ export default function LoginPage() {
                   disabled={loading}
                   className="py-2 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 border-2 border-emerald-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col"
                 >
-                  <span className="text-emerald-700 font-semibold text-[10px]">उमेदवार लॉगिन</span>
+                  <span className="text-emerald-700 font-semibold text-[10px]">
+                    {preferredLocale === 'mr' ? 'उमेदवार लॉगिन' : preferredLocale === 'hi' ? 'उम्मीदवार लॉगिन' : 'Candidate Demo'}
+                  </span>
                   <span className="truncate">👤 रमेश पाटील (ITI)</span>
                 </button>
                 <button
@@ -344,7 +354,9 @@ export default function LoginPage() {
                   disabled={loading}
                   className="py-2 px-2.5 rounded-xl bg-white hover:bg-blue-50 text-blue-900 border-2 border-blue-600 font-black text-[11px] sm:text-xs text-left shadow-sm hover:shadow transition flex flex-col"
                 >
-                  <span className="text-blue-700 font-semibold text-[10px]">नियोक्ता लॉगिन</span>
+                  <span className="text-blue-700 font-semibold text-[10px]">
+                    {preferredLocale === 'mr' ? 'नियोक्ता लॉगिन' : preferredLocale === 'hi' ? 'नियोक्ता लॉगिन' : 'Employer Demo'}
+                  </span>
                   <span className="truncate">🏢 महिंद्रा MIDC HR</span>
                 </button>
               </div>
@@ -363,7 +375,7 @@ export default function LoginPage() {
                   : 'text-ink-secondary hover:text-ink'
                   }`}
               >
-                Google / फोन OTP
+                {preferredLocale === 'mr' ? 'Google / फोन OTP' : preferredLocale === 'hi' ? 'Google / फोन OTP' : 'Google / Phone OTP'}
               </button>
               <button
                 type="button"
@@ -376,7 +388,7 @@ export default function LoginPage() {
                   : 'text-ink-secondary hover:text-ink'
                   }`}
               >
-                ईमेल व पासवर्ड
+                {preferredLocale === 'mr' ? 'ईमेल व पासवर्ड' : preferredLocale === 'hi' ? 'ईमेल व पासवर्ड' : 'Email & Password'}
               </button>
             </div>
 
@@ -533,22 +545,20 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setEmailAction('signin')}
-                        className={`flex-1 py-1.5 rounded-lg transition ${
-                          emailAction === 'signin'
-                            ? 'bg-ink text-white shadow-solid-sm'
-                            : 'text-ink-secondary hover:text-ink'
-                        }`}
+                        className={`flex-1 py-1.5 rounded-lg transition ${emailAction === 'signin'
+                          ? 'bg-ink text-white shadow-solid-sm'
+                          : 'text-ink-secondary hover:text-ink'
+                          }`}
                       >
                         {preferredLocale === 'mr' ? 'प्रवेश करा (Sign In)' : 'Sign In'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setEmailAction('register')}
-                        className={`flex-1 py-1.5 rounded-lg transition ${
-                          emailAction === 'register'
-                            ? 'bg-ink text-white shadow-solid-sm'
-                            : 'text-ink-secondary hover:text-ink'
-                        }`}
+                        className={`flex-1 py-1.5 rounded-lg transition ${emailAction === 'register'
+                          ? 'bg-ink text-white shadow-solid-sm'
+                          : 'text-ink-secondary hover:text-ink'
+                          }`}
                       >
                         {preferredLocale === 'mr' ? 'नवीन खाते (Register)' : 'Register'}
                       </button>
@@ -610,8 +620,8 @@ export default function LoginPage() {
                       {loading
                         ? dict.common.loading
                         : emailAction === 'register'
-                        ? (preferredLocale === 'mr' ? 'खाते तयार करा व पुढे जा ➔' : 'Create Account ➔')
-                        : `${dict.nav.login} ➔`}
+                          ? (preferredLocale === 'mr' ? 'खाते तयार करा व पुढे जा ➔' : 'Create Account ➔')
+                          : `${dict.nav.login} ➔`}
                     </button>
                   </form>
                 )}
