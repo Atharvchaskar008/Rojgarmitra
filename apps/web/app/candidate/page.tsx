@@ -124,28 +124,32 @@ export default function CandidateJobsFeedPage() {
 
   const filteredJobs = jobs.filter(job => {
     if (selectedTaluka === 'all') return true;
-    return job.taluka?.toLowerCase().includes(selectedTaluka.toLowerCase());
+    return (
+      job.taluka?.toLowerCase().includes(selectedTaluka.toLowerCase()) ||
+      job.district?.toLowerCase().includes(selectedTaluka.toLowerCase()) ||
+      job.areaOrMidc?.toLowerCase().includes(selectedTaluka.toLowerCase())
+    );
   });
 
   return (
-    <main className="max-w-7xl mx-auto py-4">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
       {/* Header Banner - SETTLE Hero Card */}
-      <div className="settle-card-hero p-6 sm:p-8 mb-8">
+      <div className="settle-card-hero p-5 sm:p-8 mb-8">
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
             <IconMapPin className="w-3.5 h-3.5 text-primary" />
             <span>{dict.app.pilot_region}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-ink tracking-tight mb-2">
-            {dict.nav.jobs} <span className="text-ink-secondary text-xl font-bold font-sans">(Opportunities)</span>
+          <h1 className="text-2xl sm:text-4xl font-black text-ink tracking-tight mb-2">
+            {dict.nav.jobs} <span className="text-ink-secondary text-lg sm:text-xl font-bold font-sans">(Opportunities)</span>
           </h1>
-          <p className="text-ink-secondary text-sm sm:text-base mb-6 font-medium">
+          <p className="text-ink-secondary text-xs sm:text-base mb-5 font-medium">
             {dict.app.tagline}
           </p>
           <div className="flex flex-wrap gap-2 text-xs">
             <Link
               href="/candidate/onboarding"
-              className="settle-pill-btn px-4 py-2 text-xs inline-flex items-center gap-1.5"
+              className="settle-pill-btn px-3.5 sm:px-4 py-2 text-xs inline-flex items-center gap-1.5"
             >
               <IconMic className="w-3.5 h-3.5" />
               <span>
@@ -159,14 +163,14 @@ export default function CandidateJobsFeedPage() {
             </Link>
             <Link
               href="/candidate/upskilling"
-              className="settle-pill-chip px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5"
+              className="settle-pill-chip px-3.5 sm:px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5"
             >
               <IconGraduationCap className="w-3.5 h-3.5 text-primary" />
               <span>{dict.nav.upskilling}</span>
             </Link>
             <Link
               href="/candidate/career"
-              className="settle-pill-chip px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5"
+              className="settle-pill-chip px-3.5 sm:px-4 py-2 text-xs font-bold inline-flex items-center gap-1.5"
             >
               <IconCompass className="w-3.5 h-3.5 text-primary" />
               <span>{dict.nav.career}</span>
@@ -203,17 +207,17 @@ export default function CandidateJobsFeedPage() {
       )}
 
       {/* Filter Tabs - SETTLE Pill Group */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 text-xs sm:text-sm">
-        <span className="font-bold text-ink whitespace-nowrap mr-2 uppercase tracking-wider text-xs">
+      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 text-xs sm:text-sm no-scrollbar">
+        <span className="font-bold text-ink whitespace-nowrap mr-2 uppercase tracking-wider text-xs shrink-0">
           {preferredLocale === 'mr' ? 'परिसर / Area:' : preferredLocale === 'hi' ? 'परिसर / Area:' : 'Location / Area:'}
         </span>
-        {['all', 'Butibori', 'Hingna', 'Umred'].map(taluka => (
+        {['all', 'Nagpur', 'Butibori', 'Hingna', 'Umred', 'Wardha'].map(taluka => (
           <button
             key={taluka}
             onClick={() => setSelectedTaluka(taluka)}
-            className={`px-4 py-1.5 rounded-full font-bold whitespace-nowrap transition ${selectedTaluka === taluka
-              ? 'settle-pill-chip-active text-xs'
-              : 'settle-pill-chip text-xs'
+            className={`px-3.5 sm:px-4 py-1.5 rounded-full font-bold whitespace-nowrap transition text-xs shrink-0 ${selectedTaluka === taluka
+              ? 'settle-pill-chip-active'
+              : 'settle-pill-chip'
               }`}
           >
             {taluka === 'all'
@@ -452,12 +456,23 @@ export default function CandidateJobsFeedPage() {
                 <div className="pt-4 border-t border-steel/40">
                   {isExternal ? (
                     <a
-                      href={job.sourceUrl}
+                      href={
+                        job.sourceUrl ||
+                        `https://www.google.com/search?q=${encodeURIComponent(
+                          `${job.title} ${job.employerName || ''} ${job.taluka || 'Nagpur'} vacancy`
+                        )}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-center py-2.5 px-4 settle-pill-btn text-xs bg-ink hover:bg-ink/90 inline-flex items-center justify-center gap-1.5"
+                      className="w-full text-center py-2.5 px-4 settle-pill-btn text-xs bg-ink hover:bg-primary text-white inline-flex items-center justify-center gap-1.5 transition shadow-solid-sm"
                     >
-                      <span>{dict.job.view_original}</span>
+                      <span>
+                        {preferredLocale === 'mr'
+                          ? 'थेट संकेतस्थळावर अर्ज करा'
+                          : preferredLocale === 'hi'
+                          ? 'सीधे मूल पोर्टल पर आवेदन करें'
+                          : 'Apply on Verified Source'}
+                      </span>
                       <IconExternalLink className="w-3.5 h-3.5" />
                     </a>
                   ) : isApplied ? (

@@ -228,15 +228,22 @@ export function Navbar() {
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   href="/login"
-                  className="settle-pill-btn text-xs px-3.5 sm:px-4 py-1.5 font-bold inline-flex items-center gap-1.5 shadow-solid-sm"
+                  className="settle-pill-btn text-xs px-2.5 sm:px-4 py-1.5 font-bold inline-flex items-center gap-1 sm:gap-1.5 shadow-solid-sm"
                 >
                   <IconUser className="w-3.5 h-3.5" />
-                  <span>
+                  <span className="hidden sm:inline">
                     {preferredLocale === 'mr'
                       ? 'प्रवेश / नोंदणी'
                       : preferredLocale === 'hi'
                       ? 'प्रवेश / पंजीकरण'
                       : 'Sign In / Register'}
+                  </span>
+                  <span className="sm:hidden">
+                    {preferredLocale === 'mr'
+                      ? 'प्रवेश'
+                      : preferredLocale === 'hi'
+                      ? 'प्रवेश'
+                      : 'Sign In'}
                   </span>
                 </Link>
               </div>

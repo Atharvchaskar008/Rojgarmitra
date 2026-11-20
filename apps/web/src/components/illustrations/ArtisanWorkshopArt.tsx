@@ -7,7 +7,7 @@ import React from 'react';
  */
 export function ArtisanWorkshopArt({ className = 'w-full h-full' }: { className?: string }) {
   return (
-    <div className={`relative overflow-hidden bg-[#E8F0FA] flex flex-col justify-between p-8 sm:p-12 select-none border-l-2 border-ink ${className}`}>
+    <div className={`relative overflow-hidden bg-[#E8F0FA] flex flex-col justify-between p-6 sm:p-10 select-none border-2 border-ink rounded-2xl shadow-solid ${className}`}>
       {/* Background Decorative Grid / Blueprint lines */}
       <div 
         className="absolute inset-0 opacity-15 pointer-events-none"

@@ -453,7 +453,7 @@ export function FloatingAssistant() {
 
       {/* Main Assistant Dialog */}
       {isOpen && (
-        <div className="fixed inset-x-3 bottom-16 sm:inset-auto sm:right-22 sm:bottom-6 z-50 w-auto sm:w-[410px] h-[520px] max-h-[85vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed inset-x-2.5 bottom-16 sm:inset-auto sm:right-22 sm:bottom-6 z-50 w-auto sm:w-[410px] h-[520px] max-h-[82vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           {/* Header */}
           <div className="p-3 bg-ink text-white flex items-center justify-between border-b-2 border-ink">
             <div className="flex items-center gap-2.5">

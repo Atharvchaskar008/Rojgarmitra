@@ -92,7 +92,7 @@ export default function CandidateApplicationsPage() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto py-4">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
       {/* Header Banner - SETTLE Hero Card */}
       <div className="settle-card-hero p-6 sm:p-8 mb-8 flex items-center justify-between">
         <div>

@@ -16,13 +16,14 @@
 **RojgarMitra** is a localized, bilingual (Marathi, Hindi & English) skill-to-employment matching platform engineered specifically for youth and informal/blue-collar workers in Tier-2/3 industrial regions and surrounding rural districts (grounded in the **Nagpur & Vidarbha Industrial Belt**: Hingna MIDC, Butibori MIDC, Kalmeshwar, Umred, and Wardha).
 
 It bridges the severe informational and literacy divide between rural job seekers, Industrial Training Institutes (ITIs), micro-enterprises, and manufacturing hubs through:
-1. **Zero-Hallucination Deterministic Matching Engine:** Mathematical skill & proximity scoring (0–100%) that never invents fake openings.
-2. **Live Web Crawling & Anti-Hallucination Vacancy Verification:** Real-time web discovery paired with rigorous evidence checks.
-3. **Google Maps Places API Integration:** Direct navigation from rural villages to physical industrial factory gates.
-4. **Mitra Voice Assistant (Speech-to-Text & Text-to-Speech):** Complete voice accessibility for low-literacy candidates.
-5. **Multi-Track Upskilling & Free Self-Learning Library:** DVET ITI directory + curated YouTube video playlists (मराठी/हिंदी) + official Bharat Skills (DGT) NIMI textbooks + workshop DIY practical exercises.
-6. **Direct Employer Hiring Portal:** Fast posting with instant one-click telephone dialer (`tel:`) for quick applicant hiring.
-7. **DLT-Compliant Regional SMS Job Alerts:** For candidates with basic feature phones or limited internet connectivity.
+1. **Universal Job Giver & Seeker Access (No Niche Restrictions):** Open to ANY employer—from individual shopkeepers, local contractors, garages, and logistics hubs to large MIDC industrial factories—and ANY jobseeker across all sectors (Retail Sales, Tally Billing, Computer Operators, Healthcare Assistants, Hospitality, Logistics, Drivers, Construction, and ITI trades).
+2. **Zero-Hallucination Deterministic Matching Engine:** Mathematical skill & proximity scoring (0–100%) that never invents fake openings.
+3. **Live Web Crawling & Anti-Hallucination Vacancy Verification:** Real-time web discovery paired with rigorous evidence checks and direct redirection to verified online job sources (WorkIndia, Indeed, MahaJobs, NCS).
+4. **Google Maps Places API Integration:** Direct navigation from rural villages to physical industrial factory gates.
+5. **Mitra Voice Assistant (Speech-to-Text & Text-to-Speech):** Complete voice accessibility powered by ElevenLabs Pro (Scribe STT + Multilingual v2) and plug-and-play Sarvam AI (Bulbul TTS + Saaras STT).
+6. **Multi-Track Upskilling & Free Self-Learning Library:** DVET ITI directory + MIDC Factory Apprenticeships (stipend under Apprentices Act 1961) + MSME Technology Centre (Indo-German Tool Room) + curated YouTube video playlists (मराठी/हिंदी) + official Bharat Skills (DGT) NIMI textbooks + workshop DIY practical exercises.
+7. **Direct Employer Hiring Portal:** Fast posting with instant one-click telephone dialer (`tel:`) for quick applicant hiring.
+8. **Digital Profile Badges:** Cryptographically verifiable digital credential badges for candidates and employers across all dashboards.
 
 ---
 
@@ -298,18 +299,17 @@ pnpm install
 ### 2. Environment Variables Configuration
 Configure your `apps/web/.env.local`:
 ```env
-# Client-side Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyCzpFArgnEKLHCahzjY6LwsAqgdnDA4lDQ
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=rojgarmitra-dev.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=rojgarmitra-dev
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=rojgarmitra-dev.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=27392774823
-NEXT_PUBLIC_FIREBASE_APP_ID=1:27392774823:web:a6f2ab33d95fb7afb5c182
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-6CWG75H3XY
+# Client-side Firebase Configuration (Project: rojgarmitra-vidarbha)
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyCQiVLVmQKK-mibpdWj90v018N5MrcZRrc
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=rojgarmitra-vidarbha.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=rojgarmitra-vidarbha
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=rojgarmitra-vidarbha.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=37436857045
+NEXT_PUBLIC_FIREBASE_APP_ID=1:37436857045:web:1b27c214c247f82cc6205c
 
-# Server-side Firebase Admin SDK
-FIREBASE_PROJECT_ID=rojgarmitra-dev
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@rojgarmitra-dev.iam.gserviceaccount.com
+# Server-side Firebase Admin SDK Credentials
+FIREBASE_PROJECT_ID=rojgarmitra-vidarbha
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@rojgarmitra-vidarbha.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 
 # AI & Search APIs
@@ -318,27 +318,52 @@ GEMINI_MODEL=gemini-2.5-flash-lite
 TAVILY_API_KEY=YOUR_TAVILY_API_KEY
 GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY
 
-# ElevenLabs Voice API
-ELEVENLABS_API_KEY=YOUR_ELEVENLABS_API_KEY
-ELEVENLABS_VOICE_ID=YOUR_PREFERRED_VOICE_ID
+# ElevenLabs Pro Voice API (Multilingual TTS & Scribe STT)
+ELEVENLABS_API_KEY=YOUR_ELEVENLABS_PRO_KEY
+ELEVENLABS_VOICE_MR_MALE=oIhZlnorjQiJ5jF7X73a
+ELEVENLABS_VOICE_MR_FEMALE=dSEhEXLzhnZEytnJ2rRy
+ELEVENLABS_VOICE_HI_MALE=f1abxvIEijusskcPWE5x
+ELEVENLABS_VOICE_HI_FEMALE=JTPrASXyK62cF3L7w8hv
+
+# Optional: Sarvam AI Key (Bulbul TTS & Saaras STT for Indian Languages)
+SARVAM_API_KEY=YOUR_SARVAM_API_KEY
 ```
 
-### 3. Run Verification Tests
+### 3. Pre-Seeded Production Demo Accounts
+Pre-configured demo users are available at `/login`:
+* **Candidate Demo (Ramesh Patil - Welder, Hingna MIDC):**
+  * **Email:** `candidate.demo@rojgarmitra.in`
+  * **Password:** `DemoPassword@123`
+  * **Verified Credential ID:** `RM-VID-2026-8941`
+* **Employer Demo (Mahindra & Mahindra - Hingna Plant):**
+  * **Email:** `employer.demo@rojgarmitra.in`
+  * **Password:** `DemoPassword@123`
+  * **Verified Enterprise ID:** `RM-EMP-3319`
+
+### 4. Run Verification Tests
 ```bash
 # Execute unit and integration test suite
 pnpm test
 ```
-*Current test status: 11 test suites passed, 44 tests passed, 5 skipped (emulator-only).*
+*Current test status: 11 test files passed, 44 tests passed.*
 
-### 4. Build and Run Production Server
+### 5. Build and Run Production Server Locally
 ```bash
 # Build production bundle
 pnpm --filter @rojgarmitra/web build
 
-# Start production server
+# Start production server on port 3000
 pnpm --filter @rojgarmitra/web start -p 3000
 ```
 Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+
+### 6. Deployment to Vercel (Fresh Project)
+1. Fork or import your repository `https://github.com/Atharvchaskar008/Ycce-hackkumbh.git` into your personal Vercel dashboard.
+2. In Project Settings, set:
+   * **Root Directory:** `apps/web` (or leave root with build command `pnpm --filter @rojgarmitra/web build`)
+   * **Framework Preset:** Next.js
+3. Copy the environment variables from `apps/web/.env.local` into Vercel Settings > Environment Variables.
+4. Click **Deploy**.
 
 ---
 

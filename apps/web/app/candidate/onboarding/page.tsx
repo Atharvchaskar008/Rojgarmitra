@@ -68,12 +68,12 @@ export default function CandidateOnboardingPage() {
 
   // Suggested Education levels (clickable to append)
   const educationSuggestions = [
-    '१०वी पास',
-    '१२वी पास',
-    'ITI वेल्डर',
-    'ITI इलेक्ट्रिशियन / वायरमन',
-    'ITI फिटर / टर्नर',
-    'पॉलीटेक्निक मेकॅनिकल डिप्लोमा',
+    '१०वी पास (10th Pass)',
+    '१२वी पास (12th Pass)',
+    'पदवीधर (Graduate / B.Com / B.A / B.Sc)',
+    'ITI वेल्डर / फिटर / इलेक्ट्रिशियन',
+    'कॉम्प्युटर / टॅली प्रमाणपत्र (MS-CIT / Tally)',
+    'पॉलीटेक्निक / मेकॅनिकल डिप्लोमा',
     'कोणतेही औपचारिक शिक्षण नाही (फक्त प्रत्यक्ष कामाचा अनुभव)',
   ];
 
@@ -218,8 +218,8 @@ export default function CandidateOnboardingPage() {
 
     const combinedText = `${fullName} ${locationText} ${educationText} ${experienceText}`.toLowerCase();
 
-    // 1. Determine Trade
-    let trade = 'electrician';
+    // 1. Determine Trade / Work Domain from Any Industry / Skill
+    let trade = 'general_flexible';
     if (
       combinedText.includes('weld') ||
       combinedText.includes('वेल्ड') ||
@@ -252,19 +252,102 @@ export default function CandidateOnboardingPage() {
       combinedText.includes('wiring')
     ) {
       trade = 'electrician';
+    } else if (
+      combinedText.includes('plumb') ||
+      combinedText.includes('प्लंबर') ||
+      combinedText.includes('पाईप') ||
+      combinedText.includes('pipe')
+    ) {
+      trade = 'plumber';
+    } else if (
+      combinedText.includes('data entry') ||
+      combinedText.includes('computer') ||
+      combinedText.includes('कॉम्प्युटर') ||
+      combinedText.includes('संगणक') ||
+      combinedText.includes('excel') ||
+      combinedText.includes('tally') ||
+      combinedText.includes('टॅली') ||
+      combinedText.includes('billing') ||
+      combinedText.includes('बिलिंग')
+    ) {
+      trade = 'computer_operator';
+    } else if (
+      combinedText.includes('sales') ||
+      combinedText.includes('सेल्स') ||
+      combinedText.includes('दुकान') ||
+      combinedText.includes('मॉल') ||
+      combinedText.includes('कॅशियर') ||
+      combinedText.includes('cashier') ||
+      combinedText.includes('काउंटर') ||
+      combinedText.includes('counter')
+    ) {
+      trade = 'retail_sales';
+    } else if (
+      combinedText.includes('driver') ||
+      combinedText.includes('चालक') ||
+      combinedText.includes('ड्रायव्हर') ||
+      combinedText.includes('delivery') ||
+      combinedText.includes('डिलिव्हरी') ||
+      combinedText.includes('warehouse') ||
+      combinedText.includes('वेअरहाऊस') ||
+      combinedText.includes('packing') ||
+      combinedText.includes('पॅकिंग')
+    ) {
+      trade = 'logistics_warehouse';
+    } else if (
+      combinedText.includes('hotel') ||
+      combinedText.includes('हॉटेल') ||
+      combinedText.includes('cook') ||
+      combinedText.includes('कुक') ||
+      combinedText.includes('स्वयंपाक') ||
+      combinedText.includes('waiter') ||
+      combinedText.includes('पॅन्ट्री') ||
+      combinedText.includes('pantry')
+    ) {
+      trade = 'hospitality_support';
+    } else if (
+      combinedText.includes('hospital') ||
+      combinedText.includes('रुग्णालय') ||
+      combinedText.includes('clinic') ||
+      combinedText.includes('क्लिनिक') ||
+      combinedText.includes('nurse') ||
+      combinedText.includes('नर्स') ||
+      combinedText.includes('ward') ||
+      combinedText.includes('वार्ड')
+    ) {
+      trade = 'healthcare_assistant';
+    } else if (
+      combinedText.includes('security') ||
+      combinedText.includes('सुरक्षा') ||
+      combinedText.includes('guard') ||
+      combinedText.includes('गार्ड')
+    ) {
+      trade = 'security_facilities';
+    } else if (
+      combinedText.includes('mason') ||
+      combinedText.includes('गवंडी') ||
+      combinedText.includes('construction') ||
+      combinedText.includes('बांधकाम') ||
+      combinedText.includes('painter') ||
+      combinedText.includes('पेंटर') ||
+      combinedText.includes('carpenter') ||
+      combinedText.includes('सुतार')
+    ) {
+      trade = 'construction_masonry';
     }
 
     // 2. Extract Taluka in Vidarbha
-    let taluka = 'Butibori';
+    let taluka = 'Nagpur Urban';
     if (combinedText.includes('hingna') || combinedText.includes('हिंगणा')) taluka = 'Hingna';
     else if (combinedText.includes('butibori') || combinedText.includes('बुटीबोरी')) taluka = 'Butibori';
     else if (combinedText.includes('umred') || combinedText.includes('उमरेड')) taluka = 'Umred';
     else if (combinedText.includes('saoner') || combinedText.includes('सावनेर')) taluka = 'Saoner';
     else if (combinedText.includes('katol') || combinedText.includes('काटोल')) taluka = 'Katol';
     else if (combinedText.includes('kalmeshwar') || combinedText.includes('कळमेश्वर')) taluka = 'Kalmeshwar';
+    else if (combinedText.includes('kamptee') || combinedText.includes('कामठी')) taluka = 'Kamptee';
     else if (combinedText.includes('wardha') || combinedText.includes('वर्धा')) taluka = 'Wardha';
     else if (combinedText.includes('chandrapur') || combinedText.includes('चंद्रपूर')) taluka = 'Chandrapur';
-    else if (combinedText.includes('nagpur') || combinedText.includes('नागपूर')) taluka = 'Nagpur Urban';
+    else if (combinedText.includes('nagpur') || combinedText.includes('नागपूर') || combinedText.includes('sitabuldi')) taluka = 'Nagpur Urban';
 
     // 3. Extract Specific Practical Skills
     const skillIds: string[] = [];
@@ -278,12 +361,28 @@ export default function CandidateOnboardingPage() {
     if (combinedText.includes('cnc') || combinedText.includes('सीएनसी')) skillIds.push('cnc_operation');
     if (combinedText.includes('lathe') || combinedText.includes('लेथ')) skillIds.push('lathe_operation');
     if (combinedText.includes('solar') || combinedText.includes('सोलर')) skillIds.push('solar_pv_wiring');
+    if (combinedText.includes('tally') || combinedText.includes('टॅली') || combinedText.includes('excel')) skillIds.push('ms_excel_tally');
+    if (combinedText.includes('billing') || combinedText.includes('बिलिंग')) skillIds.push('billing_inventory_entry');
+    if (combinedText.includes('sales') || combinedText.includes('सेल्स')) skillIds.push('counter_sales');
+    if (combinedText.includes('cash') || combinedText.includes('कॅश') || combinedText.includes('रोकड')) skillIds.push('cash_handling');
+    if (combinedText.includes('driver') || combinedText.includes('ड्रायव्हिंग')) skillIds.push('heavy_vehicle_driving');
+    if (combinedText.includes('packing') || combinedText.includes('पॅकिंग')) skillIds.push('dispatch_packing');
+    if (combinedText.includes('cook') || combinedText.includes('स्वयंपाक')) skillIds.push('commercial_cooking');
+    if (combinedText.includes('patient') || combinedText.includes('रुग्ण')) skillIds.push('patient_care');
+    if (combinedText.includes('security') || combinedText.includes('सुरक्षा')) skillIds.push('gate_security');
 
     if (skillIds.length === 0) {
       if (trade === 'welder') skillIds.push('mig_welding', 'arc_welding');
       else if (trade === 'fitter_turner') skillIds.push('cnc_operation', 'lathe_operation');
       else if (trade === 'mechanic') skillIds.push('diesel_engine_repair');
-      else skillIds.push('house_wiring', 'industrial_panel');
+      else if (trade === 'electrician') skillIds.push('house_wiring', 'industrial_panel');
+      else if (trade === 'computer_operator') skillIds.push('ms_excel_tally', 'billing_inventory_entry');
+      else if (trade === 'retail_sales') skillIds.push('counter_sales', 'cash_handling');
+      else if (trade === 'logistics_warehouse') skillIds.push('dispatch_packing', 'inventory_sorting');
+      else if (trade === 'hospitality_support') skillIds.push('commercial_cooking', 'office_pantry_support');
+      else if (trade === 'healthcare_assistant') skillIds.push('patient_care', 'clinic_registration');
+      else if (trade === 'security_facilities') skillIds.push('gate_security', 'fire_safety');
+      else skillIds.push('general_helper', 'quick_learner');
     }
 
     // 4. Calculate Experience Months
@@ -299,10 +398,10 @@ export default function CandidateOnboardingPage() {
       taluka,
       village: locationText.trim(),
       trade,
-      qualifications: educationText ? [educationText] : ['10th', `ITI_${trade}`],
+      qualifications: educationText ? [educationText] : ['10th', trade],
       skillIds,
       experienceMonths,
-      expectedWageRange: { min: expectedWage - 2000, max: expectedWage + 3000 },
+      expectedWageRange: { min: Math.max(8000, expectedWage - 2000), max: expectedWage + 3000 },
       maximumTravelKm: Number(travelDistanceKm) || 25,
       availability: 'immediate' as const,
       phone: phone.trim() || '9876543210',
@@ -335,25 +434,33 @@ export default function CandidateOnboardingPage() {
       }
 
       // Generate localized analysis summary
+      const tradeNamesMap: Record<string, string> = {
+        welder: 'वेल्डर व फॅब्रिकेशन (Welder & Fabricator)',
+        fitter_turner: 'फिटर व CNC ऑपरेटर (Fitter & CNC Machinist)',
+        mechanic: 'मेकॅनिकल व ऑटोमोबाईल (Automotive Mechanic)',
+        electrician: 'इलेक्ट्रिशियन व पॅनल वायरिंग (Industrial Electrician)',
+        computer_operator: 'कॉम्प्युटर ऑपरेटर व बिलिंग (Data Entry & Tally)',
+        retail_sales: 'दुकानदार / सेल्स एक्झिक्युटिव्ह (Retail Sales & Cashier)',
+        logistics_warehouse: 'वेअरहाऊस व डिलिव्हरी (Logistics & Warehouse)',
+        hospitality_support: 'हॉटेल / कुक / कार्यालय सहाय्यक (Hospitality & Support)',
+        healthcare_assistant: 'रुग्णालय सहाय्यक / केअरटेकर (Healthcare Assistant)',
+        security_facilities: 'सुरक्षा रक्षक (Security & Facilities)',
+        construction_masonry: 'बांधकाम व सुतारकाम (Construction & Trades)',
+        general_flexible: 'सर्वसामान्य मदतनीस (General On-Site Support)',
+      };
+
       const analysis = {
-        detectedTrade:
-          trade === 'welder'
-            ? 'वेल्डर व फॅब्रिकेशन (Welder)'
-            : trade === 'fitter_turner'
-            ? 'फिटर व CNC ऑपरेटर (Fitter & CNC)'
-            : trade === 'mechanic'
-            ? 'मेकॅनिकल व ऑटोमोबाईल (Automotive Mechanic)'
-            : 'इलेक्ट्रिशियन व पॅनल वायरिंग (Industrial Electrician)',
+        detectedTrade: tradeNamesMap[trade] || trade,
         detectedSkills: skillIds.map((s) => getSkillName(s, preferredLocale)),
         taluka,
         roadmapOverview:
           preferredLocale === 'mr'
-            ? `आपल्या अनुभवावरून ${taluka} MIDC मधील कंपन्यांमध्ये त्वरित प्रवेशाची उच्च शक्यता आहे. बेरोजगारीतून कायम रोजगारासाठी MSME टूल रूम किंवा थेट MIDC अप्रेंटिसशिपचा पर्याय उपलब्ध आहे.`
-            : `High hiring probability for ${taluka} MIDC industrial units. Multi-pathway transition available through MSME Tool Room Hingna and direct factory apprenticeships.`,
+            ? `आपल्या अनुभवावरून ${taluka} परिसरातील स्थानिक आस्थापना व कंपन्यांमध्ये त्वरित प्रवेशाची उच्च शक्यता आहे. तात्काळ कमाई सुरू करण्यासाठी थेट मुलाखतीचे पर्याय उपलब्ध आहेत.`
+            : `High hiring probability for local establishments in ${taluka}. Immediate earning options available across nearby units.`,
         apprenticeshipOpportunity:
           preferredLocale === 'mr'
-            ? `शिकाऊ उमेदवार योजना (Apprentices Act 1961): ${taluka} MIDC मधील कारखान्यांमध्ये दरमहा ₹९,५०० स्टायपेंडसह ऑन-द-जॉब ट्रेनिंग उपलब्ध.`
-            : `Apprentices Act 1961: On-the-job training in ${taluka} MIDC factories with monthly ₹9,500 government stipend.`,
+            ? `स्थानिक रोजगार संधी: ${taluka} व आसपासच्या भागात दरमहा ₹१२,००० ते ₹२२,००० च्या थेट नोकऱ्या व ऑन-द-जॉब ट्रेनिंग उपलब्ध.`
+            : `Local Employment Opportunity: On-the-job training and direct vacancies available in ${taluka} with ₹12,000 - ₹22,000 monthly pay.`,
       };
 
       setAnalysisResult(analysis);
@@ -366,7 +473,7 @@ export default function CandidateOnboardingPage() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto py-6 px-4">
+    <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 w-full">
       {/* Top Navigation */}
       <div className="mb-6 flex items-center justify-between">
         <Link href="/candidate" className="text-xs font-bold text-ink-secondary hover:text-ink transition">

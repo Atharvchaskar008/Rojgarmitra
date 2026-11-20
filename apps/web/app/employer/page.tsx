@@ -51,7 +51,7 @@ export default function EmployerDashboardPage() {
   }, [user]);
 
   return (
-    <main className="max-w-6xl mx-auto py-4">
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
       {/* Top Banner - SETTLE Hero Card */}
       <div className="settle-card-hero p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

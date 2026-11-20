@@ -71,7 +71,7 @@ export default function CandidateUpskillingPage() {
   });
 
   return (
-    <main className="max-w-6xl mx-auto py-4">
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
       {/* Header Banner */}
       <div className="settle-card-hero p-6 sm:p-8 mb-8">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-steel-soft border border-steel rounded-full text-xs font-bold text-steel-deep mb-3 shadow-sm">
