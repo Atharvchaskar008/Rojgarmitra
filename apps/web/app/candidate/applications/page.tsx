@@ -125,11 +125,13 @@ export default function CandidateApplicationsPage() {
             <IconUser className="w-5 h-5 text-primary" />
           </div>
           <h3 className="text-base font-black text-ink mb-1">
-            {preferredLocale === 'mr' ? 'लॉगिन आवश्यक आहे' : 'Login Required'}
+            {preferredLocale === 'mr' ? 'लॉगिन आवश्यक आहे' : preferredLocale === 'hi' ? 'लॉग इन आवश्यक है' : 'Login Required'}
           </h3>
           <p className="text-sm text-ink-secondary mb-4 font-medium">
             {preferredLocale === 'mr'
               ? 'आपले पाठवलेले अर्ज व मुलाखतीची स्थिती पाहण्यासाठी कृपया लॉगिन करा.'
+              : preferredLocale === 'hi'
+              ? 'अपने भेजे गए आवेदन और साक्षात्कार की स्थिति देखने के लिए कृपया लॉग इन करें।'
               : 'Please sign in to view your applications and interview statuses.'}
           </p>
           <Link
@@ -146,16 +148,24 @@ export default function CandidateApplicationsPage() {
             <IconBriefcase className="w-5 h-5 text-ink-secondary" />
           </div>
           <h3 className="text-base font-black text-ink mb-1">
-            अद्याप कोणताही अर्ज केलेला नाही
+            {preferredLocale === 'mr'
+              ? 'अद्याप कोणताही अर्ज केलेला नाही'
+              : preferredLocale === 'hi'
+              ? 'अभी तक कोई आवेदन नहीं किया गया है'
+              : 'No Applications Submitted Yet'}
           </h3>
           <p className="text-sm text-ink-secondary mb-4 font-medium">
-            आपल्या कौशल्यानुसार नोकऱ्या शोधा आणि थेट एका क्लिकवर अर्ज करा.
+            {preferredLocale === 'mr'
+              ? 'आपल्या कौशल्यानुसार नोकऱ्या शोधा आणि थेट एका क्लिकवर अर्ज करा.'
+              : preferredLocale === 'hi'
+              ? 'अपने कौशल के अनुसार नौकरियां खोजें और सीधे एक क्लिक में आवेदन करें।'
+              : 'Explore jobs matching your craft and apply directly in 1 click.'}
           </p>
           <Link
             href="/candidate"
             className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
           >
-            <span>नोकऱ्या शोधा</span>
+            <span>{dict.nav.jobs}</span>
             <IconArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -181,12 +191,18 @@ export default function CandidateApplicationsPage() {
 
               {app.notes && (
                 <div className="mt-3 p-3.5 bg-canvas rounded-xl text-xs text-ink border border-steel/50">
-                  <span className="font-black text-ink">नियोक्त्यांची टीप:</span> {app.notes}
+                  <span className="font-black text-ink">
+                    {preferredLocale === 'mr' ? 'नियोक्त्यांची टीप:' : preferredLocale === 'hi' ? 'नियोक्ता की टिप्पणी:' : 'Employer Note:'}
+                  </span>{' '}
+                  {app.notes}
                 </div>
               )}
 
               <div className="mt-4 pt-3 border-t border-steel/40 flex items-center justify-between text-xs text-ink-secondary font-medium">
-                <span>अर्ज दिनांक: {new Date(app.createdAt).toLocaleDateString()}</span>
+                <span>
+                  {preferredLocale === 'mr' ? 'अर्ज दिनांक:' : preferredLocale === 'hi' ? 'आवेदन तिथि:' : 'Application Date:'}{' '}
+                  {new Date(app.createdAt).toLocaleDateString()}
+                </span>
                 <span className="font-mono text-steel-deep">ID: {app.id.slice(0, 8)}...</span>
               </div>
             </div>

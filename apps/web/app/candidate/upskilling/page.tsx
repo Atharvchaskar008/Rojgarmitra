@@ -179,12 +179,16 @@ export default function CandidateUpskillingPage() {
                           {center.id.includes('apprenticeship')
                             ? preferredLocale === 'mr'
                               ? 'स्टायपेंड सहित अप्रेंटिसशिप'
+                              : preferredLocale === 'hi'
+                              ? 'स्टाइपेंड सहित शिक्षुता'
                               : 'Stipend Apprenticeship'
                             : center.id.includes('msme')
-                            ? 'MSME भारत सरकार'
+                            ? (preferredLocale === 'mr' ? 'MSME भारत सरकार' : preferredLocale === 'hi' ? 'MSME भारत सरकार' : 'MSME Govt of India')
                             : center.verifiedStatus === 'official_gov'
                             ? preferredLocale === 'mr'
                               ? 'शासकीय मान्यताप्राप्त'
+                              : preferredLocale === 'hi'
+                              ? 'सरकारी मान्यताप्राप्त'
                               : 'Official Gov'
                             : 'Verified'}
                         </span>

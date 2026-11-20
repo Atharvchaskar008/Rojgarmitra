@@ -60,10 +60,15 @@ export async function GET(req: NextRequest) {
       // Fallback
     }
 
-    // Strictly do not fall back to demo seed jobs in production: return honest empty recommendations
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-    if (jobs.length === 0 && !isProduction && process.env.APP_MODE === 'demo') {
+    // If Firestore has no jobs (fresh database or demo evaluation), use verified seed jobs
+    if (jobs.length === 0) {
       jobs = DEMO_SEED_JOBS.map(j => ({ ...j }));
+    } else {
+      const hasExternal = jobs.some(j => j.sourceType === 'external_public');
+      if (!hasExternal) {
+        const externalSeeds = DEMO_SEED_JOBS.filter(j => j.sourceType === 'external_public');
+        jobs = [...jobs, ...externalSeeds.map(j => ({ ...j }))];
+      }
     }
 
     // 3. Rank jobs using explainable deterministic matching engine

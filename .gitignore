@@ -54,3 +54,6 @@ coverage/
 # Safety: protect private docs folder from accidental copy into git
 rojgarmitra-private/
 *.private.md
+
+.vercel
+.env*

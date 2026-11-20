@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getDictionary } from '@rojgarmitra/i18n';
-import { CareerPlan } from '@rojgarmitra/shared';
+import { CareerPlan, SupportedLocale } from '@rojgarmitra/shared';
 import { 
   IconCompass, 
   IconClock, 
@@ -29,12 +29,25 @@ export default function CandidateCareerPlanPage() {
   const [updating, setUpdating] = useState(false);
 
   // Candidate real situation and custom target inputs
-  const [currentSituation, setCurrentSituation] = useState(
-    'गेल्या ६ महिन्यांपासून बेरोजगार आहे. स्पर्धा परीक्षेचा (महाडिस्कॉम) प्रयत्न केला पण अपयश आले. आता तातडीने उत्पन्नाची व प्रत्यक्ष कारखान्यात स्थिर कामाची गरज आहे.'
-  );
-  const [customTarget, setCustomTarget] = useState(
-    '२ वर्षांत ₹२५,०००+ मासिक वेतन व हिंगणा/बुटीबोरी MIDC मध्ये कायम तंत्रज्ञ किंवा सुपरवायझर पद.'
-  );
+  const defaultSituations: Record<SupportedLocale, string> = {
+    mr: 'गेल्या ६ महिन्यांपासून बेरोजगार आहे. स्पर्धा परीक्षेचा (महाडिस्कॉम/तलाठी) प्रयत्न केला पण अपयश आले. आता तातडीने उत्पन्नाची व प्रत्यक्ष कारखान्यात स्थिर कामाची गरज आहे.',
+    hi: 'पिछले ६ महीनों से बेरोजगार हूँ। सरकारी परीक्षा (महाडिस्कॉम/तलाठी) की कोशिश की लेकिन सफलता नहीं मिली। अब तुरंत आय और स्थिर काम की जरूरत है।',
+    en: 'Unemployed for the past 6 months after preparing for competitive exams (MPSC/DISCOM). Need immediate income and stable job within 30 days.',
+  };
+  const defaultTargets: Record<SupportedLocale, string> = {
+    mr: '२ वर्षांत ₹२५,०००+ मासिक वेतन व हिंगणा/बुटीबोरी MIDC मध्ये कायम तंत्रज्ञ किंवा सुपरवायझर पद.',
+    hi: '२ वर्षों में ₹२५,०००+ मासिक वेतन और हिंगना/बुटीबोरी MIDC में स्थायी तकनीशियन या सुपरवाइजर पद।',
+    en: 'Within 2 years: earn ₹25,000+ monthly wage as a permanent technician or shopfloor supervisor in MIDC.',
+  };
+
+  const [currentSituation, setCurrentSituation] = useState(defaultSituations[preferredLocale]);
+  const [customTarget, setCustomTarget] = useState(defaultTargets[preferredLocale]);
+
+  // Sync default prompts when locale switches if not custom modified
+  useEffect(() => {
+    setCurrentSituation(defaultSituations[preferredLocale]);
+    setCustomTarget(defaultTargets[preferredLocale]);
+  }, [preferredLocale]);
 
   async function loadPlan(situation?: string, target?: string) {
     if (!situation && !target) setLoading(true);
@@ -116,11 +129,13 @@ export default function CandidateCareerPlanPage() {
             <IconUser className="w-5 h-5 text-primary" />
           </div>
           <h3 className="text-base font-black text-ink mb-1">
-            {preferredLocale === 'mr' ? 'लॉगिन आवश्यक आहे' : 'Login Required'}
+            {preferredLocale === 'mr' ? 'लॉगिन आवश्यक आहे' : preferredLocale === 'hi' ? 'लॉग इन आवश्यक है' : 'Login Required'}
           </h3>
           <p className="text-sm text-ink-secondary mb-4 font-medium">
             {preferredLocale === 'mr'
               ? 'आपल्या कौशल्यांवर आधारित सानुकूल करिअर मार्गदर्शक पाहण्यासाठी कृपया लॉगिन करा.'
+              : preferredLocale === 'hi'
+              ? 'अपने कौशल पर आधारित व्यक्तिगत करियर रोडमैप देखने के लिए कृपया लॉग इन करें।'
               : 'Please sign in to see your personalized vocational career plan.'}
           </p>
           <Link
@@ -137,6 +152,8 @@ export default function CandidateCareerPlanPage() {
           <p className="text-sm text-ink-secondary mt-1 mb-4">
             {preferredLocale === 'mr'
               ? 'करिअर प्लॅन तयार करण्यासाठी कृपया प्रथम प्रोफाईल पूर्ण करा.'
+              : preferredLocale === 'hi'
+              ? 'करियर रोडमैप तैयार करने के लिए कृपया पहले अपनी प्रोफाइल पूरी करें।'
               : 'Please complete your skills profile first to generate a career roadmap.'}
           </p>
           <Link
@@ -186,32 +203,46 @@ export default function CandidateCareerPlanPage() {
             <p className="text-xs text-ink-secondary font-medium">
               {preferredLocale === 'mr'
                 ? 'आपल्या आर्थिक अडचणी, स्पर्धा परीक्षांचा अनुभव किंवा विशिष्ट ध्येय येथे लिहा. मित्र AI अति-स्पर्धात्मक पदांऐवजी प्रत्यक्ष साध्य होणारा प्रामाणिक मार्ग दाखवेल.'
+                : preferredLocale === 'hi'
+                ? 'अपनी वित्तीय कठिनाई, प्रतियोगी परीक्षा का अनुभव या विशिष्ट लक्ष्य यहाँ लिखें। मित्र AI व्यावहारिक समाधान दिखाएगा।'
                 : 'Share your exact challenges or target goals. Mitra AI will analyze market reality vs hyper-competitive traps.'}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
               <div>
                 <label className="block text-ink uppercase tracking-wider mb-1 font-black">
-                  {preferredLocale === 'mr' ? '१. सध्याची परिस्थिती (Financial/Job Reality):' : '1. Current Situation & Pressure:'}
+                  {preferredLocale === 'mr' ? '१. सध्याची परिस्थिती (Financial/Job Reality):' : preferredLocale === 'hi' ? '१. वर्तमान स्थिति (Financial/Job Reality):' : '1. Current Situation & Pressure:'}
                 </label>
                 <textarea
                   rows={3}
                   value={currentSituation}
                   onChange={(e) => setCurrentSituation(e.target.value)}
-                  placeholder="उदा. ६ महिने बेरोजगार, पैशांची निकड, सरकारी परीक्षेत अपयश..."
+                  placeholder={
+                    preferredLocale === 'mr'
+                      ? 'उदा. ६ महिने बेरोजगार, पैशांची निकड, सरकारी परीक्षेत अपयश...'
+                      : preferredLocale === 'hi'
+                      ? 'उदा. ६ महीने से बेरोजगार, आर्थिक दबाव, परीक्षा में असफलता...'
+                      : 'e.g. 6 months unemployed, urgent financial need, exam fatigue...'
+                  }
                   className="w-full bg-canvas border border-ink/20 rounded-xl p-3 text-xs font-medium text-ink focus:outline-none focus:border-ink"
                 />
               </div>
 
               <div>
                 <label className="block text-ink uppercase tracking-wider mb-1 font-black">
-                  {preferredLocale === 'mr' ? '२. काय साध्य करायचे आहे (Realistic Target):' : '2. What You Want to Achieve:'}
+                  {preferredLocale === 'mr' ? '२. काय साध्य करायचे आहे (Realistic Target):' : preferredLocale === 'hi' ? '२. क्या हासिल करना है (Realistic Target):' : '2. What You Want to Achieve:'}
                 </label>
                 <textarea
                   rows={3}
                   value={customTarget}
                   onChange={(e) => setCustomTarget(e.target.value)}
-                  placeholder="उदा. २ वर्षांत ₹२५,००० वेतन व MIDC कारखान्यात कायम काम..."
+                  placeholder={
+                    preferredLocale === 'mr'
+                      ? 'उदा. २ वर्षांत ₹२५,००० वेतन व MIDC कारखान्यात कायम काम...'
+                      : preferredLocale === 'hi'
+                      ? 'उदा. २ वर्ष में ₹२५,००० वेतन और MIDC में स्थायी काम...'
+                      : 'e.g. ₹25,000/mo salary within 2 years in MIDC...'
+                  }
                   className="w-full bg-canvas border border-ink/20 rounded-xl p-3 text-xs font-medium text-ink focus:outline-none focus:border-ink"
                 />
               </div>
@@ -219,7 +250,11 @@ export default function CandidateCareerPlanPage() {
 
             <div className="flex items-center justify-between pt-1">
               <span className="text-[11px] text-ink-muted">
-                {preferredLocale === 'mr' ? '💡 अति-स्पर्धा विरुद्ध खाजगी/औद्योगिक संधी विश्लेषण' : '💡 Anti-saturation & realistic market matching'}
+                {preferredLocale === 'mr' 
+                  ? '💡 अति-स्पर्धा विरुद्ध खाजगी/औद्योगिक संधी विश्लेषण' 
+                  : preferredLocale === 'hi'
+                  ? '💡 अति-प्रतिस्पर्धा बनाम औद्योगिक रोजगार विश्लेषण'
+                  : '💡 Anti-saturation & realistic market matching'}
               </span>
               <button
                 type="submit"
@@ -231,6 +266,8 @@ export default function CandidateCareerPlanPage() {
                     ? dict.common.loading
                     : preferredLocale === 'mr'
                     ? 'सत्यता विश्लेषण व सल्ला अपडेट करा'
+                    : preferredLocale === 'hi'
+                    ? 'सत्यता विश्लेषण व सलाह अपडेट करें'
                     : 'Update Realistic Plan'}
                 </span>
                 <IconArrowRight className="w-3.5 h-3.5" />
@@ -247,6 +284,8 @@ export default function CandidateCareerPlanPage() {
                   <span>
                     {preferredLocale === 'mr'
                       ? 'सत्यता पडताळणी व मित्रचा सल्ला (Reality Check)'
+                      : preferredLocale === 'hi'
+                      ? 'सत्यता पड़ताल व मित्र की सलाह (Reality Check)'
                       : 'Market Competition Reality Check'}
                   </span>
                 </span>
@@ -257,7 +296,7 @@ export default function CandidateCareerPlanPage() {
                 <div className="bg-canvas p-4 rounded-xl border border-steel flex flex-col justify-between">
                   <div>
                     <span className="font-black text-ink block uppercase mb-1.5 text-[11px] text-alert">
-                      ⚖️ {preferredLocale === 'mr' ? 'स्पर्धा वास्तव (Competition Ratio):' : 'Competition Reality:'}
+                      ⚖️ {preferredLocale === 'mr' ? 'स्पर्धा वास्तव (Competition Ratio):' : preferredLocale === 'hi' ? 'प्रतियोगिता का सच (Competition Ratio):' : 'Competition Reality:'}
                     </span>
                     <p className="text-ink-secondary leading-relaxed">
                       {careerPlan.realityCheck.competitionAnalysis}
@@ -269,7 +308,7 @@ export default function CandidateCareerPlanPage() {
                 <div className="bg-canvas p-4 rounded-xl border border-steel flex flex-col justify-between">
                   <div>
                     <span className="font-black text-ink block uppercase mb-1.5 text-[11px] text-verified">
-                      🚀 {preferredLocale === 'mr' ? 'तातडीची पहिली पायरी (Next 30 Days):' : 'Immediate Next 30 Days:'}
+                      🚀 {preferredLocale === 'mr' ? 'तातडीची पहिली पायरी (Next 30 Days):' : preferredLocale === 'hi' ? 'तुरंत पहला कदम (Next 30 Days):' : 'Immediate Next 30 Days:'}
                     </span>
                     <p className="text-ink-secondary leading-relaxed">
                       {careerPlan.realityCheck.immediateNextStep}
@@ -281,7 +320,7 @@ export default function CandidateCareerPlanPage() {
                 <div className="bg-canvas p-4 rounded-xl border border-steel flex flex-col justify-between">
                   <div>
                     <span className="font-black text-ink block uppercase mb-1.5 text-[11px] text-primary">
-                      🎯 {preferredLocale === 'mr' ? 'साध्य वास्तव (Achievable Target):' : 'Realistic Progression Curve:'}
+                      🎯 {preferredLocale === 'mr' ? 'साध्य वास्तव (Achievable Target):' : preferredLocale === 'hi' ? 'व्यावहारिक लक्ष्य (Achievable Target):' : 'Realistic Progression Curve:'}
                     </span>
                     <p className="text-ink-secondary leading-relaxed">
                       {careerPlan.realityCheck.targetAchievability}

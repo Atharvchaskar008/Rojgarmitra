@@ -82,32 +82,36 @@ export default function LoginPage() {
     if (errCode.includes('email-already-in-use')) {
       return locale === 'mr'
         ? 'हा ईमेल आधीच नोंदणीकृत आहे. कृपया लॉगिन करा.'
+        : locale === 'hi'
+        ? 'यह ईमेल पहले से पंजीकृत है। कृपया लॉग इन करें।'
         : 'This email is already registered. Please sign in instead.';
     }
     if (errCode.includes('user-not-found') || errCode.includes('invalid-credential') || errCode.includes('wrong-password')) {
       return locale === 'mr'
         ? 'ईमेल किंवा पासवर्ड चुकीचा आहे. कृपया पुन्हा तपासा.'
         : locale === 'hi'
-          ? 'ईमेल या पासवर्ड गलत है। कृपया दोबारा जाँचें।'
-          : 'Invalid credentials. Please verify and try again.';
+        ? 'ईमेल या पासवर्ड गलत है। कृपया दोबारा जाँचें।'
+        : 'Invalid credentials. Please verify and try again.';
     }
     if (errCode.includes('invalid-verification-code') || errCode.includes('code-expired')) {
       return locale === 'mr'
         ? 'ओटीपी (OTP) चुकीचा किंवा कालबाह्य झाला आहे.'
         : locale === 'hi'
-          ? 'दर्ज किया गया OTP गलत या समाप्त हो चुका है।'
-          : 'Invalid or expired OTP code.';
+        ? 'दर्ज किया गया OTP गलत या समाप्त हो चुका है।'
+        : 'Invalid or expired OTP code.';
     }
     if (errCode.includes('popup-closed-by-user')) {
       return locale === 'mr'
         ? 'Google लॉगिन रद्द केले गेले.'
+        : locale === 'hi'
+        ? 'Google साइन-इन रद्द कर दिया गया।'
         : 'Google sign-in was canceled.';
     }
     return locale === 'mr'
       ? 'प्रक्रिया करताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.'
       : locale === 'hi'
-        ? 'प्रक्रिया में त्रुटि हुई। कृपया दोबारा प्रयास करें।'
-        : 'Authentication failed. Please try again.';
+      ? 'प्रक्रिया में त्रुटि हुई। कृपया दोबारा प्रयास करें।'
+      : 'Authentication failed. Please try again.';
   };
 
   // 1. Google Sign-In / Sign-Up Handler
@@ -135,6 +139,8 @@ export default function LoginPage() {
       setErrorMsg(
         preferredLocale === 'mr'
           ? 'कृपया वैध १०-अंकी मोबाईल नंबर टाका.'
+          : preferredLocale === 'hi'
+          ? 'कृपया वैध १०-अंकीय मोबाइल नंबर दर्ज करें।'
           : 'Please enter a valid 10-digit mobile number.'
       );
       return;
@@ -186,7 +192,13 @@ export default function LoginPage() {
     try {
       if (emailAction === 'register') {
         if (password.length < 6) {
-          setErrorMsg(preferredLocale === 'mr' ? 'पासवर्ड किमान ६ अक्षरांचा असावा.' : 'Password must be at least 6 characters.');
+          setErrorMsg(
+            preferredLocale === 'mr' 
+              ? 'पासवर्ड किमान ६ अक्षरांचा असावा.' 
+              : preferredLocale === 'hi' 
+              ? 'पासवर्ड कम से कम ६ अक्षरों का होना चाहिए।' 
+              : 'Password must be at least 6 characters.'
+          );
           setLoading(false);
           return;
         }
@@ -210,6 +222,8 @@ export default function LoginPage() {
       setErrorMsg(
         preferredLocale === 'mr'
           ? 'कृपया आपला ईमेल पत्ता टाका.'
+          : preferredLocale === 'hi'
+          ? 'कृपया अपना पंजीकृत ईमेल दर्ज करें।'
           : 'Please enter your registered email address.'
       );
       return;
@@ -286,7 +300,7 @@ export default function LoginPage() {
             {/* Unified Role Selector */}
             <div className="mb-5">
               <label className="block text-[11px] font-black uppercase tracking-wider text-ink-secondary mb-1.5">
-                {preferredLocale === 'mr' ? 'मी कोण आहे? (आपली भूमिका निवडा)' : 'Select Your Role'}
+                {preferredLocale === 'mr' ? 'मी कोण आहे? (आपली भूमिका निवडा)' : preferredLocale === 'hi' ? 'मैं कौन हूँ? (अपनी भूमिका चुनें)' : 'Select Your Role'}
               </label>
               <div className="p-1 bg-canvas rounded-xl border border-ink/20 grid grid-cols-2 gap-1.5 text-xs font-bold">
                 <button
@@ -298,7 +312,7 @@ export default function LoginPage() {
                     }`}
                 >
                   <IconUser className="w-3.5 h-3.5" />
-                  <span>{preferredLocale === 'mr' ? 'उमेदवार (Jobseeker)' : preferredLocale === 'hi' ? 'उम्मीदवार' : 'Candidate'}</span>
+                  <span>{preferredLocale === 'mr' ? 'उमेदवार (Jobseeker)' : preferredLocale === 'hi' ? 'उम्मीदवार (Jobseeker)' : 'Candidate'}</span>
                 </button>
                 <button
                   type="button"
@@ -309,7 +323,7 @@ export default function LoginPage() {
                     }`}
                 >
                   <IconBuilding className="w-3.5 h-3.5" />
-                  <span>{preferredLocale === 'mr' ? 'नियोक्ता (Employer)' : preferredLocale === 'hi' ? 'नियोक्ता' : 'Employer'}</span>
+                  <span>{preferredLocale === 'mr' ? 'नियोक्ता (Employer)' : preferredLocale === 'hi' ? 'नियोक्ता (Employer)' : 'Employer'}</span>
                 </button>
               </div>
             </div>
@@ -403,13 +417,19 @@ export default function LoginPage() {
                   className="w-full bg-white hover:bg-steel-soft text-ink font-bold text-xs sm:text-sm py-2.5 px-4 rounded-xl border-2 border-ink shadow-solid-sm transition flex items-center justify-center gap-2.5 active:translate-x-0.5 active:translate-y-0.5"
                 >
                   <IconGoogle className="w-4 h-4" />
-                  <span>Google ने साइन इन करा (Continue with Google)</span>
+                  <span>
+                    {preferredLocale === 'mr' 
+                      ? 'Google ने साइन इन करा (Continue with Google)' 
+                      : preferredLocale === 'hi' 
+                      ? 'Google से साइन इन करें (Continue with Google)' 
+                      : 'Continue with Google'}
+                  </span>
                 </button>
 
                 <div className="flex items-center gap-3 my-3">
                   <div className="flex-1 h-px bg-steel/60" />
                   <span className="text-[11px] font-bold text-ink-muted uppercase tracking-wider">
-                    किंवा मोबाईल फोन नंबर
+                    {preferredLocale === 'mr' ? 'किंवा मोबाईल फोन नंबर' : preferredLocale === 'hi' ? 'या मोबाइल फोन नंबर' : 'Or Mobile Phone Number'}
                   </span>
                   <div className="flex-1 h-px bg-steel/60" />
                 </div>
@@ -419,7 +439,11 @@ export default function LoginPage() {
                   <form onSubmit={handleSendOtp} className="space-y-3">
                     <div>
                       <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
-                        मोबाईल नंबर (10-Digit Mobile Number)
+                        {preferredLocale === 'mr' 
+                          ? 'मोबाईल नंबर (10-Digit Mobile Number)' 
+                          : preferredLocale === 'hi' 
+                          ? 'मोबाइल नंबर (10-अंकीय मोबाइल नंबर)' 
+                          : 'Mobile Number (10-Digit)'}
                       </label>
                       <div className="flex gap-2">
                         <span className="inline-flex items-center px-3 rounded-xl bg-canvas border border-ink/20 text-xs font-bold text-ink">
@@ -442,7 +466,13 @@ export default function LoginPage() {
                       disabled={loading || phoneNumber.length < 10}
                       className="w-full settle-pill-btn text-xs sm:text-sm py-2.5 block text-center font-bold"
                     >
-                      {loading ? dict.common.loading : 'OTP पाठवा (Send OTP) ➔'}
+                      {loading 
+                        ? dict.common.loading 
+                        : preferredLocale === 'mr' 
+                        ? 'OTP पाठवा (Send OTP) ➔' 
+                        : preferredLocale === 'hi' 
+                        ? 'OTP भेजें (Send OTP) ➔' 
+                        : 'Send OTP ➔'}
                     </button>
                   </form>
                 ) : (
@@ -450,14 +480,18 @@ export default function LoginPage() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-xs font-bold text-ink uppercase tracking-wider">
-                          ६-अंकी OTP टाका (Enter 6-digit OTP)
+                          {preferredLocale === 'mr' 
+                            ? '६-अंकी OTP टाका (Enter 6-digit OTP)' 
+                            : preferredLocale === 'hi' 
+                            ? '६-अंकीय OTP दर्ज करें (Enter 6-digit OTP)' 
+                            : 'Enter 6-digit OTP'}
                         </label>
                         <button
                           type="button"
                           onClick={() => setConfirmationResult(null)}
                           className="text-[11px] font-bold text-primary hover:underline"
                         >
-                          नंबर बदला
+                          {preferredLocale === 'mr' ? 'नंबर बदला' : preferredLocale === 'hi' ? 'नंबर बदलें' : 'Change Number'}
                         </button>
                       </div>
                       <input
@@ -476,7 +510,13 @@ export default function LoginPage() {
                       disabled={loading || otpCode.length < 6}
                       className="w-full settle-pill-btn text-xs sm:text-sm py-2.5 block text-center font-bold"
                     >
-                      {loading ? dict.common.loading : 'ओटीपी पडताळा व लॉगिन करा ➔'}
+                      {loading 
+                        ? dict.common.loading 
+                        : preferredLocale === 'mr' 
+                        ? 'ओटीपी पडताळा व लॉगिन करा ➔' 
+                        : preferredLocale === 'hi' 
+                        ? 'OTP सत्यापित करें व प्रवेश करें ➔' 
+                        : 'Verify OTP & Continue ➔'}
                     </button>
                   </form>
                 )}
@@ -492,7 +532,9 @@ export default function LoginPage() {
                     <p>
                       {preferredLocale === 'mr'
                         ? 'पासवर्ड रीसेट लिंक आपल्या ईमेलवर पाठवली आहे. कृपया इनबॉक्स तपासा.'
-                        : 'Password reset link sent to your email.'}
+                        : preferredLocale === 'hi'
+                        ? 'पासवर्ड रीसेट लिंक आपके ईमेल पर भेज दी गई है। कृपया इनबॉक्स जांचें।'
+                        : 'Password reset link sent to your email. Please check your inbox.'}
                     </p>
                     <button
                       type="button"
@@ -502,14 +544,14 @@ export default function LoginPage() {
                       }}
                       className="text-primary underline text-xs mt-2 block mx-auto font-bold"
                     >
-                      लॉगिनकडे परत जा
+                      {preferredLocale === 'mr' ? 'लॉगिनकडे परत जा' : preferredLocale === 'hi' ? 'लॉग इन पर वापस जाएं' : 'Back to Sign In'}
                     </button>
                   </div>
                 ) : showForgot ? (
                   <form onSubmit={handleResetPassword} className="space-y-3">
                     <div>
                       <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
-                        नोंदणीकृत ईमेल (Registered Email)
+                        {preferredLocale === 'mr' ? 'नोंदणीकृत ईमेल (Registered Email)' : preferredLocale === 'hi' ? 'पंजीकृत ईमेल (Registered Email)' : 'Registered Email'}
                       </label>
                       <input
                         type="email"
@@ -527,7 +569,7 @@ export default function LoginPage() {
                         disabled={loading}
                         className="flex-1 settle-pill-btn text-xs py-2.5 font-bold"
                       >
-                        {loading ? dict.common.loading : 'रीसेट लिंक पाठवा'}
+                        {loading ? dict.common.loading : (preferredLocale === 'mr' ? 'रीसेट लिंक पाठवा' : preferredLocale === 'hi' ? 'रीसेट लिंक भेजें' : 'Send Reset Link')}
                       </button>
                       <button
                         type="button"
@@ -550,7 +592,7 @@ export default function LoginPage() {
                           : 'text-ink-secondary hover:text-ink'
                           }`}
                       >
-                        {preferredLocale === 'mr' ? 'प्रवेश करा (Sign In)' : 'Sign In'}
+                        {preferredLocale === 'mr' ? 'प्रवेश करा (Sign In)' : preferredLocale === 'hi' ? 'प्रवेश करें (Sign In)' : 'Sign In'}
                       </button>
                       <button
                         type="button"
@@ -560,13 +602,13 @@ export default function LoginPage() {
                           : 'text-ink-secondary hover:text-ink'
                           }`}
                       >
-                        {preferredLocale === 'mr' ? 'नवीन खाते (Register)' : 'Register'}
+                        {preferredLocale === 'mr' ? 'नवीन खाते (Register)' : preferredLocale === 'hi' ? 'नया खाता (Register)' : 'Register'}
                       </button>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
-                        ईमेल पत्ता (Email)
+                        {preferredLocale === 'mr' ? 'ईमेल पत्ता (Email)' : preferredLocale === 'hi' ? 'ईमेल पता (Email)' : 'Email Address'}
                       </label>
                       <input
                         type="email"
@@ -581,7 +623,7 @@ export default function LoginPage() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-xs font-bold text-ink uppercase tracking-wider">
-                          पासवर्ड (Password)
+                          {preferredLocale === 'mr' ? 'पासवर्ड (Password)' : preferredLocale === 'hi' ? 'पासवर्ड (Password)' : 'Password'}
                         </label>
                         {emailAction === 'signin' && (
                           <button
@@ -589,7 +631,7 @@ export default function LoginPage() {
                             onClick={() => setShowForgot(true)}
                             className="text-[11px] font-bold text-primary hover:underline"
                           >
-                            {preferredLocale === 'mr' ? 'पासवर्ड विसरलात?' : 'Forgot Password?'}
+                            {preferredLocale === 'mr' ? 'पासवर्ड विसरलात?' : preferredLocale === 'hi' ? 'पासवर्ड भूल गए?' : 'Forgot Password?'}
                           </button>
                         )}
                       </div>
@@ -620,7 +662,7 @@ export default function LoginPage() {
                       {loading
                         ? dict.common.loading
                         : emailAction === 'register'
-                          ? (preferredLocale === 'mr' ? 'खाते तयार करा व पुढे जा ➔' : 'Create Account ➔')
+                          ? (preferredLocale === 'mr' ? 'खाते तयार करा व पुढे जा ➔' : preferredLocale === 'hi' ? 'खाता बनाएं और आगे बढ़ें ➔' : 'Create Account ➔')
                           : `${dict.nav.login} ➔`}
                     </button>
                   </form>
@@ -634,6 +676,8 @@ export default function LoginPage() {
             <p className="text-xs text-ink-secondary font-medium">
               {preferredLocale === 'mr'
                 ? 'कोणतीही मध्यस्थी किंवा शुल्क नाही — १००% थेट आणि मोफत'
+                : preferredLocale === 'hi'
+                ? 'कोई बिचौलिया या शुल्क नहीं — १००% सीधा और निःशुल्क'
                 : '100% Free platform with direct employer connections and zero brokerage.'}
             </p>
           </div>

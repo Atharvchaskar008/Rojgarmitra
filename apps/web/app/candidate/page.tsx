@@ -89,7 +89,11 @@ export default function CandidateJobsFeedPage() {
       const token = await getIdToken();
       if (!token) {
         setMessage({
-          text: preferredLocale === 'mr' ? 'कृपया अर्ज करण्यासाठी प्रथम लॉगिन करा.' : 'Please sign in to submit your application.',
+          text: preferredLocale === 'mr' 
+            ? 'कृपया अर्ज करण्यासाठी प्रथम लॉगिन करा.' 
+            : preferredLocale === 'hi' 
+            ? 'कृपया आवेदन करने के लिए पहले लॉग इन करें।' 
+            : 'Please sign in to submit your application.',
           type: 'error',
         });
         setApplyingId(null);
@@ -106,7 +110,11 @@ export default function CandidateJobsFeedPage() {
       if (res.ok) {
         setAppliedJobs(prev => new Set(prev).add(jobId));
         setMessage({
-          text: preferredLocale === 'mr' ? 'आपला अर्ज यशस्वीरित्या पाठवला आहे!' : 'Application submitted successfully!',
+          text: preferredLocale === 'mr' 
+            ? 'आपला अर्ज यशस्वीरित्या पाठवला आहे!' 
+            : preferredLocale === 'hi' 
+            ? 'आपका आवेदन सफलतापूर्वक भेजा गया है!' 
+            : 'Application submitted successfully!',
           type: 'success',
         });
       } else {
@@ -464,16 +472,16 @@ export default function CandidateJobsFeedPage() {
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-center py-2.5 px-4 settle-pill-btn text-xs bg-ink hover:bg-primary text-white inline-flex items-center justify-center gap-1.5 transition shadow-solid-sm"
+                      className="w-full text-center py-2.5 px-4 settle-pill-btn text-xs bg-emerald-700 hover:bg-emerald-800 text-white inline-flex items-center justify-center gap-1.5 transition shadow-solid-sm font-black border border-emerald-900"
                     >
                       <span>
                         {preferredLocale === 'mr'
-                          ? 'थेट संकेतस्थळावर अर्ज करा'
+                          ? `अधिकृत पोर्टलवर अर्ज करा (${job.sourceDomain?.split(' ')[0] || 'Official Portal'}) ↗`
                           : preferredLocale === 'hi'
-                          ? 'सीधे मूल पोर्टल पर आवेदन करें'
-                          : 'Apply on Verified Source'}
+                          ? `आधिकारिक पोर्टल पर आवेदन करें (${job.sourceDomain?.split(' ')[0] || 'Official Portal'}) ↗`
+                          : `Apply on Official Portal (${job.sourceDomain?.split(' ')[0] || 'Verified Portal'}) ↗`}
                       </span>
-                      <IconExternalLink className="w-3.5 h-3.5" />
+                      <IconExternalLink className="w-3.5 h-3.5 shrink-0" />
                     </a>
                   ) : isApplied ? (
                     <button

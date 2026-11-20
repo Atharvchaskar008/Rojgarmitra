@@ -317,6 +317,8 @@ export default function CandidateOnboardingPage() {
             <span>
               {preferredLocale === 'mr'
                 ? 'कौशल्य विश्लेषण यशस्वीरीत्या पूर्ण झाले!'
+                : preferredLocale === 'hi'
+                ? 'कौशल विश्लेषण सफलतापूर्वक पूर्ण हुआ!'
                 : 'Profile & Skills Analysis Complete!'}
             </span>
           </div>
@@ -324,13 +326,15 @@ export default function CandidateOnboardingPage() {
           <h2 className="text-2xl sm:text-3xl font-black text-ink">
             {preferredLocale === 'mr'
               ? `${fullName || 'उमेदवार'}, आपल्यासाठी तयार केलेला रोजगार आराखडा`
+              : preferredLocale === 'hi'
+              ? `${fullName || 'उम्मीदवार'}, आपके लिए तैयार किया गया रोजगार रोडमैप`
               : `${fullName || 'Candidate'}, Your Tailored Employment Roadmap`}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium">
             <div className="bg-canvas p-4 rounded-xl border border-steel">
               <span className="text-ink-secondary font-bold block uppercase mb-1">
-                {preferredLocale === 'mr' ? 'ओळखलेले मुख्य ट्रेड व कौशल्ये:' : 'Detected Trade & Skills:'}
+                {preferredLocale === 'mr' ? 'ओळखलेले मुख्य ट्रेड व कौशल्ये:' : preferredLocale === 'hi' ? 'पहचाने गए मुख्य ट्रेड व कौशल:' : 'Detected Trade & Skills:'}
               </span>
               <p className="text-base font-black text-ink mb-2">{analysisResult.detectedTrade}</p>
               <div className="flex flex-wrap gap-1.5">
@@ -344,7 +348,7 @@ export default function CandidateOnboardingPage() {
 
             <div className="bg-canvas p-4 rounded-xl border border-steel">
               <span className="text-ink-secondary font-bold block uppercase mb-1">
-                {preferredLocale === 'mr' ? 'स्थानिक परिसर जुळणी:' : 'Regional Match:'}
+                {preferredLocale === 'mr' ? 'स्थानिक परिसर जुळणी:' : preferredLocale === 'hi' ? 'स्थानीय क्षेत्र मिलान:' : 'Regional Match:'}
               </span>
               <p className="text-base font-black text-ink mb-1">{analysisResult.taluka} MIDC / विदर्भ</p>
               <p className="text-ink-secondary leading-relaxed">{analysisResult.roadmapOverview}</p>
@@ -358,6 +362,8 @@ export default function CandidateOnboardingPage() {
               <span>
                 {preferredLocale === 'mr'
                   ? 'बेरोजगारीतून थेट रोजगाराचा मार्ग (MIDC कारखाना अप्रेंटिसशिप):'
+                  : preferredLocale === 'hi'
+                  ? 'बेरोजगारी से सीधे रोजगार का मार्ग (MIDC फैक्ट्री अप्रेंटिसशिप):'
                   : 'Earn While Learning (MIDC Factory Apprenticeship):'}
               </span>
             </div>
@@ -404,6 +410,8 @@ export default function CandidateOnboardingPage() {
               <span>
                 {preferredLocale === 'mr'
                   ? 'कोणत्याही कडक पर्यायांशिवाय मोकळेपणाने सांगा'
+                  : preferredLocale === 'hi'
+                  ? 'बिना किसी कठिन विकल्प के खुले तौर पर बताएं'
                   : 'No Rigid Dropdowns: Tell Your Real Skills'}
               </span>
             </div>
@@ -439,6 +447,8 @@ export default function CandidateOnboardingPage() {
               <p className="text-xs text-ink-secondary mt-0.5 font-medium">
                 {preferredLocale === 'mr'
                   ? 'मराठी किंवा हिंदीमध्ये आपल्या अनुभवाविषयी बोला.'
+                  : preferredLocale === 'hi'
+                  ? 'मराठी या हिंदी में अपने अनुभव के बारे में बोलें।'
                   : 'Speak about your hands-on experience in Marathi or Hindi.'}
               </p>
               {recordingStatus && (
@@ -460,9 +470,13 @@ export default function CandidateOnboardingPage() {
                 {isRecording
                   ? preferredLocale === 'mr'
                     ? 'थांबवा (Stop)'
+                    : preferredLocale === 'hi'
+                    ? 'रोकें (Stop)'
                     : 'Stop'
                   : preferredLocale === 'mr'
                   ? '🎙️ बोला (Speak)'
+                  : preferredLocale === 'hi'
+                  ? '🎙️ बोलें (Speak)'
                   : '🎙️ Speak'}
               </span>
             </button>
@@ -480,7 +494,13 @@ export default function CandidateOnboardingPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder={preferredLocale === 'mr' ? 'उदा. रमेश विष्णू पाटील' : 'e.g. Ramesh Patil'}
+                placeholder={
+                  preferredLocale === 'mr' 
+                    ? 'उदा. रमेश विष्णू पाटील' 
+                    : preferredLocale === 'hi' 
+                    ? 'उदा. रमेश विष्णु पाटिल' 
+                    : 'e.g. Ramesh Patil'
+                }
                 className="w-full bg-canvas border border-ink/20 rounded-xl px-4 py-2.5 text-sm font-semibold text-ink focus:outline-none focus:border-ink"
               />
             </div>
@@ -490,6 +510,8 @@ export default function CandidateOnboardingPage() {
               <label className="block text-xs font-black text-ink uppercase tracking-wider mb-1">
                 {preferredLocale === 'mr'
                   ? 'गाव / तालुका / एमआयडीसी परिसर (Vidarbha Area) *'
+                  : preferredLocale === 'hi'
+                  ? 'गांव / तहसील / एमआईडीसी क्षेत्र (Vidarbha Area) *'
                   : 'Village / Taluka / Industrial Area in Vidarbha *'}
               </label>
               <input
@@ -497,11 +519,19 @@ export default function CandidateOnboardingPage() {
                 required
                 value={locationText}
                 onChange={(e) => setLocationText(e.target.value)}
-                placeholder="उदा. बुटीबोरी MIDC, नागपूर"
+                placeholder={
+                  preferredLocale === 'mr' 
+                    ? 'उदा. बुटीबोरी MIDC, नागपूर' 
+                    : preferredLocale === 'hi' 
+                    ? 'उदा. बुटीबोरी MIDC, नागपुर' 
+                    : 'e.g. Butibori MIDC, Nagpur'
+                }
                 className="w-full bg-canvas border border-ink/20 rounded-xl px-4 py-2.5 text-sm font-semibold text-ink focus:outline-none focus:border-ink mb-2"
               />
               <div className="flex flex-wrap gap-1.5 items-center">
-                <span className="text-[11px] font-bold text-ink-muted">सुचवलेले परिसर:</span>
+                <span className="text-[11px] font-bold text-ink-muted">
+                  {preferredLocale === 'mr' ? 'सुचवलेले परिसर:' : preferredLocale === 'hi' ? 'सुझाए गए क्षेत्र:' : 'Suggested Hubs:'}
+                </span>
                 {vidarbhaHubs.map((hub) => (
                   <button
                     key={hub}
@@ -520,17 +550,27 @@ export default function CandidateOnboardingPage() {
               <label className="block text-xs font-black text-ink uppercase tracking-wider mb-1">
                 {preferredLocale === 'mr'
                   ? 'शिक्षण व पूर्वज्ञान (Education / Non-Formal Background)'
+                  : preferredLocale === 'hi'
+                  ? 'शिक्षा व पूर्व ज्ञान (Education / Non-Formal Background)'
                   : 'Education & Technical Background'}
               </label>
               <input
                 type="text"
                 value={educationText}
                 onChange={(e) => setEducationText(e.target.value)}
-                placeholder="उदा. १०वी पास, ITI वेल्डर किंवा अनौपचारिक प्रत्यक्ष अनुभव"
+                placeholder={
+                  preferredLocale === 'mr'
+                    ? 'उदा. १०वी पास, ITI वेल्डर किंवा अनौपचारिक प्रत्यक्ष अनुभव'
+                    : preferredLocale === 'hi'
+                    ? 'उदा. १०वीं पास, ITI वेल्डर या व्यावहारिक अनुभव'
+                    : 'e.g. 10th pass, ITI Welder or non-formal field experience'
+                }
                 className="w-full bg-canvas border border-ink/20 rounded-xl px-4 py-2.5 text-sm font-semibold text-ink focus:outline-none focus:border-ink mb-2"
               />
               <div className="flex flex-wrap gap-1.5 items-center">
-                <span className="text-[11px] font-bold text-ink-muted">उदाहरणे:</span>
+                <span className="text-[11px] font-bold text-ink-muted">
+                  {preferredLocale === 'mr' ? 'उदाहरणे:' : preferredLocale === 'hi' ? 'उदाहरण:' : 'Examples:'}
+                </span>
                 {educationSuggestions.slice(0, 4).map((sug) => (
                   <button
                     key={sug}
@@ -549,6 +589,8 @@ export default function CandidateOnboardingPage() {
               <label className="block text-xs font-black text-ink uppercase tracking-wider mb-1">
                 {preferredLocale === 'mr'
                   ? 'कामाचा प्रत्यक्ष अनुभव व कौशल्ये (Describe Hands-on Skills in Words) *'
+                  : preferredLocale === 'hi'
+                  ? 'काम का प्रत्यक्ष अनुभव व कौशल (Describe Hands-on Skills in Words) *'
                   : 'Hands-on Skills & Experience Description *'}
               </label>
               <textarea
@@ -559,6 +601,8 @@ export default function CandidateOnboardingPage() {
                 placeholder={
                   preferredLocale === 'mr'
                     ? 'उदा. मला बुटीबोरीतील फॅब्रिकेशन कारखान्यात ३ वर्षे काम केल्याचा अनुभव आहे. MIG आणि आर्क वेल्डिंग चांगले येते. लेथ मशीन चालवता येते. ग्राइंडिंग, कटिंग व थ्री-फेज मोटरचे प्राथमिक काम येते.'
+                    : preferredLocale === 'hi'
+                    ? 'उदा. मुझे बुटीबोरी की फैक्ट्री में ३ वर्ष काम का अनुभव है। MIG और आर्क वेल्डिंग अच्छी तरह आती है। लेथ मशीन और कटिंग-ग्राइंडिंग का कार्य आता है।'
                     : 'e.g. 3 years hands-on experience in Butibori fabrication unit with MIG and Arc welding. Familiar with lathe operation, grinding, and basic motor maintenance.'
                 }
                 className="w-full bg-canvas border border-ink/20 rounded-xl p-3 text-sm font-semibold text-ink focus:outline-none focus:border-ink"
@@ -566,6 +610,8 @@ export default function CandidateOnboardingPage() {
               <p className="text-[11px] text-ink-secondary mt-1 font-medium">
                 {preferredLocale === 'mr'
                   ? '💡 टीप: आपण जे काम प्रत्यक्षात करू शकता ते साध्या शब्दांत लिहा. आमची AI प्रणाली त्यातून कौशल्ये शोधून काढेल.'
+                  : preferredLocale === 'hi'
+                  ? '💡 सुझाव: आप जो काम कर सकते हैं उसे सरल शब्दों में लिखें। हमारा AI सिस्टम उसमें से कौशल निकाल लेगा।'
                   : '💡 Tip: Simply describe what you can do hands-on. Our AI will automatically extract relevant skills.'}
               </p>
             </div>
@@ -588,7 +634,7 @@ export default function CandidateOnboardingPage() {
 
               <div>
                 <label className="block text-xs font-black text-ink uppercase tracking-wider mb-1">
-                  {preferredLocale === 'mr' ? 'प्रवासाची तयारी (किमी)' : 'Max Travel (Km)'}
+                  {preferredLocale === 'mr' ? 'प्रवासाची तयारी (किमी)' : preferredLocale === 'hi' ? 'यात्रा की तैयारी (किमी)' : 'Max Travel (Km)'}
                 </label>
                 <input
                   type="number"
@@ -619,7 +665,7 @@ export default function CandidateOnboardingPage() {
           {/* Submit Button */}
           <div className="pt-4 border-t border-steel/60 flex items-center justify-between">
             <Link href="/candidate" className="text-xs font-bold text-ink-secondary hover:text-ink">
-              रद्द करा (Cancel)
+              {preferredLocale === 'mr' ? 'रद्द करा (Cancel)' : preferredLocale === 'hi' ? 'रद्द करें (Cancel)' : 'Cancel'}
             </Link>
 
             <button

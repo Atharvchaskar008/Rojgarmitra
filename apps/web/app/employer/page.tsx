@@ -116,11 +116,13 @@ export default function EmployerDashboardPage() {
             <IconBuilding className="w-5 h-5 text-primary" />
           </div>
           <h3 className="text-base font-black text-ink mb-1">
-            {preferredLocale === 'mr' ? 'नियोक्ता लॉगिन आवश्यक आहे' : 'Employer Login Required'}
+            {preferredLocale === 'mr' ? 'नियोक्ता लॉगिन आवश्यक आहे' : preferredLocale === 'hi' ? 'नियोक्ता लॉग इन आवश्यक है' : 'Employer Login Required'}
           </h3>
           <p className="text-sm text-ink-secondary mb-4 font-medium">
             {preferredLocale === 'mr'
               ? 'आपल्या कारखान्यातील जागा व्यवस्थापित करण्यासाठी व अर्जदार पाहण्यासाठी लॉगिन करा.'
+              : preferredLocale === 'hi'
+              ? 'अपने प्रतिष्ठान की रिक्तियों के प्रबंधन और आवेदकों की समीक्षा के लिए लॉग इन करें।'
               : 'Please sign in to manage your factory job postings and review candidate applicants.'}
           </p>
           <div className="flex justify-center gap-3">
@@ -128,7 +130,7 @@ export default function EmployerDashboardPage() {
               href="/login?role=employer"
               className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold shadow-solid-sm"
             >
-              <span>{preferredLocale === 'mr' ? 'नियोक्ता म्हणून थेट प्रवेश करा' : 'Sign in as Employer'}</span>
+              <span>{preferredLocale === 'mr' ? 'नियोक्ता म्हणून थेट प्रवेश करा' : preferredLocale === 'hi' ? 'नियोक्ता के रूप में प्रवेश करें' : 'Sign in as Employer'}</span>
               <IconArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -139,16 +141,24 @@ export default function EmployerDashboardPage() {
             <IconBriefcase className="w-5 h-5 text-ink-secondary" />
           </div>
           <h3 className="text-base font-black text-ink mb-1">
-            अद्याप कोणतीही जाहिरात दिलेली नाही
+            {preferredLocale === 'mr'
+              ? 'अद्याप कोणतीही जाहिरात दिलेली नाही'
+              : preferredLocale === 'hi'
+              ? 'अभी तक कोई भर्ती विज्ञापन नहीं दिया गया है'
+              : 'No Active Job Postings Yet'}
           </h3>
           <p className="text-sm text-ink-secondary mb-4 font-medium">
-            आपल्या कारखान्यासाठी किंवा व्यवसायासाठी त्वरित नवीन भरती जाहिरात तयार करा.
+            {preferredLocale === 'mr'
+              ? 'आपल्या कारखान्यासाठी किंवा व्यवसायासाठी त्वरित नवीन भरती जाहिरात तयार करा.'
+              : preferredLocale === 'hi'
+              ? 'अपने कारखाने या प्रतिष्ठान के लिए तुरंत नया भर्ती विज्ञापन बनाएं।'
+              : 'Create a new job posting for your factory, workshop, or business in 1 minute.'}
           </p>
           <Link
             href="/employer/post"
             className="settle-pill-btn px-6 py-2.5 text-xs inline-flex items-center gap-1.5 font-bold"
           >
-            <span>जाहिरात तयार करा</span>
+            <span>+ {dict.employer.post_new_job}</span>
             <IconArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -162,7 +172,9 @@ export default function EmployerDashboardPage() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-verified-bg text-verified border border-verified">
-                    {job.status === 'open' ? 'चालू (Open)' : 'बंद (Closed)'}
+                    {job.status === 'open' 
+                      ? (preferredLocale === 'mr' ? 'सक्रिय (Open)' : preferredLocale === 'hi' ? 'सक्रिय (Open)' : 'Open') 
+                      : (preferredLocale === 'mr' ? 'बंद (Closed)' : preferredLocale === 'hi' ? 'बंद (Closed)' : 'Closed')}
                   </span>
                   <span className="text-xs font-bold text-ink-secondary">
                     📍 {job.areaOrMidc || job.taluka || job.district}
@@ -171,9 +183,11 @@ export default function EmployerDashboardPage() {
 
                 <h3 className="text-lg font-black text-ink mb-1">{job.title}</h3>
                 <p className="text-xs text-ink-secondary font-medium">
-                  जागा: <strong className="text-ink">{job.vacancies}</strong> • वेतन:{' '}
+                  {preferredLocale === 'mr' ? 'जागा:' : preferredLocale === 'hi' ? 'पद:' : 'Vacancies:'}{' '}
+                  <strong className="text-ink">{job.vacancies}</strong> •{' '}
+                  {preferredLocale === 'mr' ? 'वेतन:' : preferredLocale === 'hi' ? 'वेतन:' : 'Salary:'}{' '}
                   <strong className="text-ink">
-                    {job.salaryMin ? `₹${job.salaryMin.toLocaleString()} - ₹${job.salaryMax?.toLocaleString()}` : 'चर्चेनुसार'}
+                    {job.salaryMin ? `₹${job.salaryMin.toLocaleString()} - ₹${job.salaryMax?.toLocaleString()}` : dict.job.salary_not_disclosed}
                   </strong>
                 </p>
               </div>

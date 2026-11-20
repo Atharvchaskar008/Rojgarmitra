@@ -186,9 +186,9 @@ const INITIAL_REGIONAL_EVIDENCE: EvidenceDocument[] = [
     evidenceType: 'government_scheme',
     title: 'Directorate of Vocational Education and Training (DVET) ITI Portal',
     sourceUrl: 'https://admission.dvet.gov.in',
-    content: 'Official government portal for Craftsmen Training Scheme (CTS) ITI admissions in Maharashtra (Hingna, Butibori, Umred, Katol, Saoner). Subsidized tuition for technical vocational foundation.',
-    tradeTags: ['electrician', 'welder', 'fitter_turner', 'mechanic', 'plumber'],
-    skillTags: ['house_wiring', 'arc_welding', 'lathe_operation'],
+    content: 'Official government portal for Craftsmen Training Scheme (CTS) ITI admissions in Maharashtra (Hingna, Butibori, Umred, Katol, Saoner). Subsidized tuition for technical vocational foundation including electrician, solar rooftop wiring, and wireman trades.',
+    tradeTags: ['electrician', 'welder', 'fitter_turner', 'mechanic', 'plumber', 'solar_renewable'],
+    skillTags: ['house_wiring', 'solar_panel_installation', 'arc_welding', 'lathe_operation'],
     geographicMetadata: {
       district: 'Nagpur',
     },
@@ -324,7 +324,7 @@ export class RegionalRagService {
       taluka: candidateContext.taluka,
       district: candidateContext.district,
       query: sanitizedQuestion,
-      limit: 4,
+      limit: 5,
     });
 
     const citations = evidenceDocs.map((doc) => ({

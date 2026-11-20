@@ -39,6 +39,7 @@ export function FloatingAssistant() {
   const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('male');
   const [jarvisMode, setJarvisMode] = useState<boolean>(false);
   const [statusText, setStatusText] = useState<string | null>(null);
+  const [autoVoicePlay, setAutoVoicePlay] = useState<boolean>(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -108,10 +109,25 @@ export function FloatingAssistant() {
       audioRef.current = null;
     }
 
-    // 4. Cancel browser native SpeechSynthesis
+    // 3b. Catch-all: Stop and clean ANY audio elements present in the DOM
+    if (typeof document !== 'undefined') {
+      try {
+        document.querySelectorAll('audio').forEach((el) => {
+          el.pause();
+          el.currentTime = 0;
+          el.src = '';
+        });
+      } catch {}
+    }
+
+    // 4. Cancel browser native SpeechSynthesis with double-kill
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          window.speechSynthesis.resume();
+          window.speechSynthesis.cancel();
+        }
       } catch {
         // ignore
       }
@@ -141,6 +157,17 @@ export function FloatingAssistant() {
       stopAllAudioAndVoice();
     }
   }, [isOpen, stopAllAudioAndVoice]);
+
+  // Global Escape key listener to instantly stop all voice/recording
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        stopAllAudioAndVoice();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [stopAllAudioAndVoice]);
 
   /**
    * Start native browser audio recording via MediaRecorder for ElevenLabs Scribe STT
@@ -314,18 +341,8 @@ export function FloatingAssistant() {
     const query = (questionText || input).trim();
     if (!query || loading) return;
 
-    // Immediately stop any existing speech before sending new query
-    const sendAudio = audioRef.current as HTMLAudioElement | null;
-    if (sendAudio) {
-      try {
-        sendAudio.pause();
-        audioRef.current = null;
-      } catch {}
-    }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    setSpeakingId(null);
+    // Immediately stop any existing speech & invalidate pending TTS fetches before sending new query
+    stopAllAudioAndVoice();
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -372,8 +389,10 @@ export function FloatingAssistant() {
         setMessages((prev) => [...prev, botMsg]);
         setStatusText(null);
 
-        // Auto-speak response using ElevenLabs Pro voice
-        await speakText(botMsg.id, json.data.answer);
+        // Auto-speak response using ElevenLabs Pro voice ONLY if audio is enabled
+        if (autoVoicePlay) {
+          await speakText(botMsg.id, json.data.answer);
+        }
       } else {
         throw new Error(json.error?.message || 'Failed to fetch answer');
       }
@@ -549,22 +568,25 @@ export function FloatingAssistant() {
 
   const sampleQuestions: Record<SupportedLocale, string[]> = {
     mr: [
-      'हिंगणा व बुटीबोरी MIDC मध्ये थेट नोकऱ्या कुठे आहेत?',
-      'शासकीय ITI व्यतिरिक्त ॲप्रेंटिसशिप कशी मिळते?',
-      'स्पर्धा परीक्षेचा ताण आहे, वास्तववादी करिअर प्लॅन काय?',
-      'डेअरी, टेलरिंग किंवा इतर कामांच्या संधी कुठे आहेत?',
+      'हिंगणा व बुटीबोरी MIDC मध्ये थेट फॅक्टरी नोकऱ्या कुठे आहेत?',
+      'दुकान, बिलिंग किंवा कॉम्प्युटर ऑपरेटरची कामे कशी मिळतील?',
+      'शासकीय ITI व्यतिरिक्त स्टायपेंडसह ॲप्रेंटिसशिप कशी मिळते?',
+      'स्पर्धा परीक्षांचा ताण आहे, ३० दिवसांत उत्पन्नाचा काय मार्ग आहे?',
+      'वेअरहाऊस, डेअरी किंवा इतर कामांच्या संधी कुठे आहेत?',
     ],
     hi: [
       'हिंगना और बुटीबोरी MIDC में सीधी नौकरियां कहाँ हैं?',
-      'सरकारी ITI के अलावा ऑन-द-जॉब ट्रेनिंग कैसे मिलेगी?',
-      'सरकारी परीक्षा के तनाव से बाहर निकलकर क्या करें?',
-      'डेयरी, टेलरिंग या गैर-तकनीकी कामों के अवसर कहाँ हैं?',
+      'दुकान, बिलिंग या कंप्यूटर ऑपरेटर की नौकरियां कैसे मिलेंगी?',
+      'सरकारी ITI के अलावा स्टाइपेंड के साथ अप्रेंटिसशिप कैसे मिलेगी?',
+      'प्रतियोगी परीक्षा के तनाव से निकलकर ३० दिनों में आय कैसे शुरू करें?',
+      'वेयरहाउस, डेयरी या अन्य गैर-तकनीकी अवसर कहाँ हैं?',
     ],
     en: [
-      'Where are verified direct jobs in Hingna & Butibori?',
-      'What on-the-job training exists beyond ITI?',
-      'How to escape competitive exam stress & start earning?',
-      'What opportunities exist for dairy, tailoring or other trades?',
+      'Where are verified factory jobs in Hingna & Butibori?',
+      'How to find retail sales, billing, or computer operator roles?',
+      'What paid on-the-job apprenticeships exist beyond ITI?',
+      'How to escape competitive exam stress & start earning within 30 days?',
+      'What opportunities exist for warehousing, logistics, or other trades?',
     ],
   };
 
@@ -613,11 +635,32 @@ export function FloatingAssistant() {
                   type="button"
                   onClick={stopAllAudioAndVoice}
                   className="px-2.5 py-1 rounded-full bg-alert text-white text-[10px] font-black transition flex items-center gap-1 shadow-solid-sm animate-pulse hover:bg-alert/90"
-                  title="Stop Speaking / Stop Listening"
+                  title="Stop Speaking / Stop Listening (Esc)"
                 >
-                  <span>⏹️ थांबवा</span>
+                  <span>⏹️ थांबवा (Esc)</span>
                 </button>
               )}
+
+              {/* Sound Audio Mute / Unmute Switch */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (autoVoicePlay) {
+                    stopAllAudioAndVoice();
+                    setAutoVoicePlay(false);
+                  } else {
+                    setAutoVoicePlay(true);
+                  }
+                }}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition flex items-center gap-1 border ${
+                  autoVoicePlay 
+                    ? 'bg-emerald-600/30 text-emerald-200 border-emerald-400/40 hover:bg-emerald-600/40' 
+                    : 'bg-alert/30 text-rose-200 border-alert/40 hover:bg-alert/40'
+                }`}
+                title={autoVoicePlay ? 'Auto-Voice Enabled' : 'Auto-Voice Muted'}
+              >
+                <span>{autoVoicePlay ? '🔊 चालू' : '🔇 म्यूट'}</span>
+              </button>
 
               {/* Voice Gender Switcher */}
               <button
@@ -639,6 +682,27 @@ export function FloatingAssistant() {
               </button>
             </div>
           </div>
+
+          {/* Sticky Emergency Voice Active Bar (Top of Chat, Cannot be missed) */}
+          {isVoiceActive && (
+            <div className="bg-alert text-white px-3 py-1.5 flex items-center justify-between text-xs font-black shadow-sm shrink-0 animate-pulse">
+              <span className="flex items-center gap-1.5 text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                {speakingId 
+                  ? (preferredLocale === 'mr' ? '🔊 मित्र बोलत आहे...' : preferredLocale === 'hi' ? '🔊 मित्र बोल रहा है...' : '🔊 Mitra is speaking...')
+                  : isListening 
+                  ? (preferredLocale === 'mr' ? '🎙️ तुमचा आवाज ऐकत आहे...' : preferredLocale === 'hi' ? '🎙️ आपकी आवाज सुन रहा है...' : '🎙️ Listening to your voice...')
+                  : (preferredLocale === 'mr' ? '🎙️ व्हॉइस मोड चालू' : preferredLocale === 'hi' ? '🎙️ वॉयस मोड चालू' : '🎙️ Continuous Voice ON')}
+              </span>
+              <button
+                type="button"
+                onClick={stopAllAudioAndVoice}
+                className="bg-white text-alert hover:bg-white/90 px-2.5 py-0.5 rounded-full text-[10px] font-black transition active:scale-95 shadow-sm"
+              >
+                ⏹️ {preferredLocale === 'mr' ? 'आवाज थांबवा (Esc)' : preferredLocale === 'hi' ? 'आवाज रोकें (Esc)' : 'STOP (Esc)'}
+              </button>
+            </div>
+          )}
 
           {/* JARVIS Hands-Free Voice Mode Banner */}
           <div className="bg-canvas border-b border-steel/60 px-3 py-1.5 flex items-center justify-between text-xs">
