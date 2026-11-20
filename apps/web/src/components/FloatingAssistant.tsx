@@ -45,8 +45,10 @@ export function FloatingAssistant() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const jarvisModeRef = useRef<boolean>(false);
+  const playbackEpochRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Keep jarvisModeRef in sync
+  // Keep jarvisModeRef in sync with state
   useEffect(() => {
     jarvisModeRef.current = jarvisMode;
   }, [jarvisMode]);
@@ -54,9 +56,9 @@ export function FloatingAssistant() {
   // Clean localized greetings
   useEffect(() => {
     const welcomeTexts: Record<SupportedLocale, string> = {
-      mr: 'नमस्कार! मी मित्र — आपला AI व्हॉइस मार्गदर्शक. विदर्भातील थेट नोकऱ्या, एमआयडीसी अप्रेंटिसशिप किंवा शासकीय कोर्सेसबद्दल मोकळेपणाने बोला किंवा विचारा.',
-      hi: 'नमस्ते! मैं मित्र — आपका AI वॉयस साथी। विदर्भ की सीधी नौकरियां, MIDC अप्रेंटिसशिप या सरकारी कोर्सेस के बारे में सीधे बोलकर या लिखकर पूछें।',
-      en: 'Hello! I am Mitra — your regional AI voice companion. Ask or speak freely about verified Vidarbha jobs, MIDC apprenticeships, or vocational courses.',
+      mr: 'नमस्कार! मी मित्र — आपला AI व्हॉइस मार्गदर्शक. विदर्भातील थेट नोकऱ्या, एमआयडीसी ऑन-द-जॉब ॲप्रेंटिसशिप, करिअर वास्तव किंवा कोर्सेसबद्दल मोकळेपणाने बोला किंवा विचारा.',
+      hi: 'नमस्ते! मैं मित्र — आपका AI वॉयस साथी। विदर्भ की सीधी नौकरियां, MIDC ऑन-द-जॉब अप्रेंटिसशिप, करियर सलाह या कोर्सेस के बारे में सीधे बोलकर या लिखकर पूछें।',
+      en: 'Hello! I am Mitra — your regional AI voice companion. Ask or speak freely about verified Vidarbha jobs, MIDC apprenticeships, career reality checks, or vocational paths.',
     };
 
     setMessages([
@@ -75,27 +77,86 @@ export function FloatingAssistant() {
     }
   }, [messages, isOpen, loading]);
 
-  // Stop recording or audio when closed
+  /**
+   * Complete, bulletproof stop of all speech playback, speech synthesis, and microphone recording.
+   * Eliminates voice overlap and breaks any pending loops.
+   */
+  const stopAllAudioAndVoice = useCallback(() => {
+    // 1. Advance epoch to invalidate any in-flight TTS fetches
+    playbackEpochRef.current += 1;
+
+    // 2. Abort active network fetch for TTS if any
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort();
+      } catch {
+        // ignore
+      }
+      abortControllerRef.current = null;
+    }
+
+    // 3. Stop HTML5 audio player
+    const player = audioRef.current as HTMLAudioElement | null;
+    if (player) {
+      try {
+        player.pause();
+        player.currentTime = 0;
+        player.src = '';
+      } catch {
+        // ignore
+      }
+      audioRef.current = null;
+    }
+
+    // 4. Cancel browser native SpeechSynthesis
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
+    }
+
+    // 5. Stop MediaRecorder if recording
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch {
+        // ignore
+      }
+    }
+    audioChunksRef.current = [];
+
+    // 6. Reset all speaking, listening, and auto-loop states
+    setIsListening(false);
+    setSpeakingId(null);
+    setStatusText(null);
+    setJarvisMode(false);
+    jarvisModeRef.current = false;
+  }, []);
+
+  // Stop everything when chat window is closed
   useEffect(() => {
     if (!isOpen) {
-      stopRecording();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      setSpeakingId(null);
+      stopAllAudioAndVoice();
     }
-  }, [isOpen]);
+  }, [isOpen, stopAllAudioAndVoice]);
 
   /**
    * Start native browser audio recording via MediaRecorder for ElevenLabs Scribe STT
    */
   const startRecording = async () => {
     setVoiceNotice(null);
-    // Stop any ongoing speech playback
+
+    // Stop any ongoing speech playback before listening
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+      try {
+        audioRef.current.pause();
+        audioRef.current = null;
+      } catch {}
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
     }
     setSpeakingId(null);
 
@@ -131,7 +192,6 @@ export function FloatingAssistant() {
       };
 
       recorder.onstop = async () => {
-        // Stop all audio tracks
         stream.getTracks().forEach((track) => track.stop());
         setIsListening(false);
 
@@ -146,14 +206,14 @@ export function FloatingAssistant() {
         await processAudioWithElevenLabsScribe(audioBlob);
       };
 
-      recorder.start(250); // Slice chunks every 250ms
+      recorder.start(250);
       setIsListening(true);
       setStatusText(
         preferredLocale === 'mr'
-          ? 'मी ऐकत आहे... (ElevenLabs Scribe)'
+          ? 'मी ऐकत आहे... (बोलणे संपल्यावर मायक्रोफोन दाबा किंवा थांबवा)'
           : preferredLocale === 'hi'
-          ? 'मैं सुन रहा हूँ... (ElevenLabs Scribe)'
-          : 'Listening... (ElevenLabs Scribe STT)'
+          ? 'मैं सुन रहा हूँ... (बोलने के बाद माइक दबाएं या रोकें)'
+          : 'Listening... (Speak naturally, then click Stop)'
       );
     } catch (err: any) {
       console.warn('Microphone start error:', err);
@@ -197,7 +257,7 @@ export function FloatingAssistant() {
   };
 
   /**
-   * Sends audio blob directly to /api/v1/voice/transcribe (ElevenLabs Scribe STT)
+   * Process recorded speech via ElevenLabs Scribe STT
    */
   const processAudioWithElevenLabsScribe = async (audioBlob: Blob) => {
     setStatusText(
@@ -253,6 +313,19 @@ export function FloatingAssistant() {
   const handleSend = async (questionText?: string) => {
     const query = (questionText || input).trim();
     if (!query || loading) return;
+
+    // Immediately stop any existing speech before sending new query
+    const sendAudio = audioRef.current as HTMLAudioElement | null;
+    if (sendAudio) {
+      try {
+        sendAudio.pause();
+        audioRef.current = null;
+      } catch {}
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setSpeakingId(null);
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -324,31 +397,48 @@ export function FloatingAssistant() {
 
   /**
    * Speak text using ElevenLabs Pro Multilingual Voice (/api/v1/voice/speak)
+   * Guaranteed ZERO voice overlap via epoch tracking and strict single-audio lifecycle.
    */
   const speakText = async (msgId: string, text: string) => {
-    // Stop ongoing audio
-    if (audioRef.current) {
-      audioRef.current.pause();
+    // If user clicked the same message currently playing, treat as immediate Stop/Mute
+    if (speakingId === msgId) {
+      stopAllAudioAndVoice();
+      return;
+    }
+
+    // Stop and destroy any previous audio before starting new playback
+    const existingAudio = audioRef.current as HTMLAudioElement | null;
+    if (existingAudio) {
+      try {
+        existingAudio.pause();
+        existingAudio.src = '';
+      } catch {}
       audioRef.current = null;
     }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
 
-    if (speakingId === msgId) {
-      setSpeakingId(null);
-      return;
-    }
+    // Advance epoch so any stale in-flight fetch is dropped
+    playbackEpochRef.current += 1;
+    const currentEpoch = playbackEpochRef.current;
 
     try {
       setSpeakingId(msgId);
       const token = await getIdToken();
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const res = await fetch('/api/v1/voice/speak', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        signal: controller.signal,
         body: JSON.stringify({
           text,
           locale: preferredLocale,
@@ -356,37 +446,64 @@ export function FloatingAssistant() {
         }),
       });
 
+      // If epoch changed while fetching (e.g. user clicked stop or another message), discard immediately!
+      if (playbackEpochRef.current !== currentEpoch) {
+        return;
+      }
+
       const contentType = res.headers.get('content-type') || '';
       if (res.ok && contentType.includes('audio')) {
         const blob = await res.blob();
+
+        // Double check epoch after blob conversion
+        if (playbackEpochRef.current !== currentEpoch) {
+          return;
+        }
+
+        // Clean up previous instance before playing
+        const oldAudio = audioRef.current as HTMLAudioElement | null;
+        if (oldAudio) {
+          try {
+            oldAudio.pause();
+          } catch {}
+          audioRef.current = null;
+        }
+
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         audioRef.current = audio;
 
         const onAudioEnd = () => {
-          setSpeakingId(null);
-          audioRef.current = null;
+          if (playbackEpochRef.current === currentEpoch) {
+            setSpeakingId(null);
+            audioRef.current = null;
 
-          // JARVIS Continuous Voice Mode: automatically listen again for next turn!
-          if (jarvisModeRef.current) {
-            setTimeout(() => {
-              if (jarvisModeRef.current) {
-                startRecording();
-              }
-            }, 600);
+            // JARVIS Continuous Voice Mode: only listen again if STILL in jarvis mode and epoch is valid
+            if (jarvisModeRef.current) {
+              setTimeout(() => {
+                if (jarvisModeRef.current && playbackEpochRef.current === currentEpoch && !audioRef.current) {
+                  startRecording();
+                }
+              }, 400);
+            }
           }
         };
 
         audio.onended = onAudioEnd;
         audio.onerror = () => {
-          setSpeakingId(null);
-          audioRef.current = null;
+          if (playbackEpochRef.current === currentEpoch) {
+            setSpeakingId(null);
+            audioRef.current = null;
+          }
         };
 
         await audio.play();
       } else {
-        // Fallback to browser SpeechSynthesis
+        // Fallback to browser SpeechSynthesis only if epoch is still current
+        if (playbackEpochRef.current !== currentEpoch) return;
+
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(text);
           const voices = window.speechSynthesis.getVoices();
           const matchVoice = voices.find(
@@ -399,46 +516,60 @@ export function FloatingAssistant() {
           utterance.rate = 0.95;
 
           utterance.onend = () => {
-            setSpeakingId(null);
-            if (jarvisModeRef.current) {
-              setTimeout(() => {
-                if (jarvisModeRef.current) startRecording();
-              }, 600);
+            if (playbackEpochRef.current === currentEpoch) {
+              setSpeakingId(null);
+              if (jarvisModeRef.current) {
+                setTimeout(() => {
+                  if (jarvisModeRef.current && playbackEpochRef.current === currentEpoch) {
+                    startRecording();
+                  }
+                }, 400);
+              }
             }
           };
-          utterance.onerror = () => setSpeakingId(null);
+          utterance.onerror = () => {
+            if (playbackEpochRef.current === currentEpoch) {
+              setSpeakingId(null);
+            }
+          };
           window.speechSynthesis.speak(utterance);
         } else {
           setSpeakingId(null);
         }
       }
-    } catch {
-      setSpeakingId(null);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.warn('Speech playback error:', err);
+      }
+      if (playbackEpochRef.current === currentEpoch) {
+        setSpeakingId(null);
+      }
     }
   };
 
   const sampleQuestions: Record<SupportedLocale, string[]> = {
     mr: [
-      'बुटीबोरी MIDC मध्ये वेल्डरच्या नोकऱ्या कुठे आहेत?',
-      'शासकीय ITI व्यतिरिक्त काय पर्याय आहेत?',
-      'एमआयडीसी प्रत्यक्ष अप्रेंटिसशिप कशी मिळेल?',
-      'माझ्या कौशल्यांचा करिअर प्लॅन कसा पाहावा?',
+      'हिंगणा व बुटीबोरी MIDC मध्ये थेट नोकऱ्या कुठे आहेत?',
+      'शासकीय ITI व्यतिरिक्त ॲप्रेंटिसशिप कशी मिळते?',
+      'स्पर्धा परीक्षेचा ताण आहे, वास्तववादी करिअर प्लॅन काय?',
+      'डेअरी, टेलरिंग किंवा इतर कामांच्या संधी कुठे आहेत?',
     ],
     hi: [
-      'बुटीबोरी MIDC में वेल्डर की नौकरियां कहाँ हैं?',
-      'सरकारी ITI के अलावा अन्य क्या विकल्प हैं?',
-      'MIDC ऑन-द-जॉब अप्रेंटिसशिप कैसे मिलेगी?',
-      'मेरा स्किल आधारित करियर प्लान कैसे देखें?',
+      'हिंगना और बुटीबोरी MIDC में सीधी नौकरियां कहाँ हैं?',
+      'सरकारी ITI के अलावा ऑन-द-जॉब ट्रेनिंग कैसे मिलेगी?',
+      'सरकारी परीक्षा के तनाव से बाहर निकलकर क्या करें?',
+      'डेयरी, टेलरिंग या गैर-तकनीकी कामों के अवसर कहाँ हैं?',
     ],
     en: [
-      'Where are the verified jobs in Butibori MIDC?',
-      'What upskilling options exist besides ITI?',
-      'How to get an MIDC factory apprenticeship?',
-      'How does my 3-year career roadmap work?',
+      'Where are verified direct jobs in Hingna & Butibori?',
+      'What on-the-job training exists beyond ITI?',
+      'How to escape competitive exam stress & start earning?',
+      'What opportunities exist for dairy, tailoring or other trades?',
     ],
   };
 
   const characterState = isListening ? 'listening' : speakingId ? 'speaking' : 'idle';
+  const isVoiceActive = speakingId !== null || isListening || jarvisMode;
 
   return (
     <>
@@ -453,7 +584,7 @@ export function FloatingAssistant() {
 
       {/* Main Assistant Dialog */}
       {isOpen && (
-        <div className="fixed inset-x-2.5 bottom-16 sm:inset-auto sm:right-22 sm:bottom-6 z-50 w-auto sm:w-[410px] h-[520px] max-h-[82vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed inset-x-2.5 bottom-16 sm:inset-auto sm:right-22 sm:bottom-6 z-50 w-auto sm:w-[410px] h-[530px] max-h-[82vh] bg-surface rounded-card border-2 border-ink shadow-solid-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           {/* Header */}
           <div className="p-3 bg-ink text-white flex items-center justify-between border-b-2 border-ink">
             <div className="flex items-center gap-2.5">
@@ -476,6 +607,18 @@ export function FloatingAssistant() {
             </div>
 
             <div className="flex items-center gap-1.5">
+              {/* Emergency Stop Button in Header (Always visible when voice/listening active) */}
+              {isVoiceActive && (
+                <button
+                  type="button"
+                  onClick={stopAllAudioAndVoice}
+                  className="px-2.5 py-1 rounded-full bg-alert text-white text-[10px] font-black transition flex items-center gap-1 shadow-solid-sm animate-pulse hover:bg-alert/90"
+                  title="Stop Speaking / Stop Listening"
+                >
+                  <span>⏹️ थांबवा</span>
+                </button>
+              )}
+
               {/* Voice Gender Switcher */}
               <button
                 type="button"
@@ -509,23 +652,26 @@ export function FloatingAssistant() {
                   : 'Continuous Voice (JARVIS Mode)'}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                const nextState = !jarvisMode;
-                setJarvisMode(nextState);
-                if (nextState && !isListening) {
-                  startRecording();
-                }
-              }}
-              className={`px-2.5 py-0.5 rounded-full text-[10px] font-black transition border ${
-                jarvisMode
-                  ? 'bg-primary text-white border-primary shadow-sm'
-                  : 'bg-white text-ink-secondary border-steel hover:text-ink'
-              }`}
-            >
-              {jarvisMode ? 'ON ✓' : 'OFF'}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  if (jarvisMode) {
+                    stopAllAudioAndVoice();
+                  } else {
+                    setJarvisMode(true);
+                    startRecording();
+                  }
+                }}
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black transition border ${
+                  jarvisMode
+                    ? 'bg-primary text-white border-primary shadow-sm'
+                    : 'bg-white text-ink-secondary border-steel hover:text-ink'
+                }`}
+              >
+                {jarvisMode ? 'ON ✓' : 'OFF'}
+              </button>
+            </div>
           </div>
 
           {/* Quick Prompts Bar */}
@@ -551,11 +697,19 @@ export function FloatingAssistant() {
             </div>
           )}
 
-          {/* Active Status Indicator */}
+          {/* Active Status Indicator with Mute/Stop Action */}
           {statusText && (
-            <div className="bg-steel-soft/80 border-b border-steel px-3 py-1 text-[11px] font-bold text-primary flex items-center gap-2 animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span>{statusText}</span>
+            <div className="bg-steel-soft/80 border-b border-steel px-3 py-1 text-[11px] font-bold text-primary flex items-center justify-between animate-pulse">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span>{statusText}</span>
+              </div>
+              <button
+                onClick={stopAllAudioAndVoice}
+                className="text-[10px] bg-alert text-white px-2 py-0.5 rounded font-black hover:bg-alert/90"
+              >
+                थांबवा (Stop)
+              </button>
             </div>
           )}
 
@@ -575,19 +729,19 @@ export function FloatingAssistant() {
                 >
                   <p className="leading-relaxed font-semibold whitespace-pre-wrap">{msg.text}</p>
 
-                  {/* Audio Listen Button */}
+                  {/* Audio Listen / Stop Button on Each Message */}
                   {msg.sender === 'assistant' && (
                     <div className="mt-2 pt-1.5 border-t border-steel/30 flex items-center justify-between text-[11px]">
                       <button
                         onClick={() => speakText(msg.id, msg.text)}
-                        className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded transition ${
+                        className={`inline-flex items-center gap-1 font-bold px-2.5 py-0.5 rounded transition ${
                           speakingId === msg.id
-                            ? 'bg-alert-bg text-alert border border-alert-border animate-pulse'
+                            ? 'bg-alert text-white border border-alert animate-pulse'
                             : 'text-primary hover:bg-steel-soft'
                         }`}
                       >
                         <IconVolume className="w-3.5 h-3.5" />
-                        <span>{speakingId === msg.id ? 'बोलत आहे...' : 'ऐका (Listen)'}</span>
+                        <span>{speakingId === msg.id ? '⏹️ आवाज थांबवा (Stop)' : '🔊 ऐका (Listen)'}</span>
                       </button>
 
                       {msg.citations && msg.citations.length > 0 && (
@@ -621,7 +775,7 @@ export function FloatingAssistant() {
           <div className="p-2.5 bg-white border-t-2 border-ink flex items-center gap-2">
             <button
               type="button"
-              onClick={toggleListening}
+              onClick={isListening ? stopRecording : toggleListening}
               className={`p-2.5 rounded-full border-2 border-ink transition shadow-solid-sm flex items-center justify-center shrink-0 ${
                 isListening
                   ? 'bg-alert text-white animate-pulse ring-4 ring-alert/30'
@@ -647,6 +801,18 @@ export function FloatingAssistant() {
               }
               className="flex-1 bg-canvas border border-ink/20 rounded-full px-3 py-1.5 text-xs font-semibold text-ink focus:outline-none focus:border-ink"
             />
+
+            {/* Quick Stop Button next to send if speaking */}
+            {speakingId && (
+              <button
+                type="button"
+                onClick={stopAllAudioAndVoice}
+                className="p-2 bg-alert hover:bg-alert/90 text-white rounded-full transition border border-alert shadow-solid-sm shrink-0"
+                title="Stop Voice"
+              >
+                ⏹️
+              </button>
+            )}
 
             <button
               type="button"
@@ -676,7 +842,12 @@ export function FloatingAssistant() {
           state={characterState}
           size={48}
           className="sm:w-[58px] sm:h-[58px]"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            if (isOpen && isVoiceActive) {
+              stopAllAudioAndVoice();
+            }
+            setIsOpen(!isOpen);
+          }}
         />
       </div>
     </>
