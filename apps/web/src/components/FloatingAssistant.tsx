@@ -34,6 +34,7 @@ export function FloatingAssistant() {
   const [isListening, setIsListening] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
+  const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('male');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -220,6 +221,7 @@ export function FloatingAssistant() {
         body: JSON.stringify({
           text,
           locale: preferredLocale,
+          gender: voiceGender,
         }),
       });
 
@@ -321,13 +323,23 @@ export function FloatingAssistant() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition text-xs font-bold"
-              aria-label="Close"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setVoiceGender(voiceGender === 'male' ? 'female' : 'male')}
+                className="px-2 py-0.5 rounded-full bg-white/15 hover:bg-white/25 text-[10px] font-bold text-white transition flex items-center gap-1 border border-white/20"
+                title="Switch Male/Female Voice"
+              >
+                <span>{voiceGender === 'male' ? '👨 पुरुष' : '👩 स्त्री'}</span>
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition text-xs font-bold"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* Quick Prompts Bar */}

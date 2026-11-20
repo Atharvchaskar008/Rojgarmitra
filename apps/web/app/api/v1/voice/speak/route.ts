@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
     const body = await req.json();
 
-    const { text, locale = 'mr' } = body;
+    const { text, locale = 'mr', gender = 'male', voiceId: requestedVoiceId } = body;
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
@@ -25,26 +25,29 @@ export async function POST(req: NextRequest) {
 
     const config = serverConfig.get();
     const elevenLabsKey = config.ELEVENLABS_API_KEY || process.env.ELEVENLABS_API_KEY;
-    let voiceId = config.ELEVENLABS_VOICE_ID || process.env.ELEVENLABS_VOICE_ID;
+
+    // Multilingual Voice Map by Locale and Gender
+    const VOICE_MAP: Record<string, { male: string; female: string }> = {
+      mr: {
+        male: process.env.ELEVENLABS_VOICE_MR_MALE || 'oIhZlnorjQiJ5jF7X73a',
+        female: process.env.ELEVENLABS_VOICE_MR_FEMALE || 'dSEhEXLzhnZEytnJ2rRy',
+      },
+      hi: {
+        male: process.env.ELEVENLABS_VOICE_HI_MALE || 'f1abxvIEijusskcPWE5x',
+        female: process.env.ELEVENLABS_VOICE_HI_FEMALE || 'JTPrASXyK62cF3L7w8hv',
+      },
+      en: {
+        male: process.env.ELEVENLABS_VOICE_EN_MALE || 'CwhRBWXzGAHq8TQ4Fs17',
+        female: process.env.ELEVENLABS_VOICE_EN_FEMALE || 'EXAVITQu4vr4xnSDxMaL',
+      },
+    };
+
+    const targetGender = gender === 'female' ? 'female' : 'male';
+    const localeMap = VOICE_MAP[locale] || VOICE_MAP.mr;
+    const finalVoiceId = requestedVoiceId || localeMap[targetGender] || config.ELEVENLABS_VOICE_ID || process.env.ELEVENLABS_VOICE_ID || 'oIhZlnorjQiJ5jF7X73a';
 
     if (elevenLabsKey) {
       try {
-        // If Voice ID is not provided, dynamically discover available voice from ElevenLabs API
-        if (!voiceId) {
-          const voicesRes = await fetch('https://api.elevenlabs.io/v1/voices', {
-            headers: { 'xi-api-key': elevenLabsKey },
-          });
-          if (voicesRes.ok) {
-            const voicesData = (await voicesRes.json()) as { voices?: Array<{ voice_id: string }> };
-            if (voicesData.voices && voicesData.voices.length > 0) {
-              voiceId = voicesData.voices[0].voice_id;
-            }
-          }
-        }
-
-        // Fallback default voice if still not found
-        const finalVoiceId = voiceId || 'CwhRBWXzGAHq8TQ4Fs17';
-
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${finalVoiceId}`, {
           method: 'POST',
           headers: {
