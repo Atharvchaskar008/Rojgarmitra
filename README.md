@@ -1,6 +1,8 @@
 # 🌟 रोजगारमित्र (RojgarMitra)
 ### AI-Powered Localized Skill-to-Employment & Career Mobility Platform for Vidarbha & Tier-2/3 Youth
+#### 🏆 Built for YCCE HackKumbh 2026
 
+[![Hackathon](https://img.shields.io/badge/YCCE%20HackKumbh-2026-gold?style=for-the-badge&logo=target)](https://rojgarmitra.vercel.app/)
 [![Live Production Demo](https://img.shields.io/badge/Live%20Demo-rojgarmitra.vercel.app-emerald?style=for-the-badge&logo=vercel)](https://rojgarmitra.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.2.9-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -26,17 +28,17 @@
 
 ## 📑 TABLE OF CONTENTS
 1. [Executive Summary & Core Mission](#-executive-summary--core-mission)
-2. [Presentation Pitch Deck Blueprint (For GPT / PPT Generation)](#-presentation-pitch-deck-blueprint-for-gpt--ppt-generation)
-3. [Deep Architecture & Backend Execution Engine](#-deep-architecture--backend-execution-engine)
-4. [Anti-Hallucination Job Discovery & Direct Portal Redirection](#-anti-hallucination-job-discovery--direct-portal-redirection)
-5. [Deterministic Mathematical Matching Algorithm (0-100%)](#-deterministic-mathematical-matching-algorithm-0-100)
-6. [Regional Multilingual Voice AI Companion ("Mitra")](#-regional-multilingual-voice-ai-companion-mitra)
-7. [Universal Vocation & Employer Scalability](#-universal-vocation--employer-scalability)
-8. [Career Reality Check & Multi-Track Upskilling Ecosystem](#-career-reality-check--multi-track-upskilling-ecosystem)
-9. [Pre-Seeded Production Demo Accounts & Video Walkthrough](#-pre-seeded-production-demo-accounts--video-walkthrough)
-10. [Local Development & Setup Guide](#-local-development--setup-guide)
-11. [Vercel Production Deployment Instructions](#-vercel-production-deployment-instructions)
-12. [Security, SSRF Guard & Privacy Architecture](#-security-ssrf-guard--privacy-architecture)
+2. [Deep Architecture & Backend Execution Engine](#-deep-architecture--backend-execution-engine)
+3. [Anti-Hallucination Job Discovery & Direct Portal Redirection](#-anti-hallucination-job-discovery--direct-portal-redirection)
+4. [Deterministic Mathematical Matching Algorithm (0-100%)](#-deterministic-mathematical-matching-algorithm-0-100)
+5. [Regional Multilingual Voice AI Companion ("Mitra")](#-regional-multilingual-voice-ai-companion-mitra)
+6. [Universal Vocation & Employer Scalability](#-universal-vocation--employer-scalability)
+7. [Career Reality Check & Multi-Track Upskilling Ecosystem](#-career-reality-check--multi-track-upskilling-ecosystem)
+8. [Pre-Seeded Production Demo Accounts & Video Walkthrough](#-pre-seeded-production-demo-accounts--video-walkthrough)
+9. [Local Development & Setup Guide](#-local-development--setup-guide)
+10. [Vercel Production Deployment Instructions](#-vercel-production-deployment-instructions)
+11. [Security, SSRF Guard & Privacy Architecture](#-security-ssrf-guard--privacy-architecture)
+12. [Hackathon Team & Acknowledgments](#-hackathon-team--acknowledgments)
 
 ---
 
@@ -47,108 +49,6 @@ Across India's Tier-2/3 industrial regions and rural belts—exemplified by **Na
 Traditional job portals (LinkedIn, Naukri, Indeed) fail rural youth completely because they require polished English resumes, emphasize white-collar corporate roles, and suffer from algorithmic hallucination or outdated scam postings. Conversely, local workshop owners, shopkeepers, contractors, and MIDC factory supervisors cannot find reliable workers despite massive local vacancies.
 
 **RojgarMitra** is a localized, voice-first, bilingual (Marathi, Hindi & English) intelligence engine that bridges this disconnect. It transforms unstructured spoken voice into structured employability profiles, deterministically calculates job-compatibility without synthetic LLM hallucinations, discovers verified vacancies across official state portals (MahaSwayam, National Career Service, Apprenticeship India, MSEDCL), and navigates rural jobseekers directly to physical factory gates using Google Places API.
-
----
-
-## 🎯 Presentation Pitch Deck Blueprint (For GPT / PPT Generation)
-
-> **💡 Instructions for ChatGPT / PPT Makers:**  
-> Use the exact slide breakdown below to generate slides, speaker notes, and presentation narratives for hackathons, investor pitches, or academic defenses.
-
-```
-========================================================================================
-SLIDE 1: COVER & VISION
-• Title: रोजगारमित्र (RojgarMitra)
-• Subtitle: Localized AI Skill-to-Employment & Career Mobility Platform for Rural & Tier-2/3 Youth
-• Tagline: "Bridging the Gap from Informal Vocational Training to Stable Factory Employment"
-• Live URL: https://rojgarmitra.vercel.app/
-• Focus Geography: Nagpur & Vidarbha Industrial Corridor (Hingna & Butibori MIDC)
-• Team: YCCE HackKumbh 2026
-
-SLIDE 2: THE CRITICAL PROBLEM IN RURAL & TIER-2/3 INDIA
-• Linguistic & Literacy Barrier: 82% of rural youth struggle with English-first job platforms.
-• The ITI & Informal Disconnect: Thousands graduate from ITIs or work in informal trades (welding, wiring, billing, retail, tailoring) without a verifiable digital identity.
-• The Competitive Exam Trap: Millions waste 3 to 7 prime earning years preparing for government exams with <0.1% selection rates, leading to chronic unemployment and financial despair.
-• Information Asymmetry for Employers: Small workshops, contractors, and MIDC plants struggle with high attrition and cannot afford corporate ATS software.
-• Fake Postings & Hallucinations: Mainstream aggregators display outdated, spammy, or fabricated leads with zero geographic grounding.
-
-SLIDE 3: THE ROJGARMITRA SOLUTION
-• Voice-First Native Regional AI ("Mitra"): Conversational speech-to-profile onboarding in Marathi, Hindi, and English (powered by ElevenLabs & Sarvam AI).
-• Zero-Hallucination Deterministic Matching: Mathematical compatibility scoring (0–100%) based on verified skills and real road travel proximity.
-• Anti-Hallucination Vacancy Crawler: Real-time discovery of live vacancies with SSRF guards and direct one-click redirection to official portals (MahaSwayam, NCS, Apprenticeship India).
-• Universal Vocation Engine: Equal support for all employers (from Sitabuldi grocery shops and welding garages to Tier-1 auto manufacturers) and candidates across all trades.
-• Grounded Factory Navigation: Google Maps Places API routing candidates from their village bus stop directly to the plant gate.
-
-SLIDE 4: USER PERSONAS & DUAL EXPERIENCES
-• Candidate Persona (Ramesh Patil - Hingna MIDC):
-  - Background: ITI Electrician, 6 months unemployed, exhausted after failed state electricity board exams.
-  - User Action: Speaks Marathi to Mitra ("मला हिंगणा MIDC मध्ये मोटर वाइंडिंगचे काम हवे आहे"), receives a verified 95% matched vacancy at Mahindra Hingna Plant, views exact Google Maps route, and accesses free Bharat Skills motor wiring tutorials.
-• Employer Persona (Nilesh Deshmukh - Om Sai Engineering, Hingna MIDC):
-  - Background: Owner of a 15-worker precision fabrication workshop.
-  - User Action: Posts a MIG Welder vacancy in 90 seconds, views verified candidate badges, and connects immediately via one-click phone dialer (tel:).
-
-SLIDE 5: SYSTEM ARCHITECTURE & TECHNICAL INNOVATION
-• Frontend: Next.js 15 App Router, React 19, Tailwind CSS v4, Lucide/Custom Industrial Stroke SVGs.
-• Mobile & Tablet First: 100% responsive fluid layout with zero horizontal overflow across devices.
-• State & Database: Cloud Firestore with security rules, optimistic UI updates, and serverless edge handlers.
-• Multilingual Synchronization: Instantaneous 3-way language toggle (मराठी | हिंदी | English) across 100% of routes and components.
-• Voice AI: ElevenLabs Pro (Scribe STT + Multilingual v2) + Sarvam AI Indian regional models with instant voice cancellation and zero audio collision.
-
-SLIDE 6: ZERO-HALLUCINATION DETERMINISTIC MATCH ENGINE
-• Formula: Match Score = (Skill Overlap Score × 75%) + (Location Proximity Bonus × 25%)
-• Hard Eligibility Gates:
-  - Gate 1: Job Active Status Check (status == 'open')
-  - Gate 2: Mandatory Safety Certifications (Wireman License, ITI Trade Certificate, Driving License)
-• Proximity Bonus:
-  - Same District (Nagpur): +15 points
-  - Same Industrial Cluster (Hingna / Butibori MIDC): +10 bonus points
-  - Commute Verification: Checked against candidate's maximum travel radius.
-• Anti-Hallucination Guarantee: If zero verified jobs exist, the platform never invents synthetic postings. It returns transparent zero results and triggers upskilling pipelines.
-
-SLIDE 7: LIVE WEB CRAWLER & ANTI-HALLUCINATION VERIFIER
-• Intelligent Web Scraping: Tavily API queries live regional employment boards (MahaJobs, NCS, WorkIndia).
-• Multi-Stage Verification Pipeline:
-  - Domain Authority Check (whitelisted government and verified industry domains).
-  - Vacancy Signal Detection (must contain active date, job role, physical address, and contact/application URL).
-  - SSRF Guard: Blocks private IP ranges (10.0.0.0/8, 127.0.0.1, 169.254.169.254).
-• Bold Official Portal Redirection: Every crawled vacancy features a prominent external redirect button ("अधिकृत पोर्टलवर अर्ज करा ↗") targeting verified sources with zero intermediary spoofing.
-
-SLIDE 8: "MITRA" VOICE AI & JARVIS COMPANION
-• Natural Regional Conversationalist: Understands Vidarbha Marathi dialect ("काय भाऊ, काम शोधताय का?").
-• Audio Interruption & Overlap Elimination:
-  - Bumps epoch counter (playbackEpochRef += 1) to abort pending TTS network responses when new inputs arrive.
-  - Global Escape key listener and unmissable sticky stop bar [⏹️ आवाज थांबवा].
-  - Hardware Audio Mute toggle [🔊 चालू / 🔇 म्यूट] for low-bandwidth or quiet environments.
-• Voice Onboarding: Converts 30 seconds of free speech into a validated candidate profile without manual typing.
-
-SLIDE 9: DUAL-TRACK UPSKILLING & CAREER PROGRESSION
-• Beyond ITI: Tailoring, Salon Management, POS Billing, Tally Prime GST, Warehouse Forklift Driving, Solar PV Installation.
-• Empathetic Career Reality Check: Provides realistic advice to candidates trapped in multi-year competitive exam cycles, prioritizing immediate income (₹14,000–₹22,000/mo) while continuing part-time study.
-• Curated Learning Resources:
-  - Official DGT Bharat Skills NIMI Trade Theory & Practical textbooks.
-  - Regional YouTube playlists (मराठी/हिंदी) from top technical educators.
-  - Direct links to 12 Government ITIs across Nagpur, Butibori, Umred, and Saoner.
-
-SLIDE 10: EMPLOYER HIRING DASHBOARD & INSTANT CALL DIALER
-• 90-Second Posting Flow: Tailored for MSME owners with minimal digital literacy.
-• Instant Telephone Action: Direct mobile dialer (`tel:${phone}`) enables immediate call scheduling, respecting the informal hiring convention of Tier-2/3 cities.
-• Cryptographic Digital Profile Badges: Verifiable identity cards (Candidate ID: RM-VID-2026-XXXX, Employer ID: RM-EMP-XXXX) establishing mutual trust.
-
-SLIDE 11: MEASURABLE IMPACT & PILOT VALIDATION
-• Target Beneficiaries: 15,000+ ITI students and informal jobseekers across Nagpur district annually.
-• Economic Value: Accelerates hiring cycles from 28 days to under 48 hours for MSMEs in Hingna and Butibori MIDC.
-• Inclusivity: Provides equal access to candidates with zero formal English literacy.
-• Direct Redirection: Thousands connected to genuine government schemes (PAPS, National Apprenticeship Promotion Scheme).
-
-SLIDE 12: ROADMAP, BUSINESS MODEL & EXPANSION
-• Phase 1 (Q2 2026): Nagpur & Wardha Pilot rollout across 500 MSME industrial units.
-• Phase 2 (Q4 2026): Expansion across all 11 Vidarbha districts (Amravati, Akola, Chandrapur, Yavatmal).
-• Monetization Model:
-  - 100% Free for all rural jobseekers and basic MSME postings.
-  - Premium Tier for Large Enterprises: Bulk hiring filters, DLT-compliant SMS broadcasts, on-premise verification badges.
-  - Government CSR & DVET Apprenticeship integration partnerships.
-========================================================================================
-```
 
 ---
 
@@ -442,4 +342,11 @@ pnpm --filter @rojgarmitra/web start -p 3000
 ---
 
 ## 👥 Hackathon Team & Acknowledgments
+
+**Built for YCCE HackKumbh 2026**
+
+### 🏆 Team Members
+* **Atharv Chaskar** — Lead Architect, Full-Stack & Voice AI Engineer
+* **Prathamesh Patil** — Core Developer, Deterministic Algorithms & UI/UX
+
 Engineered with precision for **YCCE HackKumbh 2026** to empower the hardworking youth and industrial backbone of Vidarbha, Maharashtra.
